@@ -91,28 +91,33 @@
   <main class="max-w-3xl mx-auto px-4 py-6">
 
     <!-- หน้า 1: ลงเวลาเข้า-ออกงาน -->
-    <section id="view-attendance" class="page-view bg-white/95 backdrop-blur-md rounded-2xl shadow-lg border border-white p-6 space-y-4 max-w-xl mx-auto">
-      <div class="border-b border-slate-100 pb-3">
-        <h2 class="text-lg font-semibold text-slate-800">บันทึกเวลาเข้า-ออกงาน</h2>
-        <p class="text-xs text-slate-500 mt-0.5">บันทึกเวลาเข้างานหรือออกงานแบบเรียลไทม์เข้าสู่ระบบ</p>
+    <section id="view-attendance" class="page-view bg-white/95 backdrop-blur-md rounded-3xl shadow-lg border border-white p-6 space-y-4 max-w-xl mx-auto">
+      <div class="border-b border-slate-100 pb-3.5 flex items-center justify-between gap-2">
+        <div>
+          <h2 class="text-lg font-semibold text-slate-800">บันทึกเวลาเข้า-ออกงาน</h2>
+          <p class="text-xs text-slate-500 mt-0.5">บันทึกเวลาเข้างานหรือออกงานแบบเรียลไทม์เข้าสู่ระบบ</p>
+        </div>
+        <span class="text-xs font-medium bg-indigo-50 text-indigo-700 border border-indigo-100 px-3 py-1 rounded-full shrink-0">
+          เรียลไทม์
+        </span>
       </div>
 
       <div>
         <label class="block text-sm font-medium text-slate-700 mb-1">รหัสพนักงาน</label>
         <input id="attEmpCode" type="text" placeholder="เช่น EMP001"
-          class="emp-code-sync w-full border border-slate-200 rounded-xl px-3.5 py-2.5 focus:outline-none focus:ring-2 focus:ring-indigo-400" />
+          class="emp-code-sync w-full border border-slate-200 rounded-xl px-3.5 py-2.5 focus:outline-none focus:ring-2 focus:ring-indigo-400 transition" />
       </div>
 
       <div>
         <label class="block text-sm font-medium text-slate-700 mb-1">ชื่อ - นามสกุล</label>
         <input id="attEmpName" type="text" placeholder="กรอกชื่อ-นามสกุลพนักงาน"
-          class="emp-name-sync w-full border border-slate-200 rounded-xl px-3.5 py-2.5 focus:outline-none focus:ring-2 focus:ring-indigo-400" />
+          class="emp-name-sync w-full border border-slate-200 rounded-xl px-3.5 py-2.5 focus:outline-none focus:ring-2 focus:ring-indigo-400 transition" />
       </div>
 
       <div>
         <label class="block text-sm font-medium text-slate-700 mb-1">กลุ่มงาน</label>
         <select id="attDept"
-          class="dept-sync w-full border border-slate-200 rounded-xl px-3.5 py-2.5 bg-white focus:outline-none focus:ring-2 focus:ring-indigo-400">
+          class="dept-sync w-full border border-slate-200 rounded-xl px-3.5 py-2.5 bg-white focus:outline-none focus:ring-2 focus:ring-indigo-400 transition">
           <option value="">-- เลือกกลุ่มงาน --</option>
           <optgroup label="กลุ่มงานสนับสนุนและบริหาร">
             <option value="กลุ่มบริหารทั่วไป">กลุ่มบริหารทั่วไป</option>
@@ -133,17 +138,44 @@
         </select>
       </div>
 
-      <div>
-        <label class="block text-sm font-medium text-slate-700 mb-1">เลือกรายการลงเวลา</label>
-        <select id="attType"
-          class="w-full border border-slate-200 rounded-xl px-3.5 py-2.5 bg-white focus:outline-none focus:ring-2 focus:ring-indigo-400">
-          <option value="เข้างาน">ลงเวลาเข้างาน</option>
+      <!-- เลือกรายการลงเวลาแบบการ์ดกดง่าย -->
+      <div class="space-y-2">
+        <label class="block text-sm font-medium text-slate-700">เลือกรายการลงเวลา</label>
+        <div class="grid grid-cols-2 gap-3">
+          <button id="pickCheckInBtn" type="button" data-att-choice="เข้างาน"
+            class="att-choice-btn rounded-2xl border-2 border-emerald-500 bg-emerald-50/90 text-emerald-800 p-3.5 text-left transition flex items-center gap-3 shadow-2xs cursor-pointer">
+            <span class="w-9 h-9 rounded-xl bg-emerald-500 text-white flex items-center justify-center text-base shrink-0">🌅</span>
+            <div class="min-w-0">
+              <p class="text-sm font-semibold leading-tight">ลงเวลาเข้างาน</p>
+              <p class="text-[11px] text-emerald-700/80 mt-0.5">เช็กอินตอนเริ่มงาน</p>
+            </div>
+          </button>
+
+          <button id="pickCheckOutBtn" type="button" data-att-choice="ออกงาน"
+            class="att-choice-btn rounded-2xl border border-slate-200 bg-white hover:border-indigo-200 hover:bg-slate-50/80 text-slate-700 p-3.5 text-left transition flex items-center gap-3 cursor-pointer">
+            <span class="w-9 h-9 rounded-xl bg-slate-100 text-slate-600 flex items-center justify-center text-base shrink-0">🌇</span>
+            <div class="min-w-0">
+              <p class="text-sm font-semibold leading-tight">ลงเวลาออกงาน</p>
+              <p class="text-[11px] text-slate-400 mt-0.5">เช็กเอาต์ตอนเลิกงาน</p>
+            </div>
+          </button>
+        </div>
+
+        <!-- เก็บค่าไว้เพื่อความเข้ากันได้กับโค้ดเดิม -->
+        <select id="attType" class="sr-only" aria-hidden="true">
+          <option value="เข้างาน" selected>ลงเวลาเข้างาน</option>
           <option value="ออกงาน">ลงเวลาออกงาน</option>
         </select>
       </div>
 
+      <!-- แถบยืนยันรายการที่เลือก -->
+      <div id="attModeBanner" class="bg-emerald-50/70 border border-emerald-100 rounded-xl px-3.5 py-2.5 flex items-center justify-between text-xs">
+        <span class="text-slate-600">รายการที่เลือก:</span>
+        <span id="attModeText" class="font-semibold text-emerald-700">ลงเวลาเข้างาน</span>
+      </div>
+
       <button id="attSubmitBtn" type="button"
-        class="w-full bg-indigo-600 hover:bg-indigo-700 disabled:bg-slate-400 text-white font-medium py-3 rounded-xl shadow-md transition cursor-pointer">
+        class="w-full bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-700 hover:to-violet-700 active:scale-[0.99] disabled:from-slate-400 disabled:to-slate-400 text-white font-medium py-3.5 rounded-2xl shadow-md shadow-indigo-200/70 transition cursor-pointer">
         ยืนยันการลงเวลา
       </button>
 
@@ -225,7 +257,6 @@
           class="w-full border border-slate-200 rounded-xl px-3.5 py-2.5 focus:outline-none focus:ring-2 focus:ring-indigo-400"></textarea>
       </div>
 
-      <!-- ช่องแนบภาพหลักฐาน -->
       <div>
         <label class="block text-sm font-medium text-slate-700 mb-1">แนบภาพหลักฐาน (ถ้ามี เช่น ใบรับรองแพทย์)</label>
         <input id="leaveEvidenceInput" type="file" accept="image/*"
@@ -371,6 +402,48 @@
     }
     setInterval(updateClock, 1000);
     updateClock();
+
+    function syncAttendanceChoiceUI(value) {
+      const selectEl = document.getElementById('attType');
+      if (selectEl) selectEl.value = value;
+
+      const checkInBtn = document.getElementById('pickCheckInBtn');
+      const checkOutBtn = document.getElementById('pickCheckOutBtn');
+      const banner = document.getElementById('attModeBanner');
+      const modeText = document.getElementById('attModeText');
+
+      if (value === 'ออกงาน') {
+        checkOutBtn.className = 'att-choice-btn rounded-2xl border-2 border-amber-500 bg-amber-50/90 text-amber-800 p-3.5 text-left transition flex items-center gap-3 shadow-2xs cursor-pointer';
+        checkOutBtn.querySelector('span').className = 'w-9 h-9 rounded-xl bg-amber-500 text-white flex items-center justify-center text-base shrink-0';
+        checkOutBtn.querySelectorAll('p')[1].className = 'text-[11px] text-amber-700/80 mt-0.5';
+
+        checkInBtn.className = 'att-choice-btn rounded-2xl border border-slate-200 bg-white hover:border-indigo-200 hover:bg-slate-50/80 text-slate-700 p-3.5 text-left transition flex items-center gap-3 cursor-pointer';
+        checkInBtn.querySelector('span').className = 'w-9 h-9 rounded-xl bg-slate-100 text-slate-600 flex items-center justify-center text-base shrink-0';
+        checkInBtn.querySelectorAll('p')[1].className = 'text-[11px] text-slate-400 mt-0.5';
+
+        banner.className = 'bg-amber-50/70 border border-amber-100 rounded-xl px-3.5 py-2.5 flex items-center justify-between text-xs';
+        modeText.className = 'font-semibold text-amber-700';
+        modeText.textContent = 'ลงเวลาออกงาน';
+      } else {
+        checkInBtn.className = 'att-choice-btn rounded-2xl border-2 border-emerald-500 bg-emerald-50/90 text-emerald-800 p-3.5 text-left transition flex items-center gap-3 shadow-2xs cursor-pointer';
+        checkInBtn.querySelector('span').className = 'w-9 h-9 rounded-xl bg-emerald-500 text-white flex items-center justify-center text-base shrink-0';
+        checkInBtn.querySelectorAll('p')[1].className = 'text-[11px] text-emerald-700/80 mt-0.5';
+
+        checkOutBtn.className = 'att-choice-btn rounded-2xl border border-slate-200 bg-white hover:border-indigo-200 hover:bg-slate-50/80 text-slate-700 p-3.5 text-left transition flex items-center gap-3 cursor-pointer';
+        checkOutBtn.querySelector('span').className = 'w-9 h-9 rounded-xl bg-slate-100 text-slate-600 flex items-center justify-center text-base shrink-0';
+        checkOutBtn.querySelectorAll('p')[1].className = 'text-[11px] text-slate-400 mt-0.5';
+
+        banner.className = 'bg-emerald-50/70 border border-emerald-100 rounded-xl px-3.5 py-2.5 flex items-center justify-between text-xs';
+        modeText.className = 'font-semibold text-emerald-700';
+        modeText.textContent = 'ลงเวลาเข้างาน';
+      }
+    }
+
+    document.querySelectorAll('.att-choice-btn').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        syncAttendanceChoiceUI(btn.dataset.attChoice);
+      });
+    });
 
     const drawer = document.getElementById('drawerMenu');
     const backdrop = document.getElementById('menuBackdrop');
