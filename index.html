@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ระบบบันทึกการขาด ลา มาสาย พนักงาน</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <style>
+    body { font-family: 'Kanit', sans-serif; }
+  </style>
+</head>
+<body class="bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 min-h-screen flex flex-col items-center justify-center p-4">
+
+  <div class="bg-white/90 backdrop-blur-md w-full max-w-md rounded-2xl shadow-xl border border-white p-6 space-y-5">
+    <div class="flex justify-between items-center border-b border-slate-100 pb-3">
+      <div>
+        <h1 class="text-xl font-semibold text-slate-800">ระบบลงเวลา & แจ้งลางาน</h1>
+        <p id="clock" class="text-xs text-indigo-600 font-medium mt-0.5"></p>
+      </div>
+      <a href="admin.html" class="text-xs bg-slate-100 hover:bg-slate-200 text-slate-700 px-3 py-1.5 rounded-lg font-medium transition">
+        หลังบ้าน Admin
+      </a>
+    </div>
+
+    <div class="space-y-4">
+      <div>
+        <label class="block text-sm font-medium text-slate-700 mb-1">รหัสพนักงาน</label>
+        <input id="empCode" type="text" placeholder="เช่น EMP001" class="w-full border border-slate-200 rounded-xl px-3.5 py-2.5 focus:outline-none focus:ring-2 focus:ring-indigo-400" />
+      </div>
+
+      <div>
+        <label class="block text-sm font-medium text-slate-700 mb-1">ชื่อ - นามสกุล</label>
+        <input id="empName" type="text" placeholder="กรอกชื่อ-นามสกุลพนักงาน" class="w-full border border-slate-200 rounded-xl px-3.5 py-2.5 focus:outline-none focus:ring-2 focus:ring-indigo-400" />
+      </div>
+
+      <div>
+        <label class="block text-sm font-medium text-slate-700 mb-1">ประเภทรายการ</label>
+        <select id="recordType" class="w-full border border-slate-200 rounded-xl px-3.5 py-2.5 bg-white focus:outline-none focus:ring-2 focus:ring-indigo-400">
+          <option value="เข้างาน">ลงเวลาเข้างาน</option>
+          <option value="ออกงาน">ลงเวลาออกงาน</option>
+          <option value="ลางาน">แจ้งลางาน</option>
+        </select>
+      </div>
+
+      <div id="leaveSection" class="hidden space-y-3 bg-indigo-50/70 p-3.5 rounded-xl border border-indigo-100">
+        <div>
+          <label class="block text-sm font-medium text-slate-700 mb-1">ประเภทการลา</label>
+          <select id="leaveType" class="w-full border border-slate-200 rounded-lg px-3 py-2 bg-white text-sm">
+            <option value="ลาป่วย">ลาป่วย</option>
+            <option value="ลากิจ">ลากิจ</option>
+            <option value="ลาพักร้อน">ลาพักร้อน</option>
+          </select>
+        </div>
+        <div class="grid grid-cols-2 gap-2">
+          <div>
+            <label class="block text-xs font-medium text-slate-700 mb-1">ตั้งแต่วันที่</label>
+            <input id="startDate" type="date" class="w-full border border-slate-200 rounded-lg px-2.5 py-1.5 bg-white text-sm" />
+          </div>
+          <div>
+            <label class="block text-xs font-medium text-slate-700 mb-1">ถึงวันที่</label>
+            <input id="endDate" type="date" class="w-full border border-slate-200 rounded-lg px-2.5 py-1.5 bg-white text-sm" />
+          </div>
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-slate-700 mb-1">เหตุผลการลา</label>
+          <textarea id="leaveReason" rows="2" placeholder="ระบุเหตุผลสั้น ๆ" class="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm"></textarea>
+        </div>
+      </div>
+
+      <button id="submitBtn" class="w-full bg-indigo-600 hover:bg-indigo-700 disabled:bg-slate-400 text-white font-medium py-3 rounded-xl shadow-md transition">
+        บันทึกข้อมูล
+      </button>
+
+      <div id="resultBox" class="hidden p-3 rounded-xl text-sm text-center font-medium"></div>
+    </div>
+  </div>
+
+  <script>
+    
+    const SCRIPT_URL = "//https://script.google.com/macros/s/AKfycbw3ovdTdqhw7KuqvA_MJ7lyyCQNur-LRCg1hJul1K3733YxNkwfYtuJ-XYry965vPskHw/exec";
+
+    function updateClock() {
+      const now = new Date();
+      document.getElementById('clock').textContent = now.toLocaleString('th-TH', {
+        dateStyle: 'full',
+        timeStyle: 'medium'
+      });
+    }
+    setInterval(updateClock, 1000);
+    updateClock();
+
+    const recordType = document.getElementById('recordType');
+    const leaveSection = document.getElementById('leaveSection');
+    recordType.addEventListener('change', () => {
+      leaveSection.classList.toggle('hidden', recordType.value !== 'ลางาน');
+    });
+
+    document.getElementById('submitBtn').addEventListener('click', async () => {
+      const emp_code = document.getElementById('empCode').value.trim();
+      const emp_name = document.getElementById('empName').value.trim();
+      const type = recordType.value;
+      const resultBox = document.getElementById('resultBox');
+      const btn = document.getElementById('submitBtn');
+
+      if (!emp_code || !emp_name) {
+        resultBox.className = 'p-3 rounded-xl text-sm text-center font-medium bg-red-100 text-red-700';
+        resultBox.textContent = 'กรุณากรอกรหัสและชื่อพนักงานให้ครบถ้วน';
+        resultBox.classList.remove('hidden');
+        return;
+      }
+
+      let payload = { emp_code, emp_name };
+
+      if (type === 'ลางาน') {
+        const leave_type = document.getElementById('leaveType').value;
+        const start_date = document.getElementById('startDate').value;
+        const end_date = document.getElementById('endDate').value;
+        const reason = document.getElementById('leaveReason').value.trim();
+
+        if (!start_date || !end_date || !reason) {
+          resultBox.className = 'p-3 rounded-xl text-sm text-center font-medium bg-red-100 text-red-700';
+          resultBox.textContent = 'กรุณากรอกวันที่ลาและเหตุผลให้ครบถ้วน';
+          resultBox.classList.remove('hidden');
+          return;
+        }
+        payload = { ...payload, action: 'leave', leave_type, start_date, end_date, reason };
+      } else {
+        payload = { ...payload, action: 'attendance', record_type: type };
+      }
+
+      btn.disabled = true;
+      btn.textContent = 'กำลังบันทึกข้อมูล...';
+      resultBox.classList.add('hidden');
+
+      try {
+        const res = await fetch(SCRIPT_URL, {
+          method: 'POST',
+          body: JSON.stringify(payload)
+        });
+        const data = await res.json();
+
+        resultBox.className = data.ok
+          ? 'p-3 rounded-xl text-sm text-center font-medium bg-emerald-100 text-emerald-700'
+          : 'p-3 rounded-xl text-sm text-center font-medium bg-red-100 text-red-700';
+        resultBox.textContent = data.message || 'ดำเนินการเสร็จสิ้น';
+        resultBox.classList.remove('hidden');
+      } catch (err) {
+        resultBox.className = 'p-3 rounded-xl text-sm text-center font-medium bg-red-100 text-red-700';
+        resultBox.textContent = 'เกิดข้อผิดพลาดในการเชื่อมต่อ: ' + err.message;
+        resultBox.classList.remove('hidden');
+      } finally {
+        btn.disabled = false;
+        btn.textContent = 'บันทึกข้อมูล';
+      }
+    });
+  </script>
+</body>
+</html>
