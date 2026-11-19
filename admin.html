@@ -3,200 +3,355 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Admin Dashboard - อนุมัติใบลา & ภาพรวมพนักงาน</title>
+  <title>แดชบอร์ดผู้ดูแลระบบ (Admin) — แยกรายบุคคล</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600&display=swap" rel="stylesheet">
   <style>
     body { font-family: 'Kanit', sans-serif; }
   </style>
 </head>
-<body class="bg-slate-50 min-h-screen p-4 md:p-8">
+<body class="bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 min-h-screen text-slate-800">
 
-  <div class="max-w-6xl mx-auto space-y-6">
-    <!-- ส่วนหัว -->
-    <div class="flex flex-wrap justify-between items-center gap-3 bg-white p-5 rounded-2xl shadow-sm border border-slate-100">
+  <main class="max-w-6xl mx-auto px-4 py-6 space-y-5">
+
+    <!-- ส่วนหัวแดชบอร์ด -->
+    <section class="bg-white/95 backdrop-blur-md rounded-2xl shadow-sm border border-white p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
       <div>
-        <h1 class="text-2xl font-semibold text-slate-800">แดชบอร์ดผู้ดูแลระบบ (Admin)</h1>
-        <p class="text-sm text-slate-500">ตรวจสอบสถิติเข้างาน-มาสาย และจัดการอนุมัติคำขอลางาน</p>
+        <h1 class="text-xl sm:text-2xl font-semibold text-slate-800">แดชบอร์ดผู้ดูแลระบบ (Admin)</h1>
+        <p class="text-xs sm:text-sm text-slate-500 mt-0.5">ตรวจสอบสถิติเข้างาน-มาสาย แยกดูข้อมูลรายบุคคล และจัดการอนุมัติคำขอลางาน</p>
       </div>
-      <div class="flex items-center gap-2">
-        <button onclick="loadDashboard()" class="bg-indigo-600 hover:bg-indigo-700 text-white text-sm px-4 py-2 rounded-xl font-medium transition">
+      <div class="flex items-center gap-2 shrink-0">
+        <button id="refreshBtn" type="button"
+          class="bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium px-4 py-2 rounded-xl shadow-xs transition cursor-pointer">
           รีเฟรชข้อมูล
         </button>
-        <a href="index.html" class="bg-slate-100 hover:bg-slate-200 text-slate-700 text-sm px-4 py-2 rounded-xl font-medium transition">
+        <a href="index.html"
+          class="bg-slate-100 hover:bg-slate-200 text-slate-700 text-sm font-medium px-4 py-2 rounded-xl transition">
           หน้าพนักงาน
         </a>
       </div>
-    </div>
+    </section>
 
-    <!-- การ์ดสรุปภาพรวม -->
-    <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-      <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-100">
-        <p class="text-xs text-slate-500">เข้างานตรงเวลา (วันนี้)</p>
-        <p id="statOnTime" class="text-3xl font-semibold text-emerald-600 mt-1">-</p>
-      </div>
-      <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-100">
-        <p class="text-xs text-slate-500">มาสาย (วันนี้)</p>
-        <p id="statLate" class="text-3xl font-semibold text-amber-600 mt-1">-</p>
-      </div>
-      <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-100">
-        <p class="text-xs text-slate-500">ใบลารออนุมัติ</p>
-        <p id="statPending" class="text-3xl font-semibold text-rose-600 mt-1">-</p>
-      </div>
-      <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-100">
-        <p class="text-xs text-slate-500">รายการบันทึกทั้งหมด</p>
-        <p id="statTotal" class="text-3xl font-semibold text-indigo-600 mt-1">-</p>
-      </div>
-    </div>
+    <!-- แถบเลือกแยกแดชบอร์ดรายบุคคล -->
+    <section class="bg-white/95 backdrop-blur-md rounded-2xl shadow-sm border border-white p-5 space-y-4">
+      <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-3">
+        <div>
+          <span id="viewModeBadge" class="inline-block text-xs font-medium bg-indigo-100 text-indigo-700 px-3 py-1 rounded-full">
+            โหมดปัจจุบัน: ภาพรวมทั้งหมด
+          </span>
+          <h2 id="selectedPersonTitle" class="text-lg font-semibold text-slate-800 mt-1.5">ข้อมูลภาพรวมพนักงานทั้งหมด</h2>
+          <p id="selectedPersonSub" class="text-xs text-slate-500">เลือกพนักงานจากรายการด้านขวาเพื่อแยกดูแดชบอร์ดของแต่ละคน</p>
+        </div>
 
-    <!-- ตารางจัดการใบลา -->
-    <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-100 space-y-4">
-      <h2 class="text-lg font-semibold text-slate-800">รายการคำขอลางาน</h2>
+        <div class="flex flex-wrap items-center gap-2">
+          <select id="employeeSelect"
+            class="border border-slate-200 rounded-xl px-3.5 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-indigo-400 min-w-[220px]">
+            <option value="ALL">-- ดูภาพรวมทั้งหมด --</option>
+          </select>
+          <input id="quickCodeFilter" type="text" placeholder="พิมพ์รหัสหรือชื่อ..."
+            class="border border-slate-200 rounded-xl px-3.5 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400 w-44" />
+          <button id="resetFilterBtn" type="button"
+            class="bg-slate-100 hover:bg-slate-200 text-slate-700 text-sm font-medium px-3.5 py-2 rounded-xl transition cursor-pointer">
+            ดูทั้งหมด
+          </button>
+        </div>
+      </div>
+
+      <!-- การ์ดสถิติ 4 ช่อง (เปลี่ยนตามคนที่เลือก) -->
+      <div class="grid grid-cols-2 lg:grid-cols-4 gap-3.5">
+        <div class="bg-white border border-slate-100 rounded-2xl p-4 shadow-2xs">
+          <p class="text-xs text-slate-500">เข้างานตรงเวลา</p>
+          <p id="statOnTime" class="text-2xl font-semibold text-emerald-600 mt-1">0</p>
+          <span class="inline-block w-4 h-1 bg-emerald-500 rounded-full mt-2"></span>
+        </div>
+        <div class="bg-white border border-slate-100 rounded-2xl p-4 shadow-2xs">
+          <p class="text-xs text-slate-500">มาสาย</p>
+          <p id="statLate" class="text-2xl font-semibold text-amber-500 mt-1">0</p>
+          <span class="inline-block w-4 h-1 bg-amber-500 rounded-full mt-2"></span>
+        </div>
+        <div class="bg-white border border-slate-100 rounded-2xl p-4 shadow-2xs">
+          <p class="text-xs text-slate-500">ใบลารออนุมัติ</p>
+          <p id="statPendingLeave" class="text-2xl font-semibold text-rose-600 mt-1">0</p>
+          <span class="inline-block w-4 h-1 bg-rose-500 rounded-full mt-2"></span>
+        </div>
+        <div class="bg-white border border-slate-100 rounded-2xl p-4 shadow-2xs">
+          <p class="text-xs text-slate-500">รายการบันทึกทั้งหมด</p>
+          <p id="statTotalRecords" class="text-2xl font-semibold text-indigo-600 mt-1">0</p>
+          <span class="inline-block w-4 h-1 bg-indigo-500 rounded-full mt-2"></span>
+        </div>
+      </div>
+    </section>
+
+    <!-- ตารางรายการคำขอลางาน -->
+    <section class="bg-white/95 backdrop-blur-md rounded-2xl shadow-sm border border-white p-5 space-y-3">
+      <div class="flex items-center justify-between gap-2">
+        <h2 class="text-base sm:text-lg font-semibold text-slate-800">รายการคำขอลางาน</h2>
+        <span id="leaveCountLabel" class="text-xs text-slate-500">0 รายการ</span>
+      </div>
+
       <div class="overflow-x-auto">
-        <table class="w-full text-sm text-left border-collapse">
+        <table class="w-full text-xs sm:text-sm text-left border-collapse">
           <thead>
             <tr class="border-b border-slate-200 text-slate-600 bg-slate-50">
-              <th class="py-3 px-3">พนักงาน</th>
-              <th class="py-3 px-3">ประเภท</th>
-              <th class="py-3 px-3">ช่วงวันที่ลา</th>
-              <th class="py-3 px-3">เหตุผล</th>
-              <th class="py-3 px-3">สถานะ</th>
-              <th class="py-3 px-3 text-center">จัดการ</th>
+              <th class="py-2.5 px-3">พนักงาน</th>
+              <th class="py-2.5 px-3">ประเภท</th>
+              <th class="py-2.5 px-3">ช่วงวันที่ลา</th>
+              <th class="py-2.5 px-3">เหตุผล</th>
+              <th class="py-2.5 px-3">สถานะ</th>
+              <th class="py-2.5 px-3">จัดการ</th>
             </tr>
           </thead>
-          <tbody id="leavesBody" class="divide-y divide-slate-100">
+          <tbody id="leavesTableBody" class="divide-y divide-slate-100">
             <tr><td colspan="6" class="py-6 text-center text-slate-400">กำลังโหลดข้อมูล...</td></tr>
           </tbody>
         </table>
       </div>
-    </div>
+    </section>
 
-    <!-- ตารางประวัติการลงเวลา -->
-    <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-100 space-y-4">
-      <div class="flex flex-wrap justify-between items-center gap-2">
-        <h2 class="text-lg font-semibold text-slate-800">ประวัติการลงเวลาเข้า-ออกงาน</h2>
-        <input id="searchInput" type="text" oninput="renderAttendance()" placeholder="ค้นหารหัส หรือชื่อพนักงาน..." class="border border-slate-200 rounded-xl px-3.5 py-1.5 text-sm w-full sm:w-64" />
+    <!-- ตารางประวัติการลงเวลาเข้า-ออกงาน -->
+    <section class="bg-white/95 backdrop-blur-md rounded-2xl shadow-sm border border-white p-5 space-y-3">
+      <div class="flex items-center justify-between gap-2">
+        <h2 class="text-base sm:text-lg font-semibold text-slate-800">ประวัติการลงเวลาเข้า-ออกงาน</h2>
+        <span id="attCountLabel" class="text-xs text-slate-500">0 รายการ</span>
       </div>
+
       <div class="overflow-x-auto">
-        <table class="w-full text-sm text-left border-collapse">
+        <table class="w-full text-xs sm:text-sm text-left border-collapse">
           <thead>
             <tr class="border-b border-slate-200 text-slate-600 bg-slate-50">
-              <th class="py-3 px-3">วันที่</th>
-              <th class="py-3 px-3">รหัส</th>
-              <th class="py-3 px-3">ชื่อ-นามสกุล</th>
-              <th class="py-3 px-3">เข้างาน</th>
-              <th class="py-3 px-3">ออกงาน</th>
-              <th class="py-3 px-3">สถานะ</th>
+              <th class="py-2.5 px-3">วันที่</th>
+              <th class="py-2.5 px-3">รหัส</th>
+              <th class="py-2.5 px-3">ชื่อ-นามสกุล</th>
+              <th class="py-2.5 px-3">เข้างาน</th>
+              <th class="py-2.5 px-3">ออกงาน</th>
+              <th class="py-2.5 px-3">สถานะ</th>
             </tr>
           </thead>
-          <tbody id="attendanceBody" class="divide-y divide-slate-100">
+          <tbody id="attTableBody" class="divide-y divide-slate-100">
             <tr><td colspan="6" class="py-6 text-center text-slate-400">กำลังโหลดข้อมูล...</td></tr>
           </tbody>
         </table>
       </div>
-    </div>
-  </div>
+    </section>
+
+  </main>
 
   <script>
-    // https://script.google.com/macros/s/AKfycbw3ovdTdqhw7KuqvA_MJ7lyyCQNur-LRCg1hJul1K3733YxNkwfYtuJ-XYry965vPskHw/exec
+    // เปลี่ยนเป็น Web App URL (/exec) ของ Google Apps Script
+    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbw3ovdTdqhw7KuqvA_MJ7lyyCQNur-LRCg1hJul1K3733YxNkwfYtuJ-XYry965vPskHw/exec";
 
-    const SCRIPT_URL = "//https://script.google.com/macros/s/AKfycbw3ovdTdqhw7KuqvA_MJ7lyyCQNur-LRCg1hJul1K3733YxNkwfYtuJ-XYry965vPskHw/exec";
     let allAttendance = [];
+    let allLeaves = [];
+    let selectedEmpKey = "ALL";
 
-    async function loadDashboard() {
+    function normalizeCode(code) {
+      return String(code || "").trim().toLowerCase();
+    }
+
+    function buildEmployeeOptions() {
+      const selectEl = document.getElementById("employeeSelect");
+      const map = new Map();
+
+      [...allAttendance, ...allLeaves].forEach((row) => {
+        const code = String(row.emp_code || "").trim();
+        const name = String(row.emp_name || "").trim();
+        const key = normalizeCode(code) || name.toLowerCase();
+        if (!key) return;
+        if (!map.has(key)) {
+          map.set(key, { key, code: code || "-", name: name || "ไม่ระบุชื่อ" });
+        }
+      });
+
+      const currentVal = selectedEmpKey;
+      selectEl.innerHTML = `<option value="ALL">-- ดูภาพรวมทั้งหมด (${map.size} คน) --</option>`;
+
+      [...map.values()]
+        .sort((a, b) => a.code.localeCompare(b.code, "th"))
+        .forEach((emp) => {
+          const opt = document.createElement("option");
+          opt.value = emp.key;
+          opt.textContent = `${emp.code} — ${emp.name}`;
+          selectEl.appendChild(opt);
+        });
+
+      if (currentVal !== "ALL" && map.has(currentVal)) {
+        selectEl.value = currentVal;
+      } else {
+        selectedEmpKey = "ALL";
+        selectEl.value = "ALL";
+      }
+    }
+
+    function getFilteredData() {
+      const searchText = String(document.getElementById("quickCodeFilter").value || "").trim().toLowerCase();
+
+      const matchPerson = (row) => {
+        const code = String(row.emp_code || "").trim();
+        const name = String(row.emp_name || "").trim();
+        const key = normalizeCode(code) || name.toLowerCase();
+
+        if (selectedEmpKey !== "ALL" && key !== selectedEmpKey) {
+          return false;
+        }
+        if (searchText) {
+          const combined = `${code} ${name}`.toLowerCase();
+          if (!combined.includes(searchText)) return false;
+        }
+        return true;
+      };
+
+      return {
+        leaves: allLeaves.filter(matchPerson),
+        attendance: allAttendance.filter(matchPerson)
+      };
+    }
+
+    function renderDashboard() {
+      const { leaves, attendance } = getFilteredData();
+      const searchText = String(document.getElementById("quickCodeFilter").value || "").trim();
+      const selectEl = document.getElementById("employeeSelect");
+
+      const badgeEl = document.getElementById("viewModeBadge");
+      const titleEl = document.getElementById("selectedPersonTitle");
+      const subEl = document.getElementById("selectedPersonSub");
+
+      if (selectedEmpKey !== "ALL") {
+        const chosenText = selectEl.options[selectEl.selectedIndex]?.textContent || selectedEmpKey;
+        badgeEl.className = "inline-block text-xs font-medium bg-emerald-100 text-emerald-800 px-3 py-1 rounded-full";
+        badgeEl.textContent = "แดชบอร์ดรายบุคคล (แยกเฉพาะคน)";
+        titleEl.textContent = `แดชบอร์ดส่วนตัว: ${chosenText}`;
+        subEl.textContent = "แสดงเฉพาะสถิติ ประวัติการลา และประวัติการลงเวลาของพนักงานคนนี้";
+      } else if (searchText) {
+        badgeEl.className = "inline-block text-xs font-medium bg-amber-100 text-amber-800 px-3 py-1 rounded-full";
+        badgeEl.textContent = "โหมดกรองคำค้นหา";
+        titleEl.textContent = `ผลการกรอง: "${searchText}"`;
+        subEl.textContent = "แสดงข้อมูลเฉพาะรายการที่ตรงกับรหัสหรือชื่อที่ค้นหา";
+      } else {
+        badgeEl.className = "inline-block text-xs font-medium bg-indigo-100 text-indigo-700 px-3 py-1 rounded-full";
+        badgeEl.textContent = "โหมดปัจจุบัน: ภาพรวมทั้งหมด";
+        titleEl.textContent = "ข้อมูลภาพรวมพนักงานทั้งหมด";
+        subEl.textContent = "เลือกพนักงานจากรายการด้านขวาเพื่อแยกดูแดชบอร์ดของแต่ละคน";
+      }
+
+      const onTime = attendance.filter((r) => r.status === "ตรงเวลา").length;
+      const late = attendance.filter((r) => r.status === "มาสาย").length;
+      const pendingLeave = leaves.filter((l) => l.approval_status === "รออนุมัติ").length;
+      const totalRecords = attendance.length + leaves.length;
+
+      document.getElementById("statOnTime").textContent = onTime;
+      document.getElementById("statLate").textContent = late;
+      document.getElementById("statPendingLeave").textContent = pendingLeave;
+      document.getElementById("statTotalRecords").textContent = totalRecords;
+
+      document.getElementById("leaveCountLabel").textContent = `${leaves.length} รายการ`;
+      document.getElementById("attCountLabel").textContent = `${attendance.length} รายการ`;
+
+      const leavesBody = document.getElementById("leavesTableBody");
+      if (!leaves.length) {
+        leavesBody.innerHTML = `<tr><td colspan="6" class="py-6 text-center text-slate-400">ไม่พบรายการคำขอลางาน</td></tr>`;
+      } else {
+        leavesBody.innerHTML = leaves.map((lv) => {
+          const st = lv.approval_status || "รออนุมัติ";
+          const stClass =
+            st === "อนุมัติ" ? "bg-emerald-100 text-emerald-700" :
+            st === "ไม่อนุมัติ" ? "bg-rose-100 text-rose-700" :
+            "bg-amber-100 text-amber-700";
+
+          return `
+            <tr>
+              <td class="py-2.5 px-3 font-medium">${lv.emp_name || "-"} <span class="text-xs text-slate-400">(${lv.emp_code || "-"})</span></td>
+              <td class="py-2.5 px-3">${lv.leave_type || "-"}</td>
+              <td class="py-2.5 px-3 text-xs">${lv.start_date || "-"} ถึง ${lv.end_date || "-"}</td>
+              <td class="py-2.5 px-3">${lv.reason || "-"}</td>
+              <td class="py-2.5 px-3"><span class="px-2.5 py-0.5 rounded-full text-xs font-medium ${stClass}">${st}</span></td>
+              <td class="py-2.5 px-3 space-x-1.5 whitespace-nowrap">
+                <button type="button" onclick="updateLeaveStatus('${lv.row_id || ""}', 'อนุมัติ')"
+                  class="px-2.5 py-1 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-xs cursor-pointer">อนุมัติ</button>
+                <button type="button" onclick="updateLeaveStatus('${lv.row_id || ""}', 'ไม่อนุมัติ')"
+                  class="px-2.5 py-1 rounded-lg bg-rose-600 hover:bg-rose-700 text-white text-xs cursor-pointer">ไม่อนุมัติ</button>
+              </td>
+            </tr>
+          `;
+        }).join("");
+      }
+
+      const attBody = document.getElementById("attTableBody");
+      if (!attendance.length) {
+        attBody.innerHTML = `<tr><td colspan="6" class="py-6 text-center text-slate-400">ไม่พบประวัติการลงเวลา</td></tr>`;
+      } else {
+        attBody.innerHTML = attendance.map((r) => {
+          const st = r.status || "-";
+          const stClass =
+            st === "ตรงเวลา" ? "bg-emerald-100 text-emerald-700" :
+            st === "มาสาย" ? "bg-amber-100 text-amber-700" :
+            "bg-slate-100 text-slate-700";
+
+          return `
+            <tr>
+              <td class="py-2.5 px-3">${r.date || "-"}</td>
+              <td class="py-2.5 px-3">${r.emp_code || "-"}</td>
+              <td class="py-2.5 px-3 font-medium">${r.emp_name || "-"}</td>
+              <td class="py-2.5 px-3">${r.check_in || "-"}</td>
+              <td class="py-2.5 px-3">${r.check_out || "-"}</td>
+              <td class="py-2.5 px-3"><span class="px-2.5 py-0.5 rounded-full text-xs font-medium ${stClass}">${st}</span></td>
+            </tr>
+          `;
+        }).join("");
+      }
+    }
+
+    async function loadDashboardData() {
+      const btn = document.getElementById("refreshBtn");
+      btn.disabled = true;
+      btn.textContent = "กำลังโหลด...";
+
       try {
         const res = await fetch(`${SCRIPT_URL}?action=dashboard`);
         const data = await res.json();
-        if (!data.ok) return;
+        if (data.ok) {
+          allAttendance = data.attendance || [];
+          allLeaves = data.leaves || [];
+          buildEmployeeOptions();
+          renderDashboard();
+        }
+      } catch (err) {
+        console.error(err);
+      } finally {
+        btn.disabled = false;
+        btn.textContent = "รีเฟรชข้อมูล";
+      }
+    }
 
-        document.getElementById('statOnTime').textContent = data.summary.onTimeToday;
-        document.getElementById('statLate').textContent = data.summary.lateToday;
-        document.getElementById('statPending').textContent = data.summary.pendingLeaves;
-        document.getElementById('statTotal').textContent = data.summary.totalLogs;
-
-        allAttendance = data.attendance || [];
-        renderAttendance();
-        renderLeaves(data.leaves || []);
+    async function updateLeaveStatus(row_id, approval_status) {
+      if (!row_id) return;
+      try {
+        const res = await fetch(SCRIPT_URL, {
+          method: "POST",
+          body: JSON.stringify({ action: "update_leave", row_id, approval_status })
+        });
+        const data = await res.json();
+        if (data.ok) {
+          await loadDashboardData();
+        }
       } catch (err) {
         console.error(err);
       }
     }
 
-    function renderAttendance() {
-      const q = document.getElementById('searchInput').value.trim().toLowerCase();
-      const filtered = allAttendance.filter(row =>
-        String(row.emp_code).toLowerCase().includes(q) ||
-        String(row.emp_name).toLowerCase().includes(q) ||
-        String(row.status).toLowerCase().includes(q)
-      );
+    document.getElementById("refreshBtn").addEventListener("click", loadDashboardData);
+    document.getElementById("employeeSelect").addEventListener("change", (e) => {
+      selectedEmpKey = e.target.value;
+      renderDashboard();
+    });
+    document.getElementById("quickCodeFilter").addEventListener("input", renderDashboard);
+    document.getElementById("resetFilterBtn").addEventListener("click", () => {
+      selectedEmpKey = "ALL";
+      document.getElementById("employeeSelect").value = "ALL";
+      document.getElementById("quickCodeFilter").value = "";
+      renderDashboard();
+    });
 
-      const tbody = document.getElementById('attendanceBody');
-      if (!filtered.length) {
-        tbody.innerHTML = `<tr><td colspan="6" class="py-6 text-center text-slate-400">ไม่พบข้อมูลการลงเวลา</td></tr>`;
-        return;
-      }
-
-      tbody.innerHTML = filtered.map(r => {
-        const badgeColor =
-          r.status === 'ตรงเวลา' ? 'bg-emerald-100 text-emerald-700' :
-          r.status === 'มาสาย' ? 'bg-amber-100 text-amber-700' :
-          'bg-slate-100 text-slate-700';
-
-        return `
-          <tr>
-            <td class="py-2.5 px-3">${r.date || '-'}</td>
-            <td class="py-2.5 px-3 font-medium">${r.emp_code || '-'}</td>
-            <td class="py-2.5 px-3">${r.emp_name || '-'}</td>
-            <td class="py-2.5 px-3">${r.check_in || '-'}</td>
-            <td class="py-2.5 px-3">${r.check_out || '-'}</td>
-            <td class="py-2.5 px-3"><span class="px-2.5 py-1 rounded-full text-xs font-medium ${badgeColor}">${r.status || '-'}</span></td>
-          </tr>
-        `;
-      }).join('');
-    }
-
-    function renderLeaves(leaves) {
-      const tbody = document.getElementById('leavesBody');
-      if (!leaves.length) {
-        tbody.innerHTML = `<tr><td colspan="6" class="py-6 text-center text-slate-400">ยังไม่มีรายการคำขอลางาน</td></tr>`;
-        return;
-      }
-
-      tbody.innerHTML = leaves.map(lv => {
-        const stColor =
-          lv.approval_status === 'อนุมัติ' ? 'bg-emerald-100 text-emerald-700' :
-          lv.approval_status === 'ไม่อนุมัติ' ? 'bg-red-100 text-red-700' :
-          'bg-amber-100 text-amber-700';
-
-        return `
-          <tr>
-            <td class="py-2.5 px-3"><span class="font-medium">${lv.emp_name}</span> <span class="text-xs text-slate-400">(${lv.emp_code})</span></td>
-            <td class="py-2.5 px-3">${lv.leave_type}</td>
-            <td class="py-2.5 px-3 text-xs">${lv.start_date} ถึง ${lv.end_date}</td>
-            <td class="py-2.5 px-3">${lv.reason}</td>
-            <td class="py-2.5 px-3"><span class="px-2.5 py-1 rounded-full text-xs font-medium ${stColor}">${lv.approval_status}</span></td>
-            <td class="py-2.5 px-3 text-center space-x-1 whitespace-nowrap">
-              <button onclick="setLeaveStatus('${lv.leave_id}', 'อนุมัติ')" class="bg-emerald-600 hover:bg-emerald-700 text-white text-xs px-2.5 py-1 rounded-lg">อนุมัติ</button>
-              <button onclick="setLeaveStatus('${lv.leave_id}', 'ไม่อนุมัติ')" class="bg-rose-600 hover:bg-rose-700 text-white text-xs px-2.5 py-1 rounded-lg">ไม่อนุมัติ</button>
-            </td>
-          </tr>
-        `;
-      }).join('');
-    }
-
-    async function setLeaveStatus(leave_id, status) {
-      try {
-        await fetch(SCRIPT_URL, {
-          method: 'POST',
-          body: JSON.stringify({ action: 'approveLeave', leave_id, status })
-        });
-        loadDashboard();
-      } catch (err) {
-        alert('อัปเดตสถานะไม่สำเร็จ: ' + err.message);
-      }
-    }
-
-    loadDashboard();
+    loadDashboardData();
   </script>
 </body>
 </html>
