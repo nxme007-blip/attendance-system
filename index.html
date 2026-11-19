@@ -8,6 +8,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600&display=swap" rel="stylesheet">
   <style>
     body { font-family: 'Kanit', sans-serif; }
+    .tabular-clock { font-variant-numeric: tabular-nums; }
   </style>
 </head>
 <body class="bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 min-h-screen text-slate-800">
@@ -17,7 +18,7 @@
     <div class="max-w-3xl mx-auto px-4 py-3 flex items-center justify-between gap-3">
       <div class="min-w-0">
         <h1 id="pageTitle" class="text-lg sm:text-xl font-semibold text-slate-800 truncate">ลงเวลาเข้า-ออกงาน</h1>
-        <p id="clock" class="text-xs text-indigo-600 font-medium truncate"></p>
+        <p id="clock" class="text-xs text-indigo-600 font-medium truncate tabular-clock"></p>
       </div>
 
       <button id="menuBtn" type="button" aria-label="เปิดเมนูการทำงาน"
@@ -138,16 +139,24 @@
         </select>
       </div>
 
-      <!-- เลือกรายการลงเวลาแบบการ์ดกดง่าย -->
+      <!-- เลือกรายการลงเวลาแบบการ์ดกดง่าย + เวลาบอก -->
       <div class="space-y-2">
-        <label class="block text-sm font-medium text-slate-700">เลือกรายการลงเวลา</label>
+        <div class="flex items-center justify-between gap-2">
+          <label class="block text-sm font-medium text-slate-700">เลือกรายการลงเวลา</label>
+          <span class="text-xs font-medium text-indigo-700 bg-indigo-50 border border-indigo-100 px-2.5 py-0.5 rounded-full tabular-clock">
+            เวลา <span id="choiceHeaderClock">00:00:00</span> น.
+          </span>
+        </div>
+
         <div class="grid grid-cols-2 gap-3">
           <button id="pickCheckInBtn" type="button" data-att-choice="เข้างาน"
             class="att-choice-btn rounded-2xl border-2 border-emerald-500 bg-emerald-50/90 text-emerald-800 p-3.5 text-left transition flex items-center gap-3 shadow-2xs cursor-pointer">
             <span class="w-9 h-9 rounded-xl bg-emerald-500 text-white flex items-center justify-center text-base shrink-0">🌅</span>
             <div class="min-w-0">
               <p class="text-sm font-semibold leading-tight">ลงเวลาเข้างาน</p>
-              <p class="text-[11px] text-emerald-700/80 mt-0.5">เช็กอินตอนเริ่มงาน</p>
+              <p class="text-[11px] text-emerald-700/80 mt-0.5 tabular-clock">
+                เช็กอิน • <span class="live-time-slot">00:00:00</span> น.
+              </p>
             </div>
           </button>
 
@@ -156,22 +165,27 @@
             <span class="w-9 h-9 rounded-xl bg-slate-100 text-slate-600 flex items-center justify-center text-base shrink-0">🌇</span>
             <div class="min-w-0">
               <p class="text-sm font-semibold leading-tight">ลงเวลาออกงาน</p>
-              <p class="text-[11px] text-slate-400 mt-0.5">เช็กเอาต์ตอนเลิกงาน</p>
+              <p class="text-[11px] text-slate-400 mt-0.5 tabular-clock">
+                เช็กเอาต์ • <span class="live-time-slot">00:00:00</span> น.
+              </p>
             </div>
           </button>
         </div>
 
-        <!-- เก็บค่าไว้เพื่อความเข้ากันได้กับโค้ดเดิม -->
         <select id="attType" class="sr-only" aria-hidden="true">
           <option value="เข้างาน" selected>ลงเวลาเข้างาน</option>
           <option value="ออกงาน">ลงเวลาออกงาน</option>
         </select>
       </div>
 
-      <!-- แถบยืนยันรายการที่เลือก -->
-      <div id="attModeBanner" class="bg-emerald-50/70 border border-emerald-100 rounded-xl px-3.5 py-2.5 flex items-center justify-between text-xs">
+      <!-- แถบสรุปรายการที่เลือก + เวลา -->
+      <div id="attModeBanner" class="bg-emerald-50/70 border border-emerald-100 rounded-xl px-3.5 py-2.5 flex items-center justify-between gap-2 text-xs">
         <span class="text-slate-600">รายการที่เลือก:</span>
-        <span id="attModeText" class="font-semibold text-emerald-700">ลงเวลาเข้างาน</span>
+        <div class="flex items-center gap-2 shrink-0 tabular-clock">
+          <span id="attModeText" class="font-semibold text-emerald-700">ลงเวลาเข้างาน</span>
+          <span class="text-slate-300">|</span>
+          <span id="attBannerTime" class="font-semibold text-emerald-700">00:00:00 น.</span>
+        </div>
       </div>
 
       <button id="attSubmitBtn" type="button"
@@ -390,8 +404,14 @@
       dataUrl: ""
     };
 
+    function pad2(n) {
+      return String(n).padStart(2, '0');
+    }
+
     function updateClock() {
       const now = new Date();
+      const timeStr = `${pad2(now.getHours())}:${pad2(now.getMinutes())}:${pad2(now.getSeconds())}`;
+
       const clockEl = document.getElementById('clock');
       if (clockEl) {
         clockEl.textContent = now.toLocaleString('th-TH', {
@@ -399,6 +419,16 @@
           timeStyle: 'medium'
         });
       }
+
+      const headerClockEl = document.getElementById('choiceHeaderClock');
+      if (headerClockEl) headerClockEl.textContent = timeStr;
+
+      const bannerTimeEl = document.getElementById('attBannerTime');
+      if (bannerTimeEl) bannerTimeEl.textContent = `${timeStr} น.`;
+
+      document.querySelectorAll('.live-time-slot').forEach((el) => {
+        el.textContent = timeStr;
+      });
     }
     setInterval(updateClock, 1000);
     updateClock();
@@ -411,31 +441,34 @@
       const checkOutBtn = document.getElementById('pickCheckOutBtn');
       const banner = document.getElementById('attModeBanner');
       const modeText = document.getElementById('attModeText');
+      const bannerTime = document.getElementById('attBannerTime');
 
       if (value === 'ออกงาน') {
         checkOutBtn.className = 'att-choice-btn rounded-2xl border-2 border-amber-500 bg-amber-50/90 text-amber-800 p-3.5 text-left transition flex items-center gap-3 shadow-2xs cursor-pointer';
         checkOutBtn.querySelector('span').className = 'w-9 h-9 rounded-xl bg-amber-500 text-white flex items-center justify-center text-base shrink-0';
-        checkOutBtn.querySelectorAll('p')[1].className = 'text-[11px] text-amber-700/80 mt-0.5';
+        checkOutBtn.querySelectorAll('p')[1].className = 'text-[11px] text-amber-700/80 mt-0.5 tabular-clock';
 
         checkInBtn.className = 'att-choice-btn rounded-2xl border border-slate-200 bg-white hover:border-indigo-200 hover:bg-slate-50/80 text-slate-700 p-3.5 text-left transition flex items-center gap-3 cursor-pointer';
         checkInBtn.querySelector('span').className = 'w-9 h-9 rounded-xl bg-slate-100 text-slate-600 flex items-center justify-center text-base shrink-0';
-        checkInBtn.querySelectorAll('p')[1].className = 'text-[11px] text-slate-400 mt-0.5';
+        checkInBtn.querySelectorAll('p')[1].className = 'text-[11px] text-slate-400 mt-0.5 tabular-clock';
 
-        banner.className = 'bg-amber-50/70 border border-amber-100 rounded-xl px-3.5 py-2.5 flex items-center justify-between text-xs';
+        banner.className = 'bg-amber-50/70 border border-amber-100 rounded-xl px-3.5 py-2.5 flex items-center justify-between gap-2 text-xs';
         modeText.className = 'font-semibold text-amber-700';
         modeText.textContent = 'ลงเวลาออกงาน';
+        bannerTime.className = 'font-semibold text-amber-700';
       } else {
         checkInBtn.className = 'att-choice-btn rounded-2xl border-2 border-emerald-500 bg-emerald-50/90 text-emerald-800 p-3.5 text-left transition flex items-center gap-3 shadow-2xs cursor-pointer';
         checkInBtn.querySelector('span').className = 'w-9 h-9 rounded-xl bg-emerald-500 text-white flex items-center justify-center text-base shrink-0';
-        checkInBtn.querySelectorAll('p')[1].className = 'text-[11px] text-emerald-700/80 mt-0.5';
+        checkInBtn.querySelectorAll('p')[1].className = 'text-[11px] text-emerald-700/80 mt-0.5 tabular-clock';
 
         checkOutBtn.className = 'att-choice-btn rounded-2xl border border-slate-200 bg-white hover:border-indigo-200 hover:bg-slate-50/80 text-slate-700 p-3.5 text-left transition flex items-center gap-3 cursor-pointer';
         checkOutBtn.querySelector('span').className = 'w-9 h-9 rounded-xl bg-slate-100 text-slate-600 flex items-center justify-center text-base shrink-0';
-        checkOutBtn.querySelectorAll('p')[1].className = 'text-[11px] text-slate-400 mt-0.5';
+        checkOutBtn.querySelectorAll('p')[1].className = 'text-[11px] text-slate-400 mt-0.5 tabular-clock';
 
-        banner.className = 'bg-emerald-50/70 border border-emerald-100 rounded-xl px-3.5 py-2.5 flex items-center justify-between text-xs';
+        banner.className = 'bg-emerald-50/70 border border-emerald-100 rounded-xl px-3.5 py-2.5 flex items-center justify-between gap-2 text-xs';
         modeText.className = 'font-semibold text-emerald-700';
         modeText.textContent = 'ลงเวลาเข้างาน';
+        bannerTime.className = 'font-semibold text-emerald-700';
       }
     }
 
