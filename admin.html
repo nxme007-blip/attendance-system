@@ -3,9 +3,8 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>แดชบอร์ดผู้ดูแลระบบ (Admin)</title>
+  <title>ระบบบันทึกการขาด ลา มาสาย พนักงาน</title>
   <script src="https://cdn.tailwindcss.com"></script>
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600&display=swap" rel="stylesheet">
   <style>
     body { font-family: 'Kanit', sans-serif; }
@@ -15,81 +14,65 @@
 
   <!-- แถบด้านบน -->
   <header class="sticky top-0 z-30 bg-white/90 backdrop-blur-md border-b border-indigo-100 shadow-sm">
-    <div class="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between gap-3">
+    <div class="max-w-3xl mx-auto px-4 py-3 flex items-center justify-between gap-3">
       <div class="min-w-0">
-        <h1 id="adminPageTitle" class="text-lg sm:text-xl font-semibold text-slate-800 truncate">แดชบอร์ดผู้ดูแลระบบ (Admin)</h1>
-        <p id="adminPageSub" class="text-xs text-slate-500 truncate">สรุปภาพรวมการเข้างาน มาสาย และคำขอลางานของพนักงานทั้งหมด</p>
+        <h1 id="pageTitle" class="text-lg sm:text-xl font-semibold text-slate-800 truncate">ลงเวลาเข้า-ออกงาน</h1>
+        <p id="clock" class="text-xs text-indigo-600 font-medium truncate"></p>
       </div>
 
-      <div class="flex items-center gap-2 shrink-0">
-        <button id="refreshBtn" type="button"
-          class="bg-indigo-600 hover:bg-indigo-700 text-white text-xs sm:text-sm font-medium px-3.5 py-2 rounded-xl shadow-xs transition cursor-pointer">
-          รีเฟรชข้อมูล
-        </button>
-
-        <button id="adminMenuBtn" type="button" aria-label="เปิดเมนูผู้ดูแลระบบ"
-          class="px-3.5 py-2 rounded-xl bg-indigo-50 hover:bg-indigo-100 active:scale-95 text-indigo-700 border border-indigo-200/80 transition flex items-center gap-2 shadow-xs cursor-pointer">
-          <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16" />
-          </svg>
-          <span class="text-sm font-medium">เมนู</span>
-        </button>
-      </div>
+      <button id="menuBtn" type="button" aria-label="เปิดเมนูการทำงาน"
+        class="shrink-0 px-3.5 py-2 rounded-xl bg-indigo-50 hover:bg-indigo-100 active:scale-95 text-indigo-700 border border-indigo-200/80 transition flex items-center gap-2 shadow-xs cursor-pointer">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16" />
+        </svg>
+        <span class="text-sm font-medium">เมนู</span>
+      </button>
     </div>
   </header>
 
-  <!-- ฉากหลังมืดเวลาเปิดเมนู -->
-  <div id="adminMenuBackdrop" class="fixed inset-0 bg-slate-900/35 backdrop-blur-[1px] z-40 hidden"></div>
+  <!-- พื้นหลังมืดเวลาเปิดลิ้นชักเมนู -->
+  <div id="menuBackdrop" class="fixed inset-0 bg-slate-900/35 backdrop-blur-[1px] z-40 hidden"></div>
 
   <!-- ลิ้นชักเมนูแฮมเบอร์เกอร์ -->
-  <aside id="adminDrawer"
+  <aside id="drawerMenu"
     class="fixed top-0 right-0 h-full w-72 max-w-[85vw] bg-white z-50 shadow-2xl border-l border-slate-100 transform translate-x-full transition-transform duration-200 flex flex-col justify-between p-5">
     <div class="space-y-4">
       <div class="flex items-center justify-between border-b border-slate-100 pb-3">
         <div>
-          <p class="text-sm font-semibold text-slate-800">เมนูผู้ดูแลระบบ</p>
+          <p class="text-sm font-semibold text-slate-800">เมนูการทำงาน</p>
           <p class="text-xs text-slate-400">เลือกหน้าต่างที่ต้องการใช้งาน</p>
         </div>
-        <button id="closeAdminMenuBtn" type="button" aria-label="ปิดเมนู"
+        <button id="closeMenuBtn" type="button" aria-label="ปิดเมนู"
           class="w-8 h-8 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-600 flex items-center justify-center transition cursor-pointer">
           ✕
         </button>
       </div>
 
       <nav class="space-y-1.5">
-        <button type="button" data-admin-view="overview"
-          class="admin-nav-btn w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium text-left bg-indigo-600 text-white transition cursor-pointer">
-          <span>📊</span>
-          <span>แดชบอร์ดภาพรวม</span>
+        <button type="button" data-nav="attendance"
+          class="nav-item w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium text-left bg-indigo-600 text-white transition cursor-pointer">
+          <span>🕒</span>
+          <span>ลงเวลาเข้า-ออกงาน</span>
         </button>
 
-        <button type="button" data-admin-view="approvals"
-          class="admin-nav-btn w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-sm font-medium text-left text-slate-700 hover:bg-indigo-50 transition cursor-pointer">
-          <span class="flex items-center gap-3">
-            <span>✅</span>
-            <span>อนุมัติการลา</span>
-          </span>
-          <span id="drawerPendingBadge" class="text-xs px-2 py-0.5 rounded-full bg-rose-100 text-rose-700 font-semibold">0</span>
+        <button type="button" data-nav="leave"
+          class="nav-item w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium text-left text-slate-700 hover:bg-indigo-50 transition cursor-pointer">
+          <span>📝</span>
+          <span>แจ้งลางาน</span>
         </button>
 
-        <button type="button" data-admin-view="directory"
-          class="admin-nav-btn w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium text-left text-slate-700 hover:bg-indigo-50 transition cursor-pointer">
-          <span>🗂️</span>
-          <span>สมุดรายชื่อพนักงาน</span>
-        </button>
-
-        <button type="button" data-admin-view="binder"
-          class="admin-nav-btn w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium text-left text-slate-700 hover:bg-indigo-50 transition cursor-pointer">
-          <span>📁</span>
-          <span>แฟ้มส่วนตัวรายบุคคล</span>
+        <button type="button" data-nav="profile"
+          class="nav-item w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium text-left text-slate-700 hover:bg-indigo-50 transition cursor-pointer">
+          <span>👤</span>
+          <span>ข้อมูลของฉัน (ขาด/ลา/มาสาย)</span>
         </button>
 
         <div class="pt-3 mt-3 border-t border-slate-100">
-          <a href="index.html"
+          <a href="admin.html"
             class="w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-sm font-medium text-slate-700 hover:bg-slate-100 transition">
             <span class="flex items-center gap-3">
-              <span>🏠</span>
-              <span>หน้าพนักงาน</span>
+              <span>🛡️</span>
+              <span>หลังบ้าน Admin</span>
             </span>
             <span class="text-xs text-slate-400">→</span>
           </a>
@@ -98,223 +81,209 @@
     </div>
 
     <div class="bg-indigo-50/80 border border-indigo-100 rounded-xl p-3 text-xs text-indigo-800 space-y-1">
-      <p class="font-medium">แฟ้มที่เลือกอยู่ตอนนี้</p>
-      <p id="drawerSelectedEmp" class="text-indigo-700 truncate">ยังไม่ได้เลือกพนักงานรายบุคคล</p>
+      <p class="font-medium">ผู้ใช้งานปัจจุบัน</p>
+      <p id="drawerUserSummary" class="text-indigo-700 truncate">ยังไม่ได้ระบุรหัสพนักงาน</p>
+      <p id="drawerDeptSummary" class="text-[11px] text-indigo-500 truncate">กลุ่มงาน: -</p>
     </div>
   </aside>
 
-  <main class="max-w-6xl mx-auto px-4 py-6">
+  <!-- พื้นที่เนื้อหาหลัก -->
+  <main class="max-w-3xl mx-auto px-4 py-6">
 
-    <!-- หน้า 1: แดชบอร์ดภาพรวม -->
-    <section id="view-overview" class="admin-view space-y-6">
-      <!-- การ์ดสถิติภาพรวม 4 ช่อง -->
-      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div class="bg-white/95 backdrop-blur-md rounded-2xl p-5 shadow-sm border border-white">
-          <p class="text-xs sm:text-sm text-slate-500">เข้างานตรงเวลา (รวม)</p>
-          <p id="ovOnTime" class="text-3xl font-semibold text-emerald-600 mt-2">0</p>
-          <span class="inline-block w-5 h-1 bg-emerald-500 rounded-full mt-3"></span>
-        </div>
-
-        <div class="bg-white/95 backdrop-blur-md rounded-2xl p-5 shadow-sm border border-white">
-          <p class="text-xs sm:text-sm text-slate-500">มาสาย (รวม)</p>
-          <p id="ovLate" class="text-3xl font-semibold text-amber-500 mt-2">0</p>
-          <span class="inline-block w-5 h-1 bg-amber-500 rounded-full mt-3"></span>
-        </div>
-
-        <div class="bg-white/95 backdrop-blur-md rounded-2xl p-5 shadow-sm border border-white">
-          <p class="text-xs sm:text-sm text-slate-500">ใบลารออนุมัติ</p>
-          <p id="ovPendingLeave" class="text-3xl font-semibold text-rose-600 mt-2">0</p>
-          <span class="inline-block w-5 h-1 bg-rose-500 rounded-full mt-3"></span>
-        </div>
-
-        <div class="bg-white/95 backdrop-blur-md rounded-2xl p-5 shadow-sm border border-white">
-          <p class="text-xs sm:text-sm text-slate-500">รายการบันทึกทั้งหมด</p>
-          <p id="ovTotalRecords" class="text-3xl font-semibold text-indigo-600 mt-2">0</p>
-          <span class="inline-block w-5 h-1 bg-indigo-500 rounded-full mt-3"></span>
-        </div>
+    <!-- หน้า 1: ลงเวลาเข้า-ออกงาน -->
+    <section id="view-attendance" class="page-view bg-white/95 backdrop-blur-md rounded-2xl shadow-lg border border-white p-6 space-y-4 max-w-xl mx-auto">
+      <div class="border-b border-slate-100 pb-3">
+        <h2 class="text-lg font-semibold text-slate-800">บันทึกเวลาเข้า-ออกงาน</h2>
+        <p class="text-xs text-slate-500 mt-0.5">บันทึกเวลาเข้างานหรือออกงานแบบเรียลไทม์เข้าสู่ระบบ</p>
       </div>
 
-      <!-- แถบเลือกดูย้อนหลังแต่ละเดือน + กราฟ -->
-      <div class="bg-white/95 backdrop-blur-md rounded-2xl p-5 shadow-sm border border-white space-y-5">
-        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-4">
-          <div>
-            <h2 class="text-base sm:text-lg font-semibold text-slate-800">กราฟสรุปการเข้างานและคำขอลางาน</h2>
-            <p id="monthFilterLabel" class="text-xs text-slate-500">กำลังแสดงข้อมูล: ทุกเดือน (ทั้งหมด)</p>
-          </div>
-
-          <div class="flex items-center gap-2">
-            <label for="monthSelect" class="text-xs sm:text-sm text-slate-600 font-medium">ดูย้อนหลัง:</label>
-            <select id="monthSelect"
-              class="border border-slate-200 rounded-xl px-3.5 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-indigo-400">
-              <option value="ALL">ทุกเดือน (ทั้งหมด)</option>
-            </select>
-          </div>
-        </div>
-
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-5 items-center">
-          <!-- กราฟแท่งเปรียบเทียบรายเดือน -->
-          <div class="lg:col-span-2 bg-slate-50/70 border border-slate-100 rounded-2xl p-4">
-            <div class="flex items-center justify-between mb-2">
-              <p class="text-sm font-medium text-slate-700">สถิติเปรียบเทียบแต่ละเดือน</p>
-              <span class="text-xs text-slate-400">ตรงเวลา / มาสาย / ใบลา</span>
-            </div>
-            <div class="relative h-60">
-              <canvas id="monthlyBarChart"></canvas>
-            </div>
-          </div>
-
-          <!-- กราฟโดนัทสัดส่วน -->
-          <div class="bg-slate-50/70 border border-slate-100 rounded-2xl p-4 flex flex-col justify-between h-full">
-            <div class="mb-2">
-              <p class="text-sm font-medium text-slate-700">สัดส่วนการบันทึก</p>
-              <p class="text-xs text-slate-400">ภาพรวมตามช่วงเวลาที่เลือก</p>
-            </div>
-            <div class="relative h-44 flex items-center justify-center">
-              <canvas id="ratioDoughnutChart"></canvas>
-            </div>
-            <div class="grid grid-cols-3 gap-1.5 text-center pt-3 border-t border-slate-200/70 text-xs">
-              <div>
-                <p class="text-slate-400">ตรงเวลา</p>
-                <p id="chartSumOnTime" class="font-semibold text-emerald-600">0</p>
-              </div>
-              <div>
-                <p class="text-slate-400">มาสาย</p>
-                <p id="chartSumLate" class="font-semibold text-amber-500">0</p>
-              </div>
-              <div>
-                <p class="text-slate-400">ใบลา</p>
-                <p id="chartSumLeave" class="font-semibold text-indigo-600">0</p>
-              </div>
-            </div>
-          </div>
-        </div>
+      <div>
+        <label class="block text-sm font-medium text-slate-700 mb-1">รหัสพนักงาน</label>
+        <input id="attEmpCode" type="text" placeholder="เช่น EMP001"
+          class="emp-code-sync w-full border border-slate-200 rounded-xl px-3.5 py-2.5 focus:outline-none focus:ring-2 focus:ring-indigo-400" />
       </div>
+
+      <div>
+        <label class="block text-sm font-medium text-slate-700 mb-1">ชื่อ - นามสกุล</label>
+        <input id="attEmpName" type="text" placeholder="กรอกชื่อ-นามสกุลพนักงาน"
+          class="emp-name-sync w-full border border-slate-200 rounded-xl px-3.5 py-2.5 focus:outline-none focus:ring-2 focus:ring-indigo-400" />
+      </div>
+
+      <div>
+        <label class="block text-sm font-medium text-slate-700 mb-1">กลุ่มงาน</label>
+        <select id="attDept"
+          class="dept-sync w-full border border-slate-200 rounded-xl px-3.5 py-2.5 bg-white focus:outline-none focus:ring-2 focus:ring-indigo-400">
+          <option value="">-- เลือกกลุ่มงาน --</option>
+          <optgroup label="กลุ่มงานสนับสนุนและบริหาร">
+            <option value="กลุ่มบริหารทั่วไป">กลุ่มบริหารทั่วไป</option>
+            <option value="กลุ่มพัฒนาองค์กร">กลุ่มพัฒนาองค์กร</option>
+            <option value="กลุ่มยุทธศาสตร์และแผนงาน">กลุ่มยุทธศาสตร์และแผนงาน</option>
+            <option value="กลุ่มพัฒนานวัตกรรมและวิจัย">กลุ่มพัฒนานวัตกรรมและวิจัย</option>
+            <option value="กลุ่มสื่อสารความเสี่ยงโรคและภัยสุขภาพ">กลุ่มสื่อสารความเสี่ยงโรคและภัยสุขภาพ</option>
+          </optgroup>
+          <optgroup label="กลุ่มงานวิชาการและการควบคุมโรค">
+            <option value="กลุ่มห้องปฏิบัติการทางการแพทย์ด้านควบคุมโรค">กลุ่มห้องปฏิบัติการทางการแพทย์ด้านควบคุมโรค</option>
+            <option value="กลุ่มระบาดวิทยาและตอบโต้ภาวะฉุกเฉินทางสาธารณสุข">กลุ่มระบาดวิทยาและตอบโต้ภาวะฉุกเฉินทางสาธารณสุข</option>
+            <option value="กลุ่มโรคติดต่อ">กลุ่มโรคติดต่อ</option>
+            <option value="กลุ่มโรคติดต่อเรื้อรัง">กลุ่มโรคติดต่อเรื้อรัง</option>
+            <option value="กลุ่มโรคไม่ติดต่อ">กลุ่มโรคไม่ติดต่อ</option>
+            <option value="กลุ่มโรคจากการประกอบอาชีพและสิ่งแวดล้อม">กลุ่มโรคจากการประกอบอาชีพและสิ่งแวดล้อม</option>
+            <option value="กลุ่มโรคติดต่อนำโดยแมลง">กลุ่มโรคติดต่อนำโดยแมลง</option>
+          </optgroup>
+        </select>
+      </div>
+
+      <div>
+        <label class="block text-sm font-medium text-slate-700 mb-1">เลือกรายการลงเวลา</label>
+        <select id="attType"
+          class="w-full border border-slate-200 rounded-xl px-3.5 py-2.5 bg-white focus:outline-none focus:ring-2 focus:ring-indigo-400">
+          <option value="เข้างาน">ลงเวลาเข้างาน</option>
+          <option value="ออกงาน">ลงเวลาออกงาน</option>
+        </select>
+      </div>
+
+      <button id="attSubmitBtn" type="button"
+        class="w-full bg-indigo-600 hover:bg-indigo-700 disabled:bg-slate-400 text-white font-medium py-3 rounded-xl shadow-md transition cursor-pointer">
+        ยืนยันการลงเวลา
+      </button>
+
+      <div id="attResult" class="hidden p-3 rounded-xl text-sm text-center font-medium"></div>
     </section>
 
-    <!-- หน้า 2: อนุมัติการลา -->
-    <section id="view-approvals" class="admin-view hidden space-y-5">
-      <div class="bg-white/95 backdrop-blur-md rounded-2xl p-5 shadow-sm border border-white space-y-4">
-        <div class="flex flex-col md:flex-row md:items-center justify-between gap-3">
-          <div>
-            <h2 class="text-base sm:text-lg font-semibold text-slate-800">อนุมัติคำขอลางาน</h2>
-            <p class="text-xs text-slate-500">กรองสถานะ ค้นหาชื่อ/รหัส และกดอนุมัติหรือไม่อนุมัติ</p>
-          </div>
-
-          <input id="approvalSearch" type="text" placeholder="ค้นหาชื่อ รหัส หรือประเภทการลา..."
-            class="border border-slate-200 rounded-xl px-3.5 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400 w-full md:w-72" />
-        </div>
-
-        <div class="flex flex-wrap gap-2">
-          <button type="button" data-leave-filter="ALL"
-            class="leave-filter-btn px-3.5 py-1.5 rounded-xl text-xs sm:text-sm font-medium bg-indigo-600 text-white transition cursor-pointer">
-            ทั้งหมด (<span id="countLeaveAll">0</span>)
-          </button>
-          <button type="button" data-leave-filter="รออนุมัติ"
-            class="leave-filter-btn px-3.5 py-1.5 rounded-xl text-xs sm:text-sm font-medium bg-amber-50 text-amber-800 hover:bg-amber-100 border border-amber-200/70 transition cursor-pointer">
-            รออนุมัติ (<span id="countLeavePending">0</span>)
-          </button>
-          <button type="button" data-leave-filter="อนุมัติ"
-            class="leave-filter-btn px-3.5 py-1.5 rounded-xl text-xs sm:text-sm font-medium bg-emerald-50 text-emerald-800 hover:bg-emerald-100 border border-emerald-200/70 transition cursor-pointer">
-            อนุมัติแล้ว (<span id="countLeaveApproved">0</span>)
-          </button>
-          <button type="button" data-leave-filter="ไม่อนุมัติ"
-            class="leave-filter-btn px-3.5 py-1.5 rounded-xl text-xs sm:text-sm font-medium bg-rose-50 text-rose-800 hover:bg-rose-100 border border-rose-200/70 transition cursor-pointer">
-            ไม่อนุมัติ (<span id="countLeaveRejected">0</span>)
-          </button>
-        </div>
+    <!-- หน้า 2: แจ้งลางาน -->
+    <section id="view-leave" class="page-view hidden bg-white/95 backdrop-blur-md rounded-2xl shadow-lg border border-white p-6 space-y-4 max-w-xl mx-auto">
+      <div class="border-b border-slate-100 pb-3">
+        <h2 class="text-lg font-semibold text-slate-800">แบบฟอร์มแจ้งลางาน</h2>
+        <p class="text-xs text-slate-500 mt-0.5">ส่งคำขอลางานเพื่อรอผู้ดูแลระบบตรวจสอบและอนุมัติ</p>
       </div>
 
-      <div class="bg-white/95 backdrop-blur-md rounded-2xl p-5 shadow-sm border border-white space-y-3">
-        <div class="flex items-center justify-between gap-2">
-          <h3 id="approvalListTitle" class="text-base font-semibold text-slate-800">รายการคำขอลางานทั้งหมด</h3>
-          <span id="approvalResultCount" class="text-xs text-slate-500">0 รายการ</span>
-        </div>
-
-        <div class="overflow-x-auto">
-          <table class="w-full text-xs sm:text-sm text-left border-collapse">
-            <thead>
-              <tr class="border-b border-slate-200 text-slate-600 bg-slate-50">
-                <th class="py-2.5 px-3">พนักงาน</th>
-                <th class="py-2.5 px-3">ประเภท</th>
-                <th class="py-2.5 px-3">ช่วงวันที่ลา</th>
-                <th class="py-2.5 px-3">เหตุผล</th>
-                <th class="py-2.5 px-3">สถานะ</th>
-                <th class="py-2.5 px-3">จัดการ</th>
-              </tr>
-            </thead>
-            <tbody id="approvalsTableBody" class="divide-y divide-slate-100">
-              <tr><td colspan="6" class="py-6 text-center text-slate-400">กำลังโหลดข้อมูล...</td></tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
-    </section>
-
-    <!-- หน้า 3: สมุดรายชื่อพนักงาน -->
-    <section id="view-directory" class="admin-view hidden space-y-5">
-      <div class="bg-white/95 backdrop-blur-md rounded-2xl p-5 shadow-sm border border-white flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
         <div>
-          <h2 class="text-base sm:text-lg font-semibold text-slate-800">สมุดรายชื่อพนักงาน</h2>
-          <p class="text-xs text-slate-500">เลือกพนักงานแต่ละคนเพื่อเปิดดูแฟ้มส่วนตัวแยกเฉพาะบุคคล</p>
+          <label class="block text-sm font-medium text-slate-700 mb-1">รหัสพนักงาน</label>
+          <input id="lvEmpCode" type="text" placeholder="เช่น EMP001"
+            class="emp-code-sync w-full border border-slate-200 rounded-xl px-3.5 py-2.5 focus:outline-none focus:ring-2 focus:ring-indigo-400" />
         </div>
-
-        <input id="directorySearch" type="text" placeholder="ค้นหารหัสหรือชื่อพนักงาน..."
-          class="border border-slate-200 rounded-xl px-3.5 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400 w-full sm:w-64" />
-      </div>
-
-      <div id="employeeCardsGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-        <div class="col-span-full bg-white/90 rounded-2xl p-8 text-center text-slate-400 text-sm">
-          กำลังโหลดรายชื่อพนักงาน...
+        <div>
+          <label class="block text-sm font-medium text-slate-700 mb-1">ชื่อ - นามสกุล</label>
+          <input id="lvEmpName" type="text" placeholder="กรอกชื่อ-นามสกุล"
+            class="emp-name-sync w-full border border-slate-200 rounded-xl px-3.5 py-2.5 focus:outline-none focus:ring-2 focus:ring-indigo-400" />
         </div>
       </div>
+
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <div>
+          <label class="block text-sm font-medium text-slate-700 mb-1">กลุ่มงาน</label>
+          <select id="lvDept"
+            class="dept-sync w-full border border-slate-200 rounded-xl px-3.5 py-2.5 bg-white focus:outline-none focus:ring-2 focus:ring-indigo-400">
+            <option value="">-- เลือกกลุ่มงาน --</option>
+            <optgroup label="กลุ่มงานสนับสนุนและบริหาร">
+              <option value="กลุ่มบริหารทั่วไป">กลุ่มบริหารทั่วไป</option>
+              <option value="กลุ่มพัฒนาองค์กร">กลุ่มพัฒนาองค์กร</option>
+              <option value="กลุ่มยุทธศาสตร์และแผนงาน">กลุ่มยุทธศาสตร์และแผนงาน</option>
+              <option value="กลุ่มพัฒนานวัตกรรมและวิจัย">กลุ่มพัฒนานวัตกรรมและวิจัย</option>
+              <option value="กลุ่มสื่อสารความเสี่ยงโรคและภัยสุขภาพ">กลุ่มสื่อสารความเสี่ยงโรคและภัยสุขภาพ</option>
+            </optgroup>
+            <optgroup label="กลุ่มงานวิชาการและการควบคุมโรค">
+              <option value="กลุ่มห้องปฏิบัติการทางการแพทย์ด้านควบคุมโรค">กลุ่มห้องปฏิบัติการทางการแพทย์ด้านควบคุมโรค</option>
+              <option value="กลุ่มระบาดวิทยาและตอบโต้ภาวะฉุกเฉินทางสาธารณสุข">กลุ่มระบาดวิทยาและตอบโต้ภาวะฉุกเฉินทางสาธารณสุข</option>
+              <option value="กลุ่มโรคติดต่อ">กลุ่มโรคติดต่อ</option>
+              <option value="กลุ่มโรคติดต่อเรื้อรัง">กลุ่มโรคติดต่อเรื้อรัง</option>
+              <option value="กลุ่มโรคไม่ติดต่อ">กลุ่มโรคไม่ติดต่อ</option>
+              <option value="กลุ่มโรคจากการประกอบอาชีพและสิ่งแวดล้อม">กลุ่มโรคจากการประกอบอาชีพและสิ่งแวดล้อม</option>
+              <option value="กลุ่มโรคติดต่อนำโดยแมลง">กลุ่มโรคติดต่อนำโดยแมลง</option>
+            </optgroup>
+          </select>
+        </div>
+
+        <div>
+          <label class="block text-sm font-medium text-slate-700 mb-1">ประเภทการลา</label>
+          <select id="leaveType"
+            class="w-full border border-slate-200 rounded-xl px-3.5 py-2.5 bg-white focus:outline-none focus:ring-2 focus:ring-indigo-400">
+            <option value="ลาป่วย">ลาป่วย</option>
+            <option value="ลากิจ">ลากิจ</option>
+            <option value="ลาพักร้อน">ลาพักร้อน</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <div>
+          <label class="block text-sm font-medium text-slate-700 mb-1">ตั้งแต่วันที่</label>
+          <input id="startDate" type="date"
+            class="w-full border border-slate-200 rounded-xl px-3.5 py-2.5 bg-white focus:outline-none focus:ring-2 focus:ring-indigo-400" />
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-slate-700 mb-1">ถึงวันที่</label>
+          <input id="endDate" type="date"
+            class="w-full border border-slate-200 rounded-xl px-3.5 py-2.5 bg-white focus:outline-none focus:ring-2 focus:ring-indigo-400" />
+        </div>
+      </div>
+
+      <div>
+        <label class="block text-sm font-medium text-slate-700 mb-1">เหตุผลการลา</label>
+        <textarea id="leaveReason" rows="3" placeholder="ระบุเหตุผลในการลางานให้ชัดเจน..."
+          class="w-full border border-slate-200 rounded-xl px-3.5 py-2.5 focus:outline-none focus:ring-2 focus:ring-indigo-400"></textarea>
+      </div>
+
+      <button id="lvSubmitBtn" type="button"
+        class="w-full bg-indigo-600 hover:bg-indigo-700 disabled:bg-slate-400 text-white font-medium py-3 rounded-xl shadow-md transition cursor-pointer">
+        ส่งคำขอลางาน
+      </button>
+
+      <div id="lvResult" class="hidden p-3 rounded-xl text-sm text-center font-medium space-y-2"></div>
     </section>
 
-    <!-- หน้า 4: แฟ้มส่วนตัวรายบุคคล -->
-    <section id="view-binder" class="admin-view hidden space-y-5">
-      <div class="bg-white/95 backdrop-blur-md rounded-2xl p-5 shadow-sm border border-white space-y-4">
-        <div class="flex flex-col md:flex-row md:items-center justify-between gap-3 border-b border-slate-100 pb-4">
+    <!-- หน้า 3: ข้อมูลของฉัน -->
+    <section id="view-profile" class="page-view hidden space-y-5">
+      <div class="bg-white/95 backdrop-blur-md rounded-2xl shadow-lg border border-white p-5 space-y-4">
+        <div class="flex flex-col sm:flex-row sm:items-end justify-between gap-3">
           <div>
-            <span class="inline-block text-xs font-medium bg-emerald-100 text-emerald-800 px-3 py-1 rounded-full">
-              แฟ้มส่วนตัวรายบุคคล
-            </span>
-            <h2 id="binderTitle" class="text-lg sm:text-xl font-semibold text-slate-800 mt-1.5">ยังไม่ได้เลือกพนักงาน</h2>
-            <p id="binderSub" class="text-xs text-slate-500">เลือกพนักงานเพื่อดูสถิติ ประวัติการลา และประวัติการลงเวลาแยกเฉพาะคน</p>
+            <h2 class="text-lg font-semibold text-slate-800">ข้อมูลพนักงาน & สถิติส่วนตัว</h2>
+            <p class="text-xs text-slate-500 mt-0.5">ดูข้อมูลส่วนตัว ยอดเข้าตรงเวลา มาสาย และสถานะการลางาน</p>
           </div>
-
-          <div class="flex flex-wrap items-center gap-2">
-            <select id="binderSelect"
-              class="border border-slate-200 rounded-xl px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-indigo-400 min-w-[210px]">
-              <option value="">-- เลือกพนักงาน --</option>
-            </select>
-            <button type="button" data-admin-view="directory"
-              class="bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs sm:text-sm font-medium px-3.5 py-2 rounded-xl transition cursor-pointer">
-              สมุดรายชื่อ
+          <div class="flex gap-2">
+            <input id="profileEmpCode" type="text" placeholder="รหัสพนักงาน เช่น EMP001"
+              class="emp-code-sync border border-slate-200 rounded-xl px-3.5 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400 w-44 sm:w-52" />
+            <button id="loadProfileBtn" type="button"
+              class="bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium px-4 py-2 rounded-xl transition cursor-pointer">
+              ดึงข้อมูล
             </button>
           </div>
         </div>
 
-        <div class="grid grid-cols-2 lg:grid-cols-4 gap-3.5">
-          <div class="bg-emerald-50/70 border border-emerald-100 rounded-2xl p-4">
+        <div class="bg-gradient-to-r from-indigo-50 to-purple-50 border border-indigo-100 rounded-2xl p-4 flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <p class="text-xs text-indigo-600 font-medium">ข้อมูลผู้ใช้งาน</p>
+            <p id="cardEmpName" class="text-base font-semibold text-slate-800 mt-0.5">กรุณาระบุรหัสพนักงาน</p>
+            <p id="cardEmpCode" class="text-xs text-slate-500">รหัสพนักงาน: - • กลุ่มงาน: -</p>
+          </div>
+          <span id="profileStatusBadge" class="text-xs bg-white/90 text-indigo-700 border border-indigo-200 px-3 py-1 rounded-full font-medium">
+            พร้อมตรวจสอบ
+          </span>
+        </div>
+
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+          <div class="bg-emerald-50/80 border border-emerald-100 rounded-2xl p-3.5">
             <p class="text-xs text-emerald-700">เข้าตรงเวลา</p>
-            <p id="empOnTime" class="text-2xl font-semibold text-emerald-600 mt-1">0</p>
+            <p id="myOnTime" class="text-2xl font-semibold text-emerald-600 mt-1">0</p>
           </div>
-          <div class="bg-amber-50/70 border border-amber-100 rounded-2xl p-4">
+          <div class="bg-amber-50/80 border border-amber-100 rounded-2xl p-3.5">
             <p class="text-xs text-amber-700">มาสาย</p>
-            <p id="empLate" class="text-2xl font-semibold text-amber-600 mt-1">0</p>
+            <p id="myLate" class="text-2xl font-semibold text-amber-600 mt-1">0</p>
           </div>
-          <div class="bg-rose-50/70 border border-rose-100 rounded-2xl p-4">
+          <div class="bg-indigo-50/80 border border-indigo-100 rounded-2xl p-3.5">
+            <p class="text-xs text-indigo-700">ลา (อนุมัติแล้ว)</p>
+            <p id="myApprovedLeaves" class="text-2xl font-semibold text-indigo-600 mt-1">0</p>
+          </div>
+          <div class="bg-rose-50/80 border border-rose-100 rounded-2xl p-3.5">
             <p class="text-xs text-rose-700">ใบลารออนุมัติ</p>
-            <p id="empPendingLeave" class="text-2xl font-semibold text-rose-600 mt-1">0</p>
-          </div>
-          <div class="bg-indigo-50/70 border border-indigo-100 rounded-2xl p-4">
-            <p class="text-xs text-indigo-700">รายการบันทึกของคนนี้</p>
-            <p id="empTotalRecords" class="text-2xl font-semibold text-indigo-600 mt-1">0</p>
+            <p id="myPendingLeaves" class="text-2xl font-semibold text-rose-600 mt-1">0</p>
           </div>
         </div>
       </div>
 
-      <div class="bg-white/95 backdrop-blur-md rounded-2xl p-5 shadow-sm border border-white space-y-3">
-        <h3 class="text-base font-semibold text-slate-800">ประวัติคำขอลางาน (เฉพาะบุคคล)</h3>
+      <div class="bg-white/95 backdrop-blur-md rounded-2xl shadow-sm border border-white p-5 space-y-3">
+        <h3 class="text-base font-semibold text-slate-800">ประวัติคำขอลางานของฉัน</h3>
         <div class="overflow-x-auto">
           <table class="w-full text-xs sm:text-sm text-left border-collapse">
             <thead>
@@ -323,18 +292,17 @@
                 <th class="py-2.5 px-3">ช่วงวันที่ลา</th>
                 <th class="py-2.5 px-3">เหตุผล</th>
                 <th class="py-2.5 px-3">สถานะ</th>
-                <th class="py-2.5 px-3">จัดการ</th>
               </tr>
             </thead>
-            <tbody id="empLeavesBody" class="divide-y divide-slate-100">
-              <tr><td colspan="5" class="py-6 text-center text-slate-400">กรุณาเลือกพนักงานเพื่อดูข้อมูล</td></tr>
+            <tbody id="myLeavesBody" class="divide-y divide-slate-100">
+              <tr><td colspan="4" class="py-5 text-center text-slate-400">ยังไม่มีข้อมูลการลา</td></tr>
             </tbody>
           </table>
         </div>
       </div>
 
-      <div class="bg-white/95 backdrop-blur-md rounded-2xl p-5 shadow-sm border border-white space-y-3">
-        <h3 class="text-base font-semibold text-slate-800">ประวัติการลงเวลาเข้า-ออกงาน (เฉพาะบุคคล)</h3>
+      <div class="bg-white/95 backdrop-blur-md rounded-2xl shadow-sm border border-white p-5 space-y-3">
+        <h3 class="text-base font-semibold text-slate-800">ประวัติการลงเวลาของฉัน</h3>
         <div class="overflow-x-auto">
           <table class="w-full text-xs sm:text-sm text-left border-collapse">
             <thead>
@@ -345,8 +313,8 @@
                 <th class="py-2.5 px-3">สถานะ</th>
               </tr>
             </thead>
-            <tbody id="empAttBody" class="divide-y divide-slate-100">
-              <tr><td colspan="4" class="py-6 text-center text-slate-400">กรุณาเลือกพนักงานเพื่อดูข้อมูล</td></tr>
+            <tbody id="myAttBody" class="divide-y divide-slate-100">
+              <tr><td colspan="4" class="py-5 text-center text-slate-400">ยังไม่มีข้อมูลการลงเวลา</td></tr>
             </tbody>
           </table>
         </div>
@@ -357,621 +325,348 @@
 
   <script>
     const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbw3ovdTdqhw7KuqvA_MJ7lyyCQNur-LRCg1hJul1K3733YxNkwfYtuJ-XYry965vPskHw/exec";
+    const STORAGE_CODE_KEY = "attendance_emp_code";
+    const STORAGE_NAME_KEY = "attendance_emp_name";
+    const STORAGE_DEPT_KEY = "attendance_emp_dept";
 
-    let allAttendance = [];
-    let allLeaves = [];
-    let activeView = "overview";
-    let selectedEmpKey = "";
-    let leaveStatusFilter = "ALL";
-    let selectedMonth = "ALL";
-
-    let barChartInstance = null;
-    let doughnutChartInstance = null;
-
-    const viewMeta = {
-      overview: {
-        title: "แดชบอร์ดผู้ดูแลระบบ (Admin)",
-        sub: "สรุปภาพรวมการเข้างาน มาสาย และคำขอลางานของพนักงานทั้งหมด"
-      },
-      approvals: {
-        title: "อนุมัติการลา",
-        sub: "ตรวจสอบและอนุมัติหรือไม่อนุมัติคำขอลางานของพนักงาน"
-      },
-      directory: {
-        title: "สมุดรายชื่อพนักงาน",
-        sub: "เลือกพนักงานแต่ละคนเพื่อเปิดดูแฟ้มส่วนตัวแยกเฉพาะบุคคล"
-      },
-      binder: {
-        title: "แฟ้มส่วนตัวรายบุคคล",
-        sub: "ดูสถิติ ประวัติการลา และประวัติการลงเวลาแยกเฉพาะพนักงานที่เลือก"
+    function updateClock() {
+      const now = new Date();
+      const clockEl = document.getElementById('clock');
+      if (clockEl) {
+        clockEl.textContent = now.toLocaleString('th-TH', {
+          dateStyle: 'full',
+          timeStyle: 'medium'
+        });
       }
+    }
+    setInterval(updateClock, 1000);
+    updateClock();
+
+    const drawer = document.getElementById('drawerMenu');
+    const backdrop = document.getElementById('menuBackdrop');
+
+    function openMenu() {
+      drawer.classList.remove('translate-x-full');
+      backdrop.classList.remove('hidden');
+    }
+    function closeMenu() {
+      drawer.classList.add('translate-x-full');
+      backdrop.classList.add('hidden');
+    }
+
+    document.getElementById('menuBtn').addEventListener('click', openMenu);
+    document.getElementById('closeMenuBtn').addEventListener('click', closeMenu);
+    backdrop.addEventListener('click', closeMenu);
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') closeMenu();
+    });
+
+    function refreshDrawerUserSummary() {
+      const code = (document.getElementById('attEmpCode').value || '').trim();
+      const name = (document.getElementById('attEmpName').value || '').trim();
+      const dept = (document.getElementById('attDept').value || '').trim();
+      const el = document.getElementById('drawerUserSummary');
+      const deptEl = document.getElementById('drawerDeptSummary');
+
+      if (!code && !name) {
+        el.textContent = 'ยังไม่ได้ระบุรหัสพนักงาน';
+      } else {
+        el.textContent = `${name || 'ไม่ระบุชื่อ'} (${code || '-'})`;
+      }
+      deptEl.textContent = `กลุ่มงาน: ${dept || '-'}`;
+    }
+
+    const savedCode = localStorage.getItem(STORAGE_CODE_KEY) || '';
+    const savedName = localStorage.getItem(STORAGE_NAME_KEY) || '';
+    const savedDept = localStorage.getItem(STORAGE_DEPT_KEY) || '';
+
+    if (savedCode) {
+      document.querySelectorAll('.emp-code-sync').forEach((el) => { el.value = savedCode; });
+    }
+    if (savedName) {
+      document.querySelectorAll('.emp-name-sync').forEach((el) => { el.value = savedName; });
+    }
+    if (savedDept) {
+      document.querySelectorAll('.dept-sync').forEach((el) => { el.value = savedDept; });
+    }
+    refreshDrawerUserSummary();
+
+    document.querySelectorAll('.emp-code-sync').forEach((input) => {
+      input.addEventListener('input', () => {
+        const val = input.value;
+        document.querySelectorAll('.emp-code-sync').forEach((other) => {
+          if (other !== input) other.value = val;
+        });
+        localStorage.setItem(STORAGE_CODE_KEY, val.trim());
+        refreshDrawerUserSummary();
+      });
+    });
+
+    document.querySelectorAll('.emp-name-sync').forEach((input) => {
+      input.addEventListener('input', () => {
+        const val = input.value;
+        document.querySelectorAll('.emp-name-sync').forEach((other) => {
+          if (other !== input) other.value = val;
+        });
+        localStorage.setItem(STORAGE_NAME_KEY, val.trim());
+        refreshDrawerUserSummary();
+      });
+    });
+
+    document.querySelectorAll('.dept-sync').forEach((select) => {
+      select.addEventListener('change', () => {
+        const val = select.value;
+        document.querySelectorAll('.dept-sync').forEach((other) => {
+          if (other !== select) other.value = val;
+        });
+        localStorage.setItem(STORAGE_DEPT_KEY, val.trim());
+        refreshDrawerUserSummary();
+      });
+    });
+
+    const viewTitles = {
+      attendance: 'ลงเวลาเข้า-ออกงาน',
+      leave: 'แจ้งลางาน',
+      profile: 'ข้อมูลของฉัน (ขาด / ลา / มาสาย)'
     };
 
-    const drawer = document.getElementById("adminDrawer");
-    const backdrop = document.getElementById("adminMenuBackdrop");
+    function switchView(viewName) {
+      document.querySelectorAll('.page-view').forEach((sec) => sec.classList.add('hidden'));
+      const target = document.getElementById('view-' + viewName);
+      if (target) target.classList.remove('hidden');
 
-    function openAdminMenu() {
-      drawer.classList.remove("translate-x-full");
-      backdrop.classList.remove("hidden");
+      document.getElementById('pageTitle').textContent = viewTitles[viewName] || 'ระบบพนักงาน';
+
+      document.querySelectorAll('.nav-item').forEach((btn) => {
+        const active = btn.dataset.nav === viewName;
+        btn.className = active
+          ? 'nav-item w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium text-left bg-indigo-600 text-white transition cursor-pointer'
+          : 'nav-item w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium text-left text-slate-700 hover:bg-indigo-50 transition cursor-pointer';
+      });
+
+      closeMenu();
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+
+      if (viewName === 'profile') {
+        loadMyProfile();
+      }
     }
 
-    function closeAdminMenu() {
-      drawer.classList.add("translate-x-full");
-      backdrop.classList.add("hidden");
-    }
-
-    document.getElementById("adminMenuBtn").addEventListener("click", openAdminMenu);
-    document.getElementById("closeAdminMenuBtn").addEventListener("click", closeAdminMenu);
-    backdrop.addEventListener("click", closeAdminMenu);
-    document.addEventListener("keydown", (e) => {
-      if (e.key === "Escape") closeAdminMenu();
+    document.querySelectorAll('[data-nav]').forEach((el) => {
+      el.addEventListener('click', () => switchView(el.dataset.nav));
     });
 
-    function switchAdminView(viewName) {
-      if (viewName === "binder" && !selectedEmpKey) {
-        const firstEmp = getEmployeesList()[0];
-        if (firstEmp) selectedEmpKey = firstEmp.key;
-      }
+    function showMessage(el, ok, msg, showGoProfile = false) {
+      el.className = ok
+        ? 'p-3 rounded-xl text-sm text-center font-medium bg-emerald-100 text-emerald-700 space-y-2'
+        : 'p-3 rounded-xl text-sm text-center font-medium bg-red-100 text-red-700 space-y-2';
 
-      activeView = viewName;
-      document.querySelectorAll(".admin-view").forEach((sec) => sec.classList.add("hidden"));
-      const target = document.getElementById("view-" + viewName);
-      if (target) target.classList.remove("hidden");
-
-      const meta = viewMeta[viewName] || viewMeta.overview;
-      document.getElementById("adminPageTitle").textContent = meta.title;
-      document.getElementById("adminPageSub").textContent = meta.sub;
-
-      document.querySelectorAll(".admin-nav-btn").forEach((btn) => {
-        const isCurrent = btn.dataset.adminView === viewName;
-        btn.className = isCurrent
-          ? "admin-nav-btn w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-sm font-medium text-left bg-indigo-600 text-white transition cursor-pointer"
-          : "admin-nav-btn w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-sm font-medium text-left text-slate-700 hover:bg-indigo-50 transition cursor-pointer";
-      });
-
-      closeAdminMenu();
-      window.scrollTo({ top: 0, behavior: "smooth" });
-
-      if (viewName === "overview") renderOverview();
-      if (viewName === "approvals") renderApprovals();
-      if (viewName === "directory") renderDirectory();
-      if (viewName === "binder") renderBinder();
-    }
-
-    document.querySelectorAll("[data-admin-view]").forEach((el) => {
-      el.addEventListener("click", () => switchAdminView(el.dataset.adminView));
-    });
-
-    function extractMonthKey(dateStr) {
-      const s = String(dateStr || "").trim();
-      const isoMatch = s.match(/^(\d{4})[-/](\d{1,2})/);
-      if (isoMatch) {
-        return `${isoMatch[1]}-${String(isoMatch[2]).padStart(2, "0")}`;
-      }
-      const dmyMatch = s.match(/^(\d{1,2})[-/](\d{1,2})[-/](\d{4})/);
-      if (dmyMatch) {
-        return `${dmyMatch[3]}-${String(dmyMatch[2]).padStart(2, "0")}`;
-      }
-      return "";
-    }
-
-    function formatMonthThai(ym) {
-      const [y, m] = ym.split("-");
-      const months = [
-        "ม.ค.", "ก.พ.", "มี.ค.", "เม.ย.", "พ.ค.", "มิ.ย.",
-        "ก.ค.", "ส.ค.", "ก.ย.", "ต.ค.", "พ.ย.", "ธ.ค."
-      ];
-      const idx = Number(m) - 1;
-      return `${months[idx] || m} ${y}`;
-    }
-
-    function syncMonthOptions() {
-      const selectEl = document.getElementById("monthSelect");
-      const monthSet = new Set();
-
-      allAttendance.forEach((r) => {
-        const mk = extractMonthKey(r.date);
-        if (mk) monthSet.add(mk);
-      });
-      allLeaves.forEach((l) => {
-        const mk = extractMonthKey(l.start_date || l.date);
-        if (mk) monthSet.add(mk);
-      });
-
-      const sortedMonths = [...monthSet].sort();
-      const prev = selectedMonth;
-      selectEl.innerHTML = `<option value="ALL">ทุกเดือน (ทั้งหมด)</option>`;
-
-      sortedMonths.forEach((ym) => {
-        const opt = document.createElement("option");
-        opt.value = ym;
-        opt.textContent = formatMonthThai(ym);
-        selectEl.appendChild(opt);
-      });
-
-      if (prev !== "ALL" && monthSet.has(prev)) {
-        selectEl.value = prev;
-      } else {
-        selectedMonth = "ALL";
-        selectEl.value = "ALL";
-      }
-    }
-
-    function buildMonthlySeries() {
-      const buckets = new Map();
-      const ensureBucket = (ym) => {
-        if (!buckets.has(ym)) {
-          buckets.set(ym, { ym, label: formatMonthThai(ym), onTime: 0, late: 0, leaves: 0 });
-        }
-        return buckets.get(ym);
-      };
-
-      allAttendance.forEach((r) => {
-        const ym = extractMonthKey(r.date);
-        if (!ym) return;
-        const b = ensureBucket(ym);
-        if (r.status === "ตรงเวลา") b.onTime += 1;
-        if (r.status === "มาสาย") b.late += 1;
-      });
-
-      allLeaves.forEach((l) => {
-        const ym = extractMonthKey(l.start_date || l.date);
-        if (!ym) return;
-        const b = ensureBucket(ym);
-        b.leaves += 1;
-      });
-
-      const list = [...buckets.values()].sort((a, b) => a.ym.localeCompare(b.ym));
-      if (!list.length) {
-        return [{ ym: "current", label: "เดือนปัจจุบัน", onTime: 0, late: 0, leaves: 0 }];
-      }
-      return list;
-    }
-
-    function renderCharts(onTime, late, leavesCount) {
-      const series = buildMonthlySeries();
-      const barLabels = series.map((s) => s.label);
-      const barOnTime = series.map((s) => s.onTime);
-      const barLate = series.map((s) => s.late);
-      const barLeaves = series.map((s) => s.leaves);
-
-      const barCtx = document.getElementById("monthlyBarChart").getContext("2d");
-      if (barChartInstance) barChartInstance.destroy();
-      barChartInstance = new Chart(barCtx, {
-        type: "bar",
-        data: {
-          labels: barLabels,
-          datasets: [
-            {
-              label: "ตรงเวลา",
-              data: barOnTime,
-              backgroundColor: "rgba(16, 185, 129, 0.8)",
-              borderRadius: 8
-            },
-            {
-              label: "มาสาย",
-              data: barLate,
-              backgroundColor: "rgba(245, 158, 11, 0.8)",
-              borderRadius: 8
-            },
-            {
-              label: "ใบลา",
-              data: barLeaves,
-              backgroundColor: "rgba(99, 102, 241, 0.8)",
-              borderRadius: 8
-            }
-          ]
-        },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          plugins: {
-            legend: { position: "bottom", labels: { boxWidth: 12, font: { family: "Kanit", size: 12 } } }
-          },
-          scales: {
-            y: { beginAtZero: true, ticks: { precision: 0, font: { family: "Kanit" } } },
-            x: { ticks: { font: { family: "Kanit" } } }
-          }
-        }
-      });
-
-      const hasAny = (onTime + late + leavesCount) > 0;
-      const doughnutCtx = document.getElementById("ratioDoughnutChart").getContext("2d");
-      if (doughnutChartInstance) doughnutChartInstance.destroy();
-      doughnutChartInstance = new Chart(doughnutCtx, {
-        type: "doughnut",
-        data: {
-          labels: hasAny ? ["ตรงเวลา", "มาสาย", "ใบลา"] : ["ยังไม่มีข้อมูล"],
-          datasets: [{
-            data: hasAny ? [onTime, late, leavesCount] : [1],
-            backgroundColor: hasAny
-              ? ["#10b981", "#f59e0b", "#6366f1"]
-              : ["#e2e8f0"],
-            borderWidth: 0
-          }]
-        },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          cutout: "66%",
-          plugins: {
-            legend: { display: false }
-          }
-        }
-      });
-
-      document.getElementById("chartSumOnTime").textContent = onTime;
-      document.getElementById("chartSumLate").textContent = late;
-      document.getElementById("chartSumLeave").textContent = leavesCount;
-    }
-
-    function renderOverview() {
-      updateLeaveBadges();
-      syncMonthOptions();
-
-      const attFiltered = selectedMonth === "ALL"
-        ? allAttendance
-        : allAttendance.filter((r) => extractMonthKey(r.date) === selectedMonth);
-
-      const leavesFiltered = selectedMonth === "ALL"
-        ? allLeaves
-        : allLeaves.filter((l) => extractMonthKey(l.start_date || l.date) === selectedMonth);
-
-      const onTime = attFiltered.filter((r) => r.status === "ตรงเวลา").length;
-      const late = attFiltered.filter((r) => r.status === "มาสาย").length;
-      const pendingLeave = leavesFiltered.filter((l) => (l.approval_status || "รออนุมัติ") === "รออนุมัติ").length;
-      const total = attFiltered.length + leavesFiltered.length;
-
-      document.getElementById("ovOnTime").textContent = onTime;
-      document.getElementById("ovLate").textContent = late;
-      document.getElementById("ovPendingLeave").textContent = pendingLeave;
-      document.getElementById("ovTotalRecords").textContent = total;
-
-      document.getElementById("monthFilterLabel").textContent =
-        selectedMonth === "ALL"
-          ? "กำลังแสดงข้อมูล: ทุกเดือน (ทั้งหมด)"
-          : `กำลังแสดงข้อมูลย้อนหลัง: ${formatMonthThai(selectedMonth)}`;
-
-      renderCharts(onTime, late, leavesFiltered.length);
-    }
-
-    function renderLeaveRow(lv, includePersonCol = true) {
-      const st = lv.approval_status || "รออนุมัติ";
-      const badge =
-        st === "อนุมัติ" ? "bg-emerald-100 text-emerald-700" :
-        st === "ไม่อนุมัติ" ? "bg-rose-100 text-rose-700" :
-        "bg-amber-100 text-amber-700";
-
-      const personCell = includePersonCol
-        ? `<td class="py-2.5 px-3 font-medium">${lv.emp_name || "-"} <span class="text-xs text-slate-400">(${lv.emp_code || "-"})</span></td>`
-        : "";
-
-      return `
-        <tr>
-          ${personCell}
-          <td class="py-2.5 px-3">${lv.leave_type || "-"}</td>
-          <td class="py-2.5 px-3 text-xs">${lv.start_date || "-"} ถึง ${lv.end_date || "-"}</td>
-          <td class="py-2.5 px-3">${lv.reason || "-"}</td>
-          <td class="py-2.5 px-3"><span class="px-2.5 py-0.5 rounded-full text-xs font-medium ${badge}">${st}</span></td>
-          <td class="py-2.5 px-3 space-x-1.5 whitespace-nowrap">
-            <button type="button" onclick="updateLeaveStatus('${lv.row_id || ""}', 'อนุมัติ')"
-              class="px-2.5 py-1 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-xs cursor-pointer">อนุมัติ</button>
-            <button type="button" onclick="updateLeaveStatus('${lv.row_id || ""}', 'ไม่อนุมัติ')"
-              class="px-2.5 py-1 rounded-lg bg-rose-600 hover:bg-rose-700 text-white text-xs cursor-pointer">ไม่อนุมัติ</button>
-          </td>
-        </tr>
-      `;
-    }
-
-    function updateLeaveBadges() {
-      const pendingCount = allLeaves.filter((l) => (l.approval_status || "รออนุมัติ") === "รออนุมัติ").length;
-      const approvedCount = allLeaves.filter((l) => l.approval_status === "อนุมัติ").length;
-      const rejectedCount = allLeaves.filter((l) => l.approval_status === "ไม่อนุมัติ").length;
-
-      document.getElementById("drawerPendingBadge").textContent = pendingCount;
-      document.getElementById("countLeaveAll").textContent = allLeaves.length;
-      document.getElementById("countLeavePending").textContent = pendingCount;
-      document.getElementById("countLeaveApproved").textContent = approvedCount;
-      document.getElementById("countLeaveRejected").textContent = rejectedCount;
-    }
-
-    function renderApprovals() {
-      updateLeaveBadges();
-      const searchText = String(document.getElementById("approvalSearch").value || "").trim().toLowerCase();
-
-      const filtered = allLeaves.filter((lv) => {
-        const st = lv.approval_status || "รออนุมัติ";
-        if (leaveStatusFilter !== "ALL" && st !== leaveStatusFilter) return false;
-        if (searchText) {
-          const hay = `${lv.emp_code || ""} ${lv.emp_name || ""} ${lv.leave_type || ""} ${lv.reason || ""}`.toLowerCase();
-          if (!hay.includes(searchText)) return false;
-        }
-        return true;
-      });
-
-      document.getElementById("approvalListTitle").textContent =
-        leaveStatusFilter === "ALL" ? "รายการคำขอลางานทั้งหมด" : `รายการคำขอลางาน (${leaveStatusFilter})`;
-      document.getElementById("approvalResultCount").textContent = `${filtered.length} รายการ`;
-
-      const tbody = document.getElementById("approvalsTableBody");
-      if (!filtered.length) {
-        tbody.innerHTML = `<tr><td colspan="6" class="py-6 text-center text-slate-400">ไม่พบรายการคำขอลางานตามเงื่อนไขที่เลือก</td></tr>`;
-        return;
-      }
-      tbody.innerHTML = filtered.map((lv) => renderLeaveRow(lv, true)).join("");
-    }
-
-    document.querySelectorAll("[data-leave-filter]").forEach((btn) => {
-      btn.addEventListener("click", () => {
-        leaveStatusFilter = btn.dataset.leaveFilter;
-        document.querySelectorAll("[data-leave-filter]").forEach((b) => {
-          const active = b.dataset.leaveFilter === leaveStatusFilter;
-          b.className = active
-            ? "leave-filter-btn px-3.5 py-1.5 rounded-xl text-xs sm:text-sm font-medium bg-indigo-600 text-white transition cursor-pointer"
-            : "leave-filter-btn px-3.5 py-1.5 rounded-xl text-xs sm:text-sm font-medium bg-slate-100 text-slate-700 hover:bg-slate-200 transition cursor-pointer";
-        });
-        renderApprovals();
-      });
-    });
-
-    document.getElementById("approvalSearch").addEventListener("input", renderApprovals);
-
-    function normalizeKey(row) {
-      const code = String(row.emp_code || "").trim().toLowerCase();
-      const name = String(row.emp_name || "").trim().toLowerCase();
-      return code || name;
-    }
-
-    function getEmployeesList() {
-      const map = new Map();
-
-      allAttendance.forEach((r) => {
-        const key = normalizeKey(r);
-        if (!key) return;
-        if (!map.has(key)) {
-          map.set(key, {
-            key,
-            code: String(r.emp_code || "-").trim() || "-",
-            name: String(r.emp_name || "ไม่ระบุชื่อ").trim() || "ไม่ระบุชื่อ",
-            onTime: 0,
-            late: 0,
-            attCount: 0,
-            pendingLeaves: 0,
-            leaveCount: 0
-          });
-        }
-        const item = map.get(key);
-        item.attCount += 1;
-        if (r.status === "ตรงเวลา") item.onTime += 1;
-        if (r.status === "มาสาย") item.late += 1;
-      });
-
-      allLeaves.forEach((l) => {
-        const key = normalizeKey(l);
-        if (!key) return;
-        if (!map.has(key)) {
-          map.set(key, {
-            key,
-            code: String(l.emp_code || "-").trim() || "-",
-            name: String(l.emp_name || "ไม่ระบุชื่อ").trim() || "ไม่ระบุชื่อ",
-            onTime: 0,
-            late: 0,
-            attCount: 0,
-            pendingLeaves: 0,
-            leaveCount: 0
-          });
-        }
-        const item = map.get(key);
-        item.leaveCount += 1;
-        if ((l.approval_status || "รออนุมัติ") === "รออนุมัติ") item.pendingLeaves += 1;
-      });
-
-      return [...map.values()].sort((a, b) => a.code.localeCompare(b.code, "th"));
-    }
-
-    function syncEmployeeSelectors(employees) {
-      const selectEl = document.getElementById("binderSelect");
-      const drawerEmpEl = document.getElementById("drawerSelectedEmp");
-
-      selectEl.innerHTML = `<option value="">-- เลือกพนักงาน --</option>`;
-      employees.forEach((emp) => {
-        const opt = document.createElement("option");
-        opt.value = emp.key;
-        opt.textContent = `${emp.code} — ${emp.name}`;
-        selectEl.appendChild(opt);
-      });
-
-      if (selectedEmpKey && employees.some((e) => e.key === selectedEmpKey)) {
-        selectEl.value = selectedEmpKey;
-        const found = employees.find((e) => e.key === selectedEmpKey);
-        drawerEmpEl.textContent = `${found.name} (${found.code})`;
-      } else {
-        drawerEmpEl.textContent = "ยังไม่ได้เลือกพนักงานรายบุคคล";
-      }
-    }
-
-    function renderDirectory() {
-      const employees = getEmployeesList();
-      syncEmployeeSelectors(employees);
-
-      const query = String(document.getElementById("directorySearch").value || "").trim().toLowerCase();
-      const filtered = employees.filter((emp) => {
-        if (!query) return true;
-        return `${emp.code} ${emp.name}`.toLowerCase().includes(query);
-      });
-
-      const grid = document.getElementById("employeeCardsGrid");
-      if (!filtered.length) {
-        grid.innerHTML = `<div class="col-span-full bg-white/90 rounded-2xl p-8 text-center text-slate-400 text-sm">ไม่พบรายชื่อพนักงานที่ค้นหา</div>`;
-        return;
-      }
-
-      grid.innerHTML = filtered.map((emp) => {
-        const isSelected = emp.key === selectedEmpKey;
-        return `
-          <div class="bg-white/95 rounded-2xl p-5 shadow-sm border ${isSelected ? "border-indigo-400 ring-2 ring-indigo-100" : "border-white"} flex flex-col justify-between gap-4">
-            <div class="space-y-1">
-              <div class="flex items-center justify-between gap-2">
-                <span class="text-xs font-medium bg-indigo-50 text-indigo-700 px-2.5 py-0.5 rounded-full">${emp.code}</span>
-                ${emp.pendingLeaves > 0
-                  ? `<span class="text-xs font-medium bg-rose-100 text-rose-700 px-2.5 py-0.5 rounded-full">รออนุมัติลา ${emp.pendingLeaves}</span>`
-                  : `<span class="text-xs text-slate-400">ไม่มีใบลาค้าง</span>`}
-              </div>
-              <h3 class="text-base font-semibold text-slate-800 pt-1">${emp.name}</h3>
-            </div>
-
-            <div class="grid grid-cols-3 gap-2 text-center bg-slate-50/90 rounded-xl p-2.5 text-xs">
-              <div>
-                <p class="text-slate-400">ตรงเวลา</p>
-                <p class="font-semibold text-emerald-600 text-sm">${emp.onTime}</p>
-              </div>
-              <div>
-                <p class="text-slate-400">มาสาย</p>
-                <p class="font-semibold text-amber-500 text-sm">${emp.late}</p>
-              </div>
-              <div>
-                <p class="text-slate-400">ใบลา</p>
-                <p class="font-semibold text-indigo-600 text-sm">${emp.leaveCount}</p>
-              </div>
-            </div>
-
-            <button type="button" onclick="openEmployeeBinder('${emp.key}')"
-              class="w-full bg-indigo-600 hover:bg-indigo-700 text-white text-xs sm:text-sm font-medium py-2.5 rounded-xl transition cursor-pointer">
-              เปิดแฟ้มส่วนตัว →
-            </button>
-          </div>
+      if (showGoProfile && ok) {
+        el.innerHTML = `
+          <div>${msg}</div>
+          <button type="button" onclick="switchView('profile')" class="inline-block text-xs underline font-semibold text-emerald-800 hover:text-emerald-950 cursor-pointer">
+            ไปดูสถานะใบลาที่หน้า "ข้อมูลของฉัน" →
+          </button>
         `;
-      }).join("");
+      } else {
+        el.textContent = msg;
+      }
+      el.classList.remove('hidden');
     }
 
-    function openEmployeeBinder(empKey) {
-      selectedEmpKey = empKey;
-      syncEmployeeSelectors(getEmployeesList());
-      switchAdminView("binder");
-    }
+    document.getElementById('attSubmitBtn').addEventListener('click', async () => {
+      const emp_code = document.getElementById('attEmpCode').value.trim();
+      const emp_name = document.getElementById('attEmpName').value.trim();
+      const department = document.getElementById('attDept').value.trim();
+      const record_type = document.getElementById('attType').value;
+      const box = document.getElementById('attResult');
+      const btn = document.getElementById('attSubmitBtn');
 
-    function renderBinder() {
-      const employees = getEmployeesList();
-      syncEmployeeSelectors(employees);
-
-      const emp = employees.find((e) => e.key === selectedEmpKey);
-      const titleEl = document.getElementById("binderTitle");
-      const subEl = document.getElementById("binderSub");
-
-      if (!emp) {
-        titleEl.textContent = "ยังไม่ได้เลือกพนักงาน";
-        subEl.textContent = "กรุณาเลือกพนักงานเพื่อแสดงแฟ้มข้อมูลรายบุคคล";
-        document.getElementById("empOnTime").textContent = "0";
-        document.getElementById("empLate").textContent = "0";
-        document.getElementById("empPendingLeave").textContent = "0";
-        document.getElementById("empTotalRecords").textContent = "0";
-        document.getElementById("empLeavesBody").innerHTML = `<tr><td colspan="5" class="py-6 text-center text-slate-400">กรุณาเลือกพนักงาน</td></tr>`;
-        document.getElementById("empAttBody").innerHTML = `<tr><td colspan="4" class="py-6 text-center text-slate-400">กรุณาเลือกพนักงาน</td></tr>`;
+      if (!emp_code || !emp_name) {
+        showMessage(box, false, 'กรุณากรอกรหัสและชื่อพนักงานให้ครบถ้วน');
         return;
       }
 
-      titleEl.textContent = `${emp.name} (${emp.code})`;
-      subEl.textContent = "แสดงข้อมูลเฉพาะพนักงานคนนี้เท่านั้น";
+      localStorage.setItem(STORAGE_CODE_KEY, emp_code);
+      localStorage.setItem(STORAGE_NAME_KEY, emp_name);
+      localStorage.setItem(STORAGE_DEPT_KEY, department);
+      refreshDrawerUserSummary();
 
-      const myAtt = allAttendance.filter((r) => normalizeKey(r) === emp.key);
-      const myLeaves = allLeaves.filter((l) => normalizeKey(l) === emp.key);
+      btn.disabled = true;
+      btn.textContent = 'กำลังบันทึก...';
+      box.classList.add('hidden');
 
-      const onTime = myAtt.filter((r) => r.status === "ตรงเวลา").length;
-      const late = myAtt.filter((r) => r.status === "มาสาย").length;
-      const pending = myLeaves.filter((l) => (l.approval_status || "รออนุมัติ") === "รออนุมัติ").length;
+      try {
+        const res = await fetch(SCRIPT_URL, {
+          method: 'POST',
+          body: JSON.stringify({ action: 'attendance', emp_code, emp_name, department, record_type })
+        });
+        const data = await res.json();
+        showMessage(box, Boolean(data.ok), data.message || 'บันทึกการลงเวลาเรียบร้อยแล้ว');
+      } catch (err) {
+        showMessage(box, false, 'เชื่อมต่อไม่สำเร็จ: ' + err.message);
+      } finally {
+        btn.disabled = false;
+        btn.textContent = 'ยืนยันการลงเวลา';
+      }
+    });
 
-      document.getElementById("empOnTime").textContent = onTime;
-      document.getElementById("empLate").textContent = late;
-      document.getElementById("empPendingLeave").textContent = pending;
-      document.getElementById("empTotalRecords").textContent = myAtt.length + myLeaves.length;
+    document.getElementById('lvSubmitBtn').addEventListener('click', async () => {
+      const emp_code = document.getElementById('lvEmpCode').value.trim();
+      const emp_name = document.getElementById('lvEmpName').value.trim();
+      const department = document.getElementById('lvDept').value.trim();
+      const leave_type = document.getElementById('leaveType').value;
+      const start_date = document.getElementById('startDate').value;
+      const end_date = document.getElementById('endDate').value;
+      const reason = document.getElementById('leaveReason').value.trim();
+      const box = document.getElementById('lvResult');
+      const btn = document.getElementById('lvSubmitBtn');
 
-      const leavesBody = document.getElementById("empLeavesBody");
-      if (!myLeaves.length) {
-        leavesBody.innerHTML = `<tr><td colspan="5" class="py-6 text-center text-slate-400">ไม่พบประวัติการลาของพนักงานคนนี้</td></tr>`;
-      } else {
-        leavesBody.innerHTML = myLeaves.map((lv) => renderLeaveRow(lv, false)).join("");
+      if (!emp_code || !emp_name || !start_date || !end_date || !reason) {
+        showMessage(box, false, 'กรุณากรอกข้อมูลการลาให้ครบทุกช่อง');
+        return;
       }
 
-      const attBody = document.getElementById("empAttBody");
-      if (!myAtt.length) {
-        attBody.innerHTML = `<tr><td colspan="4" class="py-6 text-center text-slate-400">ไม่พบประวัติการลงเวลาของพนักงานคนนี้</td></tr>`;
-      } else {
-        attBody.innerHTML = myAtt.map((r) => {
-          const st = r.status || "-";
-          const badge =
-            st === "ตรงเวลา" ? "bg-emerald-100 text-emerald-700" :
-            st === "มาสาย" ? "bg-amber-100 text-amber-700" :
-            "bg-slate-100 text-slate-700";
-          return `
-            <tr>
-              <td class="py-2.5 px-3">${r.date || "-"}</td>
-              <td class="py-2.5 px-3">${r.check_in || "-"}</td>
-              <td class="py-2.5 px-3">${r.check_out || "-"}</td>
-              <td class="py-2.5 px-3"><span class="px-2.5 py-0.5 rounded-full text-xs font-medium ${badge}">${st}</span></td>
-            </tr>
-          `;
-        }).join("");
+      if (end_date < start_date) {
+        showMessage(box, false, 'วันที่สิ้นสุดต้องไม่น้อยกว่าวันที่เริ่มต้น');
+        return;
       }
-    }
 
-    async function loadDashboardData() {
-      const btn = document.getElementById("refreshBtn");
-      if (btn) {
-        btn.disabled = true;
-        btn.textContent = "กำลังโหลด...";
+      localStorage.setItem(STORAGE_CODE_KEY, emp_code);
+      localStorage.setItem(STORAGE_NAME_KEY, emp_name);
+      localStorage.setItem(STORAGE_DEPT_KEY, department);
+      refreshDrawerUserSummary();
+
+      btn.disabled = true;
+      btn.textContent = 'กำลังส่งคำขอ...';
+      box.classList.add('hidden');
+
+      try {
+        const res = await fetch(SCRIPT_URL, {
+          method: 'POST',
+          body: JSON.stringify({
+            action: 'leave',
+            emp_code,
+            emp_name,
+            department,
+            leave_type,
+            start_date,
+            end_date,
+            reason
+          })
+        });
+        const data = await res.json();
+        showMessage(box, Boolean(data.ok), data.message || 'ส่งคำขอลางานเรียบร้อยแล้ว', Boolean(data.ok));
+        if (data.ok) {
+          document.getElementById('leaveReason').value = '';
+        }
+      } catch (err) {
+        showMessage(box, false, 'เชื่อมต่อไม่สำเร็จ: ' + err.message);
+      } finally {
+        btn.disabled = false;
+        btn.textContent = 'ส่งคำขอลางาน';
       }
+    });
+
+    async function loadMyProfile() {
+      const codeInput = (document.getElementById('profileEmpCode').value || '').trim();
+      const nameInput = (document.getElementById('attEmpName').value || '').trim();
+      const deptInput = (document.getElementById('attDept').value || '').trim();
+      const badgeEl = document.getElementById('profileStatusBadge');
+
+      if (!codeInput) {
+        document.getElementById('cardEmpName').textContent = nameInput || 'กรุณาระบุรหัสพนักงาน';
+        document.getElementById('cardEmpCode').textContent = `รหัสพนักงาน: - • กลุ่มงาน: ${deptInput || '-'}`;
+        badgeEl.textContent = 'รอระบุรหัส';
+        return;
+      }
+
+      badgeEl.textContent = 'กำลังโหลด...';
 
       try {
         const res = await fetch(`${SCRIPT_URL}?action=dashboard`);
         const data = await res.json();
-        if (data.ok) {
-          allAttendance = data.attendance || [];
-          allLeaves = data.leaves || [];
-          syncEmployeeSelectors(getEmployeesList());
-          renderOverview();
-          if (activeView === "approvals") renderApprovals();
-          if (activeView === "directory") renderDirectory();
-          if (activeView === "binder") renderBinder();
+        if (!data.ok) {
+          badgeEl.textContent = 'ดึงข้อมูลไม่สำเร็จ';
+          return;
+        }
+
+        const targetCode = codeInput.toLowerCase();
+        const myAtt = (data.attendance || []).filter((r) => String(r.emp_code || '').toLowerCase() === targetCode);
+        const myLeaves = (data.leaves || []).filter((l) => String(l.emp_code || '').toLowerCase() === targetCode);
+
+        const foundName =
+          (myAtt[0] && myAtt[0].emp_name) ||
+          (myLeaves[0] && myLeaves[0].emp_name) ||
+          nameInput ||
+          'พนักงาน';
+
+        const foundDept =
+          (myAtt[0] && myAtt[0].department) ||
+          (myLeaves[0] && myLeaves[0].department) ||
+          deptInput ||
+          'ไม่ระบุกลุ่มงาน';
+
+        document.getElementById('cardEmpName').textContent = foundName;
+        document.getElementById('cardEmpCode').textContent = `รหัสพนักงาน: ${codeInput.toUpperCase()} • กลุ่มงาน: ${foundDept}`;
+        badgeEl.textContent = 'อัปเดตแล้ว';
+
+        const onTimeCount = myAtt.filter((r) => r.status === 'ตรงเวลา').length;
+        const lateCount = myAtt.filter((r) => r.status === 'มาสาย').length;
+        const approvedLeaves = myLeaves.filter((l) => l.approval_status === 'อนุมัติ').length;
+        const pendingLeaves = myLeaves.filter((l) => l.approval_status === 'รออนุมัติ').length;
+
+        document.getElementById('myOnTime').textContent = onTimeCount;
+        document.getElementById('myLate').textContent = lateCount;
+        document.getElementById('myApprovedLeaves').textContent = approvedLeaves;
+        document.getElementById('myPendingLeaves').textContent = pendingLeaves;
+
+        const leavesBody = document.getElementById('myLeavesBody');
+        if (!myLeaves.length) {
+          leavesBody.innerHTML = '<tr><td colspan="4" class="py-5 text-center text-slate-400">ไม่พบประวัติการลาของรหัสนี้</td></tr>';
+        } else {
+          leavesBody.innerHTML = myLeaves.map((lv) => {
+            const stBadge =
+              lv.approval_status === 'อนุมัติ' ? 'bg-emerald-100 text-emerald-700' :
+              lv.approval_status === 'ไม่อนุมัติ' ? 'bg-rose-100 text-rose-700' :
+              'bg-amber-100 text-amber-700';
+            return `
+              <tr>
+                <td class="py-2.5 px-3 font-medium">${lv.leave_type || '-'}</td>
+                <td class="py-2.5 px-3 text-xs">${lv.start_date || '-'} ถึง ${lv.end_date || '-'}</td>
+                <td class="py-2.5 px-3">${lv.reason || '-'}</td>
+                <td class="py-2.5 px-3"><span class="px-2.5 py-0.5 rounded-full text-xs font-medium ${stBadge}">${lv.approval_status || 'รออนุมัติ'}</span></td>
+              </tr>
+            `;
+          }).join('');
+        }
+
+        const attBody = document.getElementById('myAttBody');
+        if (!myAtt.length) {
+          attBody.innerHTML = '<tr><td colspan="4" class="py-5 text-center text-slate-400">ไม่พบประวัติการลงเวลาของรหัสนี้</td></tr>';
+        } else {
+          attBody.innerHTML = myAtt.map((r) => {
+            const stBadge =
+              r.status === 'ตรงเวลา' ? 'bg-emerald-100 text-emerald-700' :
+              r.status === 'มาสาย' ? 'bg-amber-100 text-amber-700' :
+              'bg-slate-100 text-slate-700';
+            return `
+              <tr>
+                <td class="py-2.5 px-3">${r.date || '-'}</td>
+                <td class="py-2.5 px-3">${r.check_in || '-'}</td>
+                <td class="py-2.5 px-3">${r.check_out || '-'}</td>
+                <td class="py-2.5 px-3"><span class="px-2.5 py-0.5 rounded-full text-xs font-medium ${stBadge}">${r.status || '-'}</span></td>
+              </tr>
+            `;
+          }).join('');
         }
       } catch (err) {
+        badgeEl.textContent = 'เชื่อมต่อไม่ได้';
         console.error(err);
-      } finally {
-        if (btn) {
-          btn.disabled = false;
-          btn.textContent = "รีเฟรชข้อมูล";
-        }
       }
     }
 
-    async function updateLeaveStatus(row_id, approval_status) {
-      if (!row_id) return;
-      try {
-        const res = await fetch(SCRIPT_URL, {
-          method: "POST",
-          body: JSON.stringify({ action: "update_leave", row_id, approval_status })
-        });
-        const data = await res.json();
-        if (data.ok) {
-          await loadDashboardData();
-        }
-      } catch (err) {
-        console.error(err);
-      }
-    }
-
-    document.getElementById("refreshBtn").addEventListener("click", loadDashboardData);
-    document.getElementById("monthSelect").addEventListener("change", (e) => {
-      selectedMonth = e.target.value;
-      renderOverview();
-    });
-    document.getElementById("directorySearch").addEventListener("input", renderDirectory);
-    document.getElementById("binderSelect").addEventListener("change", (e) => {
-      selectedEmpKey = e.target.value;
-      renderBinder();
-    });
-
-    renderCharts(0, 0, 0);
-    loadDashboardData();
+    document.getElementById('loadProfileBtn').addEventListener('click', loadMyProfile);
   </script>
 </body>
 </html>
