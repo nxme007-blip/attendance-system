@@ -12,30 +12,28 @@
 </head>
 <body class="bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 min-h-screen text-slate-800">
 
-  <!-- นำลิงก์ Web App URL จาก Google Apps Script มาใส่ใน SCRIPT_URL ด้านล่าง -->
-
-  <!-- แถบด้านบน (Top Bar + เมนูแฮมเบอร์เกอร์) -->
-  <header class="sticky top-0 z-30 bg-white/85 backdrop-blur-md border-b border-indigo-100 shadow-sm">
-    <div class="max-w-3xl mx-auto px-4 py-3 flex items-center justify-between">
-      <div>
-        <h1 id="pageTitle" class="text-lg sm:text-xl font-semibold text-slate-800">ลงเวลาเข้า-ออกงาน</h1>
-        <p id="clock" class="text-xs text-indigo-600 font-medium"></p>
+  <!-- แถบด้านบน (มีเฉพาะชื่อหน้า เวลา และปุ่มเมนูแฮมเบอร์เกอร์) -->
+  <header class="sticky top-0 z-30 bg-white/90 backdrop-blur-md border-b border-indigo-100 shadow-sm">
+    <div class="max-w-3xl mx-auto px-4 py-3 flex items-center justify-between gap-3">
+      <div class="min-w-0">
+        <h1 id="pageTitle" class="text-lg sm:text-xl font-semibold text-slate-800 truncate">ลงเวลาเข้า-ออกงาน</h1>
+        <p id="clock" class="text-xs text-indigo-600 font-medium truncate"></p>
       </div>
 
-      <button id="menuBtn" type="button" aria-label="เปิดเมนู"
-        class="p-2.5 rounded-xl bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200/70 transition flex items-center gap-2">
+      <button id="menuBtn" type="button" aria-label="เปิดเมนูการทำงาน"
+        class="shrink-0 px-3.5 py-2 rounded-xl bg-indigo-50 hover:bg-indigo-100 active:scale-95 text-indigo-700 border border-indigo-200/80 transition flex items-center gap-2 shadow-xs">
         <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16" />
         </svg>
-        <span class="hidden sm:inline text-sm font-medium">เมนู</span>
+        <span class="text-sm font-medium">เมนู</span>
       </button>
     </div>
   </header>
 
-  <!-- พื้นหลังมืดเวลาเปิดเมนูแฮมเบอร์เกอร์ -->
-  <div id="menuBackdrop" class="fixed inset-0 bg-slate-900/35 backdrop-blur-[1px] z-40 hidden"></div>
+  <!-- พื้นหลังมืดเวลาเปิดลิ้นชักเมนู -->
+  <div id="menuBackdrop" class="fixed inset-0 bg-slate-900/35 backdrop-blur-[1px] z-40 hidden transition-opacity"></div>
 
-  <!-- ลิ้นชักเมนูแฮมเบอร์เกอร์ (Slide-over Drawer) -->
+  <!-- ลิ้นชักเมนูแฮมเบอร์เกอร์ -->
   <aside id="drawerMenu"
     class="fixed top-0 right-0 h-full w-72 max-w-[85vw] bg-white z-50 shadow-2xl border-l border-slate-100 transform translate-x-full transition-transform duration-200 flex flex-col justify-between p-5">
     <div class="space-y-4">
@@ -44,24 +42,27 @@
           <p class="text-sm font-semibold text-slate-800">เมนูการทำงาน</p>
           <p class="text-xs text-slate-400">เลือกหน้าต่างที่ต้องการใช้งาน</p>
         </div>
-        <button id="closeMenuBtn" type="button"
-          class="w-8 h-8 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-600 flex items-center justify-center">
+        <button id="closeMenuBtn" type="button" aria-label="ปิดเมนู"
+          class="w-8 h-8 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-600 flex items-center justify-center transition">
           ✕
         </button>
       </div>
 
       <nav class="space-y-1.5">
-        <button data-nav="attendance" class="nav-item w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium text-left bg-indigo-600 text-white transition">
+        <button type="button" data-nav="attendance"
+          class="nav-item w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium text-left bg-indigo-600 text-white transition">
           <span>🕒</span>
           <span>ลงเวลาเข้า-ออกงาน</span>
         </button>
 
-        <button data-nav="leave" class="nav-item w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium text-left text-slate-700 hover:bg-indigo-50 transition">
+        <button type="button" data-nav="leave"
+          class="nav-item w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium text-left text-slate-700 hover:bg-indigo-50 transition">
           <span>📝</span>
           <span>แจ้งลางาน</span>
         </button>
 
-        <button data-nav="profile" class="nav-item w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium text-left text-slate-700 hover:bg-indigo-50 transition">
+        <button type="button" data-nav="profile"
+          class="nav-item w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium text-left text-slate-700 hover:bg-indigo-50 transition">
           <span>👤</span>
           <span>ข้อมูลของฉัน (ขาด/ลา/มาสาย)</span>
         </button>
@@ -79,33 +80,20 @@
       </nav>
     </div>
 
-    <div class="bg-indigo-50/80 border border-indigo-100 rounded-xl p-3 text-xs text-indigo-800">
-      <p class="font-medium">เคล็ดลับ</p>
-      <p class="text-indigo-700/90 mt-0.5">กรอกรหัสและชื่อพนักงานไว้ ระบบจะจำช่วยกรอกในหน้าถัดไปให้ค่ะ</p>
+    <div class="bg-indigo-50/80 border border-indigo-100 rounded-xl p-3 text-xs text-indigo-800 space-y-1">
+      <p class="font-medium">ผู้ใช้งานปัจจุบัน</p>
+      <p id="drawerUserSummary" class="text-indigo-700 truncate">ยังไม่ได้ระบุรหัสพนักงาน</p>
     </div>
   </aside>
 
   <!-- พื้นที่เนื้อหาหลัก -->
   <main class="max-w-3xl mx-auto px-4 py-6">
 
-    <!-- แถบสลับหน้าด่วนด้านบน -->
-    <div class="grid grid-cols-3 gap-2 bg-white/80 p-1.5 rounded-2xl border border-white shadow-sm mb-5">
-      <button data-nav="attendance" class="quick-tab py-2 px-2 rounded-xl text-xs sm:text-sm font-medium bg-indigo-600 text-white shadow-sm transition">
-        ลงเวลา
-      </button>
-      <button data-nav="leave" class="quick-tab py-2 px-2 rounded-xl text-xs sm:text-sm font-medium text-slate-600 hover:bg-white transition">
-        แจ้งลา
-      </button>
-      <button data-nav="profile" class="quick-tab py-2 px-2 rounded-xl text-xs sm:text-sm font-medium text-slate-600 hover:bg-white transition">
-        ข้อมูลของฉัน
-      </button>
-    </div>
-
     <!-- ==================== หน้า 1: ลงเวลาเข้า-ออกงาน ==================== -->
     <section id="view-attendance" class="page-view bg-white/95 backdrop-blur-md rounded-2xl shadow-lg border border-white p-6 space-y-4 max-w-xl mx-auto">
       <div class="border-b border-slate-100 pb-3">
         <h2 class="text-lg font-semibold text-slate-800">บันทึกเวลาเข้า-ออกงาน</h2>
-        <p class="text-xs text-slate-500 mt-0.5">ระบบบันทึกเวลาเข้างานหลัง 08:30:00 น. เป็น "มาสาย" อัตโนมัติ</p>
+        <p class="text-xs text-slate-500 mt-0.5">บันทึกเวลาเข้างานหรือออกงานแบบเรียลไทม์เข้าสู่ระบบ</p>
       </div>
 
       <div>
@@ -122,7 +110,8 @@
 
       <div>
         <label class="block text-sm font-medium text-slate-700 mb-1">เลือกรายการลงเวลา</label>
-        <select id="attType" class="w-full border border-slate-200 rounded-xl px-3.5 py-2.5 bg-white focus:outline-none focus:ring-2 focus:ring-indigo-400">
+        <select id="attType"
+          class="w-full border border-slate-200 rounded-xl px-3.5 py-2.5 bg-white focus:outline-none focus:ring-2 focus:ring-indigo-400">
           <option value="เข้างาน">ลงเวลาเข้างาน</option>
           <option value="ออกงาน">ลงเวลาออกงาน</option>
         </select>
@@ -136,7 +125,7 @@
       <div id="attResult" class="hidden p-3 rounded-xl text-sm text-center font-medium"></div>
     </section>
 
-    <!-- ==================== หน้า 2: แจ้งลางาน (แยกออกมาเฉพาะ) ==================== -->
+    <!-- ==================== หน้า 2: แจ้งลางาน (แยกหน้าออกมา) ==================== -->
     <section id="view-leave" class="page-view hidden bg-white/95 backdrop-blur-md rounded-2xl shadow-lg border border-white p-6 space-y-4 max-w-xl mx-auto">
       <div class="border-b border-slate-100 pb-3">
         <h2 class="text-lg font-semibold text-slate-800">แบบฟอร์มแจ้งลางาน</h2>
@@ -158,7 +147,8 @@
 
       <div>
         <label class="block text-sm font-medium text-slate-700 mb-1">ประเภทการลา</label>
-        <select id="leaveType" class="w-full border border-slate-200 rounded-xl px-3.5 py-2.5 bg-white focus:outline-none focus:ring-2 focus:ring-indigo-400">
+        <select id="leaveType"
+          class="w-full border border-slate-200 rounded-xl px-3.5 py-2.5 bg-white focus:outline-none focus:ring-2 focus:ring-indigo-400">
           <option value="ลาป่วย">ลาป่วย</option>
           <option value="ลากิจ">ลากิจ</option>
           <option value="ลาพักร้อน">ลาพักร้อน</option>
@@ -189,16 +179,16 @@
         ส่งคำขอลางาน
       </button>
 
-      <div id="lvResult" class="hidden p-3 rounded-xl text-sm text-center font-medium"></div>
+      <div id="lvResult" class="hidden p-3 rounded-xl text-sm text-center font-medium space-y-2"></div>
     </section>
 
     <!-- ==================== หน้า 3: ข้อมูลของฉัน (ขาด / ลา / มาสาย) ==================== -->
     <section id="view-profile" class="page-view hidden space-y-5">
       <div class="bg-white/95 backdrop-blur-md rounded-2xl shadow-lg border border-white p-5 space-y-4">
         <div class="flex flex-col sm:flex-row sm:items-end justify-between gap-3">
-          <div class="flex-1">
+          <div>
             <h2 class="text-lg font-semibold text-slate-800">ข้อมูลพนักงาน & สถิติส่วนตัว</h2>
-            <p class="text-xs text-slate-500 mt-0.5">กรอกรหัสพนักงานเพื่อดูสรุปการเข้างาน มาสาย และประวัติการลาของตนเอง</p>
+            <p class="text-xs text-slate-500 mt-0.5">ดูข้อมูลส่วนตัว ยอดเข้าตรงเวลา มาสาย และสถานะการลางาน</p>
           </div>
           <div class="flex gap-2">
             <input id="profileEmpCode" type="text" placeholder="รหัสพนักงาน เช่น EMP001"
@@ -211,18 +201,18 @@
         </div>
 
         <!-- การ์ดข้อมูลพนักงาน -->
-        <div id="empCard" class="bg-gradient-to-r from-indigo-50 to-purple-50 border border-indigo-100 rounded-2xl p-4 flex flex-wrap items-center justify-between gap-3">
+        <div class="bg-gradient-to-r from-indigo-50 to-purple-50 border border-indigo-100 rounded-2xl p-4 flex flex-wrap items-center justify-between gap-3">
           <div>
             <p class="text-xs text-indigo-600 font-medium">ข้อมูลผู้ใช้งาน</p>
             <p id="cardEmpName" class="text-base font-semibold text-slate-800 mt-0.5">กรุณาระบุรหัสพนักงาน</p>
-            <p id="cardEmpCode" class="text-xs text-slate-500">รหัส: -</p>
+            <p id="cardEmpCode" class="text-xs text-slate-500">รหัสพนักงาน: -</p>
           </div>
-          <span class="text-xs bg-white/90 text-indigo-700 border border-indigo-200 px-3 py-1 rounded-full font-medium">
-            มุมมองพนักงาน
+          <span id="profileStatusBadge" class="text-xs bg-white/90 text-indigo-700 border border-indigo-200 px-3 py-1 rounded-full font-medium">
+            พร้อมตรวจสอบ
           </span>
         </div>
 
-        <!-- สรุปยอด ขาด / ลา / มาสาย / ตรงเวลา -->
+        <!-- การ์ดสรุป ตรงเวลา / มาสาย / ลา (อนุมัติแล้ว) / ใบลารออนุมัติ -->
         <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
           <div class="bg-emerald-50/80 border border-emerald-100 rounded-2xl p-3.5">
             <p class="text-xs text-emerald-700">เข้าตรงเวลา</p>
@@ -257,7 +247,7 @@
               </tr>
             </thead>
             <tbody id="myLeavesBody" class="divide-y divide-slate-100">
-              <tr><td colspan="4" class="py-5 text-center text-slate-400">กด "ดึงข้อมูล" เพื่อดูประวัติการลา</td></tr>
+              <tr><td colspan="4" class="py-5 text-center text-slate-400">ยังไม่มีข้อมูลการลา</td></tr>
             </tbody>
           </table>
         </div>
@@ -277,7 +267,7 @@
               </tr>
             </thead>
             <tbody id="myAttBody" class="divide-y divide-slate-100">
-              <tr><td colspan="4" class="py-5 text-center text-slate-400">กด "ดึงข้อมูล" เพื่อดูประวัติการลงเวลา</td></tr>
+              <tr><td colspan="4" class="py-5 text-center text-slate-400">ยังไม่มีข้อมูลการลงเวลา</td></tr>
             </tbody>
           </table>
         </div>
@@ -290,6 +280,8 @@
     // นำลิงก์ Web App URL จาก Google Apps Script มาใส่แทนที่ด้านล่างนี้
     const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbw3ovdTdqhw7KuqvA_MJ7lyyCQNur-LRCg1hJul1K3733YxNkwfYtuJ-XYry965vPskHw/exec
 ";
+    const STORAGE_CODE_KEY = "attendance_emp_code";
+    const STORAGE_NAME_KEY = "attendance_emp_name";
 
     // นาฬิกาเวลาจริง
     function updateClock() {
@@ -302,7 +294,7 @@
     setInterval(updateClock, 1000);
     updateClock();
 
-    // เมนูแฮมเบอร์เกอร์
+    // เปิด-ปิด เมนูแฮมเบอร์เกอร์
     const drawer = document.getElementById('drawerMenu');
     const backdrop = document.getElementById('menuBackdrop');
 
@@ -318,9 +310,58 @@
     document.getElementById('menuBtn').addEventListener('click', openMenu);
     document.getElementById('closeMenuBtn').addEventListener('click', closeMenu);
     backdrop.addEventListener('click', closeMenu);
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') closeMenu();
+    });
 
-    // การสลับหน้า
-    const viewMeta = {
+    // อัปเดตสรุปผู้ใช้ในลิ้นชักเมนู
+    function refreshDrawerUserSummary() {
+      const code = (document.getElementById('attEmpCode').value || '').trim();
+      const name = (document.getElementById('attEmpName').value || '').trim();
+      const el = document.getElementById('drawerUserSummary');
+      if (!code && !name) {
+        el.textContent = 'ยังไม่ได้ระบุรหัสพนักงาน';
+      } else {
+        el.textContent = `${name || 'ไม่ระบุชื่อ'} (${code || '-'})`;
+      }
+    }
+
+    // โหลดค่าที่เคยกรอกไว้ในเครื่อง
+    const savedCode = localStorage.getItem(STORAGE_CODE_KEY) || '';
+    const savedName = localStorage.getItem(STORAGE_NAME_KEY) || '';
+    if (savedCode) {
+      document.querySelectorAll('.emp-code-sync').forEach(el => { el.value = savedCode; });
+    }
+    if (savedName) {
+      document.querySelectorAll('.emp-name-sync').forEach(el => { el.value = savedName; });
+    }
+    refreshDrawerUserSummary();
+
+    // ซิงก์รหัสและชื่อพนักงานระหว่างทุกหน้า
+    document.querySelectorAll('.emp-code-sync').forEach(input => {
+      input.addEventListener('input', () => {
+        const val = input.value;
+        document.querySelectorAll('.emp-code-sync').forEach(other => {
+          if (other !== input) other.value = val;
+        });
+        localStorage.setItem(STORAGE_CODE_KEY, val.trim());
+        refreshDrawerUserSummary();
+      });
+    });
+
+    document.querySelectorAll('.emp-name-sync').forEach(input => {
+      input.addEventListener('input', () => {
+        const val = input.value;
+        document.querySelectorAll('.emp-name-sync').forEach(other => {
+          if (other !== input) other.value = val;
+        });
+        localStorage.setItem(STORAGE_NAME_KEY, val.trim());
+        refreshDrawerUserSummary();
+      });
+    });
+
+    // สลับหน้าผ่านเมนูแฮมเบอร์เกอร์
+    const viewTitles = {
       attendance: 'ลงเวลาเข้า-ออกงาน',
       leave: 'แจ้งลางาน',
       profile: 'ข้อมูลของฉัน (ขาด / ลา / มาสาย)'
@@ -331,14 +372,7 @@
       const target = document.getElementById('view-' + viewName);
       if (target) target.classList.remove('hidden');
 
-      document.getElementById('pageTitle').textContent = viewMeta[viewName] || 'ระบบพนักงาน';
-
-      document.querySelectorAll('.quick-tab').forEach(btn => {
-        const active = btn.dataset.nav === viewName;
-        btn.className = active
-          ? 'quick-tab py-2 px-2 rounded-xl text-xs sm:text-sm font-medium bg-indigo-600 text-white shadow-sm transition'
-          : 'quick-tab py-2 px-2 rounded-xl text-xs sm:text-sm font-medium text-slate-600 hover:bg-white transition';
-      });
+      document.getElementById('pageTitle').textContent = viewTitles[viewName] || 'ระบบพนักงาน';
 
       document.querySelectorAll('.nav-item').forEach(btn => {
         const active = btn.dataset.nav === viewName;
@@ -348,6 +382,8 @@
       });
 
       closeMenu();
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+
       if (viewName === 'profile') {
         loadMyProfile();
       }
@@ -357,32 +393,25 @@
       el.addEventListener('click', () => switchView(el.dataset.nav));
     });
 
-    // ซิงก์รหัสและชื่อพนักงานระหว่างหน้าให้กรอกสะดวก
-    document.querySelectorAll('.emp-code-sync').forEach(input => {
-      input.addEventListener('input', () => {
-        document.querySelectorAll('.emp-code-sync').forEach(other => {
-          if (other !== input) other.value = input.value;
-        });
-      });
-    });
-
-    document.querySelectorAll('.emp-name-sync').forEach(input => {
-      input.addEventListener('input', () => {
-        document.querySelectorAll('.emp-name-sync').forEach(other => {
-          if (other !== input) other.value = input.value;
-        });
-      });
-    });
-
-    function showBox(el, ok, msg) {
+    function showMessage(el, ok, msg, showGoProfile = false) {
       el.className = ok
-        ? 'p-3 rounded-xl text-sm text-center font-medium bg-emerald-100 text-emerald-700'
-        : 'p-3 rounded-xl text-sm text-center font-medium bg-red-100 text-red-700';
-      el.textContent = msg;
+        ? 'p-3 rounded-xl text-sm text-center font-medium bg-emerald-100 text-emerald-700 space-y-2'
+        : 'p-3 rounded-xl text-sm text-center font-medium bg-red-100 text-red-700 space-y-2';
+
+      if (showGoProfile && ok) {
+        el.innerHTML = `
+          <div>${msg}</div>
+          <button type="button" onclick="switchView('profile')" class="inline-block text-xs underline font-semibold text-emerald-800 hover:text-emerald-950">
+            ไปดูสถานะใบลาที่หน้า "ข้อมูลของฉัน" →
+          </button>
+        `;
+      } else {
+        el.textContent = msg;
+      }
       el.classList.remove('hidden');
     }
 
-    // ส่งข้อมูลลงเวลา
+    // 1. บันทึกการลงเวลาเข้า-ออกงาน
     document.getElementById('attSubmitBtn').addEventListener('click', async () => {
       const emp_code = document.getElementById('attEmpCode').value.trim();
       const emp_name = document.getElementById('attEmpName').value.trim();
@@ -391,9 +420,13 @@
       const btn = document.getElementById('attSubmitBtn');
 
       if (!emp_code || !emp_name) {
-        showBox(box, false, 'กรุณากรอกรหัสและชื่อพนักงานให้ครบถ้วน');
+        showMessage(box, false, 'กรุณากรอกรหัสและชื่อพนักงานให้ครบถ้วน');
         return;
       }
+
+      localStorage.setItem(STORAGE_CODE_KEY, emp_code);
+      localStorage.setItem(STORAGE_NAME_KEY, emp_name);
+      refreshDrawerUserSummary();
 
       btn.disabled = true;
       btn.textContent = 'กำลังบันทึก...';
@@ -405,16 +438,16 @@
           body: JSON.stringify({ action: 'attendance', emp_code, emp_name, record_type })
         });
         const data = await res.json();
-        showBox(box, Boolean(data.ok), data.message || 'บันทึกเรียบร้อย');
+        showMessage(box, Boolean(data.ok), data.message || 'บันทึกการลงเวลาเรียบร้อยแล้ว');
       } catch (err) {
-        showBox(box, false, 'เชื่อมต่อไม่สำเร็จ: ' + err.message);
+        showMessage(box, false, 'เชื่อมต่อไม่สำเร็จ: ' + err.message);
       } finally {
         btn.disabled = false;
         btn.textContent = 'ยืนยันการลงเวลา';
       }
     });
 
-    // ส่งข้อมูลแจ้งลางาน
+    // 2. ส่งคำขอแจ้งลางาน
     document.getElementById('lvSubmitBtn').addEventListener('click', async () => {
       const emp_code = document.getElementById('lvEmpCode').value.trim();
       const emp_name = document.getElementById('lvEmpName').value.trim();
@@ -426,9 +459,18 @@
       const btn = document.getElementById('lvSubmitBtn');
 
       if (!emp_code || !emp_name || !start_date || !end_date || !reason) {
-        showBox(box, false, 'กรุณากรอกข้อมูลการลาให้ครบทุกช่อง');
+        showMessage(box, false, 'กรุณากรอกข้อมูลการลาให้ครบทุกช่อง');
         return;
       }
+
+      if (end_date < start_date) {
+        showMessage(box, false, 'วันที่สิ้นสุดต้องไม่น้อยกว่าวันที่เริ่มต้น');
+        return;
+      }
+
+      localStorage.setItem(STORAGE_CODE_KEY, emp_code);
+      localStorage.setItem(STORAGE_NAME_KEY, emp_name);
+      refreshDrawerUserSummary();
 
       btn.disabled = true;
       btn.textContent = 'กำลังส่งคำขอ...';
@@ -448,36 +490,44 @@
           })
         });
         const data = await res.json();
-        showBox(box, Boolean(data.ok), data.message || 'ส่งคำขอลางานแล้ว');
+        showMessage(box, Boolean(data.ok), data.message || 'ส่งคำขอลางานเรียบร้อยแล้ว', Boolean(data.ok));
         if (data.ok) {
           document.getElementById('leaveReason').value = '';
         }
       } catch (err) {
-        showBox(box, false, 'เชื่อมต่อไม่สำเร็จ: ' + err.message);
+        showMessage(box, false, 'เชื่อมต่อไม่สำเร็จ: ' + err.message);
       } finally {
         btn.disabled = false;
         btn.textContent = 'ส่งคำขอลางาน';
       }
     });
 
-    // โหลดข้อมูลส่วนตัวของพนักงาน
+    // 3. โหลดข้อมูลส่วนตัวและสถิติของพนักงาน
     async function loadMyProfile() {
-      const codeInput = document.getElementById('profileEmpCode').value.trim().toLowerCase();
-      const nameInput = document.getElementById('attEmpName').value.trim();
+      const codeInput = (document.getElementById('profileEmpCode').value || '').trim();
+      const nameInput = (document.getElementById('attEmpName').value || '').trim();
+      const badgeEl = document.getElementById('profileStatusBadge');
 
       if (!codeInput) {
         document.getElementById('cardEmpName').textContent = nameInput || 'กรุณาระบุรหัสพนักงาน';
-        document.getElementById('cardEmpCode').textContent = 'รหัส: -';
+        document.getElementById('cardEmpCode').textContent = 'รหัสพนักงาน: -';
+        badgeEl.textContent = 'รอระบุรหัส';
         return;
       }
+
+      badgeEl.textContent = 'กำลังโหลด...';
 
       try {
         const res = await fetch(`${SCRIPT_URL}?action=dashboard`);
         const data = await res.json();
-        if (!data.ok) return;
+        if (!data.ok) {
+          badgeEl.textContent = 'ดึงข้อมูลไม่สำเร็จ';
+          return;
+        }
 
-        const myAtt = (data.attendance || []).filter(r => String(r.emp_code).toLowerCase() === codeInput);
-        const myLeaves = (data.leaves || []).filter(l => String(l.emp_code).toLowerCase() === codeInput);
+        const targetCode = codeInput.toLowerCase();
+        const myAtt = (data.attendance || []).filter(r => String(r.emp_code || '').toLowerCase() === targetCode);
+        const myLeaves = (data.leaves || []).filter(l => String(l.emp_code || '').toLowerCase() === targetCode);
 
         const foundName =
           (myAtt[0] && myAtt[0].emp_name) ||
@@ -487,6 +537,7 @@
 
         document.getElementById('cardEmpName').textContent = foundName;
         document.getElementById('cardEmpCode').textContent = 'รหัสพนักงาน: ' + codeInput.toUpperCase();
+        badgeEl.textContent = 'อัปเดตแล้ว';
 
         const onTimeCount = myAtt.filter(r => r.status === 'ตรงเวลา').length;
         const lateCount = myAtt.filter(r => r.status === 'มาสาย').length;
@@ -503,16 +554,16 @@
           leavesBody.innerHTML = `<tr><td colspan="4" class="py-5 text-center text-slate-400">ไม่พบประวัติการลาของรหัสนี้</td></tr>`;
         } else {
           leavesBody.innerHTML = myLeaves.map(lv => {
-            const badge =
+            const stBadge =
               lv.approval_status === 'อนุมัติ' ? 'bg-emerald-100 text-emerald-700' :
               lv.approval_status === 'ไม่อนุมัติ' ? 'bg-rose-100 text-rose-700' :
               'bg-amber-100 text-amber-700';
             return `
               <tr>
-                <td class="py-2.5 px-3 font-medium">${lv.leave_type}</td>
-                <td class="py-2.5 px-3 text-xs">${lv.start_date} ถึง ${lv.end_date}</td>
-                <td class="py-2.5 px-3">${lv.reason}</td>
-                <td class="py-2.5 px-3"><span class="px-2.5 py-0.5 rounded-full text-xs font-medium ${badge}">${lv.approval_status}</span></td>
+                <td class="py-2.5 px-3 font-medium">${lv.leave_type || '-'}</td>
+                <td class="py-2.5 px-3 text-xs">${lv.start_date || '-'} ถึง ${lv.end_date || '-'}</td>
+                <td class="py-2.5 px-3">${lv.reason || '-'}</td>
+                <td class="py-2.5 px-3"><span class="px-2.5 py-0.5 rounded-full text-xs font-medium ${stBadge}">${lv.approval_status || 'รออนุมัติ'}</span></td>
               </tr>
             `;
           }).join('');
@@ -523,7 +574,7 @@
           attBody.innerHTML = `<tr><td colspan="4" class="py-5 text-center text-slate-400">ไม่พบประวัติการลงเวลาของรหัสนี้</td></tr>`;
         } else {
           attBody.innerHTML = myAtt.map(r => {
-            const badge =
+            const stBadge =
               r.status === 'ตรงเวลา' ? 'bg-emerald-100 text-emerald-700' :
               r.status === 'มาสาย' ? 'bg-amber-100 text-amber-700' :
               'bg-slate-100 text-slate-700';
@@ -532,12 +583,13 @@
                 <td class="py-2.5 px-3">${r.date || '-'}</td>
                 <td class="py-2.5 px-3">${r.check_in || '-'}</td>
                 <td class="py-2.5 px-3">${r.check_out || '-'}</td>
-                <td class="py-2.5 px-3"><span class="px-2.5 py-0.5 rounded-full text-xs font-medium ${badge}">${r.status || '-'}</span></td>
+                <td class="py-2.5 px-3"><span class="px-2.5 py-0.5 rounded-full text-xs font-medium ${stBadge}">${r.status || '-'}</span></td>
               </tr>
             `;
           }).join('');
         }
       } catch (err) {
+        badgeEl.textContent = 'เชื่อมต่อไม่ได้';
         console.error(err);
       }
     }
