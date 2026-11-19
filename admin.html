@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>แดชบอร์ดผู้ดูแลระบบ (Admin) — ภาพรวม · อนุมัติการลา · แฟ้มรายบุคคล</title>
+  <title>แดชบอร์ดผู้ดูแลระบบ (Admin)</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600&display=swap" rel="stylesheet">
   <style>
@@ -12,17 +12,17 @@
 </head>
 <body class="bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 min-h-screen text-slate-800">
 
-  <!-- แถบด้านบน + เมนูแฮมเบอร์เกอร์ -->
+  <!-- แถบด้านบน -->
   <header class="sticky top-0 z-30 bg-white/90 backdrop-blur-md border-b border-indigo-100 shadow-sm">
     <div class="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between gap-3">
       <div class="min-w-0">
-        <h1 id="adminPageTitle" class="text-lg sm:text-xl font-semibold text-slate-800 truncate">แดชบอร์ดภาพรวม</h1>
+        <h1 id="adminPageTitle" class="text-lg sm:text-xl font-semibold text-slate-800 truncate">แดชบอร์ดผู้ดูแลระบบ (Admin)</h1>
         <p id="adminPageSub" class="text-xs text-slate-500 truncate">สรุปภาพรวมการเข้างาน มาสาย และคำขอลางานของพนักงานทั้งหมด</p>
       </div>
 
       <div class="flex items-center gap-2 shrink-0">
         <button id="refreshBtn" type="button"
-          class="hidden sm:inline-flex items-center bg-indigo-600 hover:bg-indigo-700 text-white text-xs sm:text-sm font-medium px-3.5 py-2 rounded-xl shadow-xs transition cursor-pointer">
+          class="bg-indigo-600 hover:bg-indigo-700 text-white text-xs sm:text-sm font-medium px-3.5 py-2 rounded-xl shadow-xs transition cursor-pointer">
           รีเฟรชข้อมูล
         </button>
 
@@ -47,7 +47,7 @@
       <div class="flex items-center justify-between border-b border-slate-100 pb-3">
         <div>
           <p class="text-sm font-semibold text-slate-800">เมนูผู้ดูแลระบบ</p>
-          <p class="text-xs text-slate-400">เลือกมุมมองที่ต้องการใช้งาน</p>
+          <p class="text-xs text-slate-400">เลือกหน้าต่างที่ต้องการใช้งาน</p>
         </div>
         <button id="closeAdminMenuBtn" type="button" aria-label="ปิดเมนู"
           class="w-8 h-8 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-600 flex items-center justify-center transition cursor-pointer">
@@ -83,18 +83,12 @@
           <span>แฟ้มส่วนตัวรายบุคคล</span>
         </button>
 
-        <div class="pt-3 mt-3 border-t border-slate-100 space-y-1.5">
-          <button id="drawerRefreshBtn" type="button"
-            class="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium text-left text-indigo-700 bg-indigo-50/70 hover:bg-indigo-100 transition cursor-pointer">
-            <span>🔄</span>
-            <span>รีเฟรชข้อมูลล่าสุด</span>
-          </button>
-
+        <div class="pt-3 mt-3 border-t border-slate-100">
           <a href="index.html"
             class="w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-sm font-medium text-slate-700 hover:bg-slate-100 transition">
             <span class="flex items-center gap-3">
               <span>🏠</span>
-              <span>กลับไปหน้าพนักงาน</span>
+              <span>หน้าพนักงาน</span>
             </span>
             <span class="text-xs text-slate-400">→</span>
           </a>
@@ -103,111 +97,56 @@
     </div>
 
     <div class="bg-indigo-50/80 border border-indigo-100 rounded-xl p-3 text-xs text-indigo-800 space-y-1">
-      <p class="font-medium">แฟ้มที่เปิดอยู่ตอนนี้</p>
+      <p class="font-medium">แฟ้มที่เลือกอยู่ตอนนี้</p>
       <p id="drawerSelectedEmp" class="text-indigo-700 truncate">ยังไม่ได้เลือกพนักงานรายบุคคล</p>
     </div>
   </aside>
 
-  <main class="max-w-6xl mx-auto px-4 py-6 space-y-6">
+  <main class="max-w-6xl mx-auto px-4 py-6">
 
-    <!-- ==================== หน้า 1: แดชบอร์ดภาพรวม ==================== -->
-    <section id="view-overview" class="admin-view space-y-6">
-      <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <div class="bg-white/95 rounded-2xl p-4 shadow-sm border border-white">
-          <p class="text-xs text-slate-500">เข้างานตรงเวลา (รวม)</p>
-          <p id="ovOnTime" class="text-2xl font-semibold text-emerald-600 mt-1">0</p>
-          <span class="inline-block w-5 h-1 bg-emerald-500 rounded-full mt-2"></span>
-        </div>
-        <div class="bg-white/95 rounded-2xl p-4 shadow-sm border border-white">
-          <p class="text-xs text-slate-500">มาสาย (รวม)</p>
-          <p id="ovLate" class="text-2xl font-semibold text-amber-500 mt-1">0</p>
-          <span class="inline-block w-5 h-1 bg-amber-500 rounded-full mt-2"></span>
-        </div>
-        <div class="bg-white/95 rounded-2xl p-4 shadow-sm border border-white">
-          <p class="text-xs text-slate-500">ใบลารออนุมัติ</p>
-          <p id="ovPendingLeave" class="text-2xl font-semibold text-rose-600 mt-1">0</p>
-          <span class="inline-block w-5 h-1 bg-rose-500 rounded-full mt-2"></span>
-        </div>
-        <div class="bg-white/95 rounded-2xl p-4 shadow-sm border border-white">
-          <p class="text-xs text-slate-500">รายการบันทึกทั้งหมด</p>
-          <p id="ovTotalRecords" class="text-2xl font-semibold text-indigo-600 mt-1">0</p>
-          <span class="inline-block w-5 h-1 bg-indigo-500 rounded-full mt-2"></span>
-        </div>
-      </div>
-
-      <!-- สรุปรายการคำขอลางานทั้งหมด -->
-      <div class="bg-white/95 rounded-2xl p-5 shadow-sm border border-white space-y-3">
-        <div class="flex items-center justify-between gap-2">
-          <h2 class="text-base sm:text-lg font-semibold text-slate-800">รายการคำขอลางานทั้งหมด</h2>
-          <button type="button" data-admin-view="approvals"
-            class="text-xs sm:text-sm text-indigo-600 hover:text-indigo-800 font-medium cursor-pointer">
-            ไปหน้าอนุมัติการลา →
-          </button>
+    <!-- หน้า 1: แดชบอร์ดภาพรวม (แสดงเฉพาะการ์ดสถิติภาพรวม 4 ช่อง) -->
+    <section id="view-overview" class="admin-view">
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div class="bg-white/95 backdrop-blur-md rounded-2xl p-5 shadow-sm border border-white">
+          <p class="text-xs sm:text-sm text-slate-500">เข้างานตรงเวลา (รวม)</p>
+          <p id="ovOnTime" class="text-3xl font-semibold text-emerald-600 mt-2">0</p>
+          <span class="inline-block w-5 h-1 bg-emerald-500 rounded-full mt-3"></span>
         </div>
 
-        <div class="overflow-x-auto">
-          <table class="w-full text-xs sm:text-sm text-left border-collapse">
-            <thead>
-              <tr class="border-b border-slate-200 text-slate-600 bg-slate-50">
-                <th class="py-2.5 px-3">พนักงาน</th>
-                <th class="py-2.5 px-3">ประเภท</th>
-                <th class="py-2.5 px-3">ช่วงวันที่ลา</th>
-                <th class="py-2.5 px-3">เหตุผล</th>
-                <th class="py-2.5 px-3">สถานะ</th>
-                <th class="py-2.5 px-3">จัดการ</th>
-              </tr>
-            </thead>
-            <tbody id="ovLeavesBody" class="divide-y divide-slate-100">
-              <tr><td colspan="6" class="py-6 text-center text-slate-400">กำลังโหลดข้อมูล...</td></tr>
-            </tbody>
-          </table>
+        <div class="bg-white/95 backdrop-blur-md rounded-2xl p-5 shadow-sm border border-white">
+          <p class="text-xs sm:text-sm text-slate-500">มาสาย (รวม)</p>
+          <p id="ovLate" class="text-3xl font-semibold text-amber-500 mt-2">0</p>
+          <span class="inline-block w-5 h-1 bg-amber-500 rounded-full mt-3"></span>
         </div>
-      </div>
 
-      <!-- ประวัติการลงเวลาทั้งหมด -->
-      <div class="bg-white/95 rounded-2xl p-5 shadow-sm border border-white space-y-3">
-        <div class="flex items-center justify-between gap-2">
-          <h2 class="text-base sm:text-lg font-semibold text-slate-800">ประวัติการลงเวลาเข้า-ออกงานทั้งหมด</h2>
-          <button type="button" data-admin-view="directory"
-            class="text-xs sm:text-sm text-indigo-600 hover:text-indigo-800 font-medium cursor-pointer">
-            เปิดสมุดรายชื่อรายบุคคล →
-          </button>
+        <div class="bg-white/95 backdrop-blur-md rounded-2xl p-5 shadow-sm border border-white">
+          <p class="text-xs sm:text-sm text-slate-500">ใบลารออนุมัติ</p>
+          <p id="ovPendingLeave" class="text-3xl font-semibold text-rose-600 mt-2">0</p>
+          <span class="inline-block w-5 h-1 bg-rose-500 rounded-full mt-3"></span>
         </div>
-        <div class="overflow-x-auto">
-          <table class="w-full text-xs sm:text-sm text-left border-collapse">
-            <thead>
-              <tr class="border-b border-slate-200 text-slate-600 bg-slate-50">
-                <th class="py-2.5 px-3">วันที่</th>
-                <th class="py-2.5 px-3">รหัส</th>
-                <th class="py-2.5 px-3">ชื่อ-นามสกุล</th>
-                <th class="py-2.5 px-3">เข้างาน</th>
-                <th class="py-2.5 px-3">ออกงาน</th>
-                <th class="py-2.5 px-3">สถานะ</th>
-              </tr>
-            </thead>
-            <tbody id="ovAttBody" class="divide-y divide-slate-100">
-              <tr><td colspan="6" class="py-6 text-center text-slate-400">กำลังโหลดข้อมูล...</td></tr>
-            </tbody>
-          </table>
+
+        <div class="bg-white/95 backdrop-blur-md rounded-2xl p-5 shadow-sm border border-white">
+          <p class="text-xs sm:text-sm text-slate-500">รายการบันทึกทั้งหมด</p>
+          <p id="ovTotalRecords" class="text-3xl font-semibold text-indigo-600 mt-2">0</p>
+          <span class="inline-block w-5 h-1 bg-indigo-500 rounded-full mt-3"></span>
         </div>
       </div>
     </section>
 
-    <!-- ==================== หน้า 2: อนุมัติการลา ==================== -->
+    <!-- หน้า 2: อนุมัติการลา (เปิดเมื่อกดเลือกจากเมนู) -->
     <section id="view-approvals" class="admin-view hidden space-y-5">
-      <div class="bg-white/95 rounded-2xl p-5 shadow-sm border border-white space-y-4">
+      <div class="bg-white/95 backdrop-blur-md rounded-2xl p-5 shadow-sm border border-white space-y-4">
         <div class="flex flex-col md:flex-row md:items-center justify-between gap-3">
           <div>
-            <h2 class="text-base sm:text-lg font-semibold text-slate-800">ศูนย์อนุมัติคำขอลางาน</h2>
-            <p class="text-xs text-slate-500">กรองสถานะใบลา ค้นหาพนักงาน และกดอนุมัติหรือไม่อนุมัติได้ทันที</p>
+            <h2 class="text-base sm:text-lg font-semibold text-slate-800">อนุมัติคำขอลางาน</h2>
+            <p class="text-xs text-slate-500">กรองสถานะ ค้นหาชื่อ/รหัส และกดอนุมัติหรือไม่อนุมัติ</p>
           </div>
 
           <input id="approvalSearch" type="text" placeholder="ค้นหาชื่อ รหัส หรือประเภทการลา..."
             class="border border-slate-200 rounded-xl px-3.5 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400 w-full md:w-72" />
         </div>
 
-        <!-- ปุ่มกรองสถานะใบลา -->
-        <div class="flex flex-wrap gap-2 pt-1">
+        <div class="flex flex-wrap gap-2">
           <button type="button" data-leave-filter="ALL"
             class="leave-filter-btn px-3.5 py-1.5 rounded-xl text-xs sm:text-sm font-medium bg-indigo-600 text-white transition cursor-pointer">
             ทั้งหมด (<span id="countLeaveAll">0</span>)
@@ -227,7 +166,7 @@
         </div>
       </div>
 
-      <div class="bg-white/95 rounded-2xl p-5 shadow-sm border border-white space-y-3">
+      <div class="bg-white/95 backdrop-blur-md rounded-2xl p-5 shadow-sm border border-white space-y-3">
         <div class="flex items-center justify-between gap-2">
           <h3 id="approvalListTitle" class="text-base font-semibold text-slate-800">รายการคำขอลางานทั้งหมด</h3>
           <span id="approvalResultCount" class="text-xs text-slate-500">0 รายการ</span>
@@ -253,12 +192,12 @@
       </div>
     </section>
 
-    <!-- ==================== หน้า 3: สมุดรายชื่อพนักงาน ==================== -->
+    <!-- หน้า 3: สมุดรายชื่อพนักงาน (เปิดเมื่อกดเลือกจากเมนู) -->
     <section id="view-directory" class="admin-view hidden space-y-5">
-      <div class="bg-white/95 rounded-2xl p-5 shadow-sm border border-white flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+      <div class="bg-white/95 backdrop-blur-md rounded-2xl p-5 shadow-sm border border-white flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
           <h2 class="text-base sm:text-lg font-semibold text-slate-800">สมุดรายชื่อพนักงาน</h2>
-          <p class="text-xs text-slate-500">คลิกที่การ์ดของพนักงานแต่ละคนเพื่อเปิดดูแดชบอร์ดและแฟ้มส่วนตัวแยกเฉพาะคน</p>
+          <p class="text-xs text-slate-500">เลือกพนักงานแต่ละคนเพื่อเปิดดูแฟ้มส่วนตัวแยกเฉพาะบุคคล</p>
         </div>
 
         <input id="directorySearch" type="text" placeholder="ค้นหารหัสหรือชื่อพนักงาน..."
@@ -272,16 +211,16 @@
       </div>
     </section>
 
-    <!-- ==================== หน้า 4: แฟ้มส่วนตัวรายบุคคล ==================== -->
+    <!-- หน้า 4: แฟ้มส่วนตัวรายบุคคล (เปิดเมื่อกดเลือกจากเมนูหรือเลือกคนในสมุดรายชื่อ) -->
     <section id="view-binder" class="admin-view hidden space-y-5">
-      <div class="bg-white/95 rounded-2xl p-5 shadow-sm border border-white space-y-4">
+      <div class="bg-white/95 backdrop-blur-md rounded-2xl p-5 shadow-sm border border-white space-y-4">
         <div class="flex flex-col md:flex-row md:items-center justify-between gap-3 border-b border-slate-100 pb-4">
           <div>
             <span class="inline-block text-xs font-medium bg-emerald-100 text-emerald-800 px-3 py-1 rounded-full">
-              แฟ้มส่วนตัวรายบุคคล (แยกของใครของมัน)
+              แฟ้มส่วนตัวรายบุคคล
             </span>
             <h2 id="binderTitle" class="text-lg sm:text-xl font-semibold text-slate-800 mt-1.5">ยังไม่ได้เลือกพนักงาน</h2>
-            <p id="binderSub" class="text-xs text-slate-500">เลือกพนักงานจากเมนูด้านขวาหรือกลับไปที่สมุดรายชื่อเพื่อเปิดแฟ้ม</p>
+            <p id="binderSub" class="text-xs text-slate-500">เลือกพนักงานเพื่อดูสถิติ ประวัติการลา และประวัติการลงเวลาแยกเฉพาะคน</p>
           </div>
 
           <div class="flex flex-wrap items-center gap-2">
@@ -292,10 +231,6 @@
             <button type="button" data-admin-view="directory"
               class="bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs sm:text-sm font-medium px-3.5 py-2 rounded-xl transition cursor-pointer">
               สมุดรายชื่อ
-            </button>
-            <button type="button" data-admin-view="overview"
-              class="bg-indigo-50 hover:bg-indigo-100 text-indigo-700 text-xs sm:text-sm font-medium px-3.5 py-2 rounded-xl transition cursor-pointer">
-              ภาพรวม
             </button>
           </div>
         </div>
@@ -320,7 +255,7 @@
         </div>
       </div>
 
-      <div class="bg-white/95 rounded-2xl p-5 shadow-sm border border-white space-y-3">
+      <div class="bg-white/95 backdrop-blur-md rounded-2xl p-5 shadow-sm border border-white space-y-3">
         <h3 class="text-base font-semibold text-slate-800">ประวัติคำขอลางาน (เฉพาะบุคคล)</h3>
         <div class="overflow-x-auto">
           <table class="w-full text-xs sm:text-sm text-left border-collapse">
@@ -340,7 +275,7 @@
         </div>
       </div>
 
-      <div class="bg-white/95 rounded-2xl p-5 shadow-sm border border-white space-y-3">
+      <div class="bg-white/95 backdrop-blur-md rounded-2xl p-5 shadow-sm border border-white space-y-3">
         <h3 class="text-base font-semibold text-slate-800">ประวัติการลงเวลาเข้า-ออกงาน (เฉพาะบุคคล)</h3>
         <div class="overflow-x-auto">
           <table class="w-full text-xs sm:text-sm text-left border-collapse">
@@ -373,7 +308,7 @@
 
     const viewMeta = {
       overview: {
-        title: "แดชบอร์ดภาพรวม",
+        title: "แดชบอร์ดผู้ดูแลระบบ (Admin)",
         sub: "สรุปภาพรวมการเข้างาน มาสาย และคำขอลางานของพนักงานทั้งหมด"
       },
       approvals: {
@@ -483,6 +418,19 @@
       document.getElementById("countLeavePending").textContent = pendingCount;
       document.getElementById("countLeaveApproved").textContent = approvedCount;
       document.getElementById("countLeaveRejected").textContent = rejectedCount;
+    }
+
+    function renderOverview() {
+      updateLeaveBadges();
+      const onTime = allAttendance.filter((r) => r.status === "ตรงเวลา").length;
+      const late = allAttendance.filter((r) => r.status === "มาสาย").length;
+      const pendingLeave = allLeaves.filter((l) => (l.approval_status || "รออนุมัติ") === "รออนุมัติ").length;
+      const total = allAttendance.length + allLeaves.length;
+
+      document.getElementById("ovOnTime").textContent = onTime;
+      document.getElementById("ovLate").textContent = late;
+      document.getElementById("ovPendingLeave").textContent = pendingLeave;
+      document.getElementById("ovTotalRecords").textContent = total;
     }
 
     function renderApprovals() {
@@ -597,49 +545,6 @@
         drawerEmpEl.textContent = `${found.name} (${found.code})`;
       } else {
         drawerEmpEl.textContent = "ยังไม่ได้เลือกพนักงานรายบุคคล";
-      }
-    }
-
-    function renderOverview() {
-      updateLeaveBadges();
-      const onTime = allAttendance.filter((r) => r.status === "ตรงเวลา").length;
-      const late = allAttendance.filter((r) => r.status === "มาสาย").length;
-      const pendingLeave = allLeaves.filter((l) => (l.approval_status || "รออนุมัติ") === "รออนุมัติ").length;
-      const total = allAttendance.length + allLeaves.length;
-
-      document.getElementById("ovOnTime").textContent = onTime;
-      document.getElementById("ovLate").textContent = late;
-      document.getElementById("ovPendingLeave").textContent = pendingLeave;
-      document.getElementById("ovTotalRecords").textContent = total;
-
-      const leavesBody = document.getElementById("ovLeavesBody");
-      if (!allLeaves.length) {
-        leavesBody.innerHTML = `<tr><td colspan="6" class="py-6 text-center text-slate-400">ไม่มีรายการคำขอลางาน</td></tr>`;
-      } else {
-        leavesBody.innerHTML = allLeaves.map((lv) => renderLeaveRow(lv, true)).join("");
-      }
-
-      const attBody = document.getElementById("ovAttBody");
-      if (!allAttendance.length) {
-        attBody.innerHTML = `<tr><td colspan="6" class="py-6 text-center text-slate-400">ไม่มีประวัติการลงเวลา</td></tr>`;
-      } else {
-        attBody.innerHTML = allAttendance.map((r) => {
-          const st = r.status || "-";
-          const badge =
-            st === "ตรงเวลา" ? "bg-emerald-100 text-emerald-700" :
-            st === "มาสาย" ? "bg-amber-100 text-amber-700" :
-            "bg-slate-100 text-slate-700";
-          return `
-            <tr>
-              <td class="py-2.5 px-3">${r.date || "-"}</td>
-              <td class="py-2.5 px-3">${r.emp_code || "-"}</td>
-              <td class="py-2.5 px-3 font-medium">${r.emp_name || "-"}</td>
-              <td class="py-2.5 px-3">${r.check_in || "-"}</td>
-              <td class="py-2.5 px-3">${r.check_out || "-"}</td>
-              <td class="py-2.5 px-3"><span class="px-2.5 py-0.5 rounded-full text-xs font-medium ${badge}">${st}</span></td>
-            </tr>
-          `;
-        }).join("");
       }
     }
 
@@ -782,9 +687,9 @@
           allLeaves = data.leaves || [];
           syncEmployeeSelectors(getEmployeesList());
           renderOverview();
-          renderApprovals();
-          renderDirectory();
-          renderBinder();
+          if (activeView === "approvals") renderApprovals();
+          if (activeView === "directory") renderDirectory();
+          if (activeView === "binder") renderBinder();
         }
       } catch (err) {
         console.error(err);
@@ -813,10 +718,6 @@
     }
 
     document.getElementById("refreshBtn").addEventListener("click", loadDashboardData);
-    document.getElementById("drawerRefreshBtn").addEventListener("click", () => {
-      closeAdminMenu();
-      loadDashboardData();
-    });
     document.getElementById("directorySearch").addEventListener("input", renderDirectory);
     document.getElementById("binderSelect").addEventListener("change", (e) => {
       selectedEmpKey = e.target.value;
