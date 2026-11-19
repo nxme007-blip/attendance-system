@@ -3,6 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="icon" href="data:," />
   <title>แดชบอร์ดผู้ดูแลระบบ (Admin)</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -10,12 +11,13 @@
   <style>
     body { font-family: 'Kanit', sans-serif; }
     .tabular-nums { font-variant-numeric: tabular-nums; }
+    #adminDrawer.is-open { transform: translateX(0) !important; }
   </style>
 </head>
 <body class="bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 min-h-screen text-slate-800">
 
   <!-- แถบด้านบน -->
-  <header class="sticky top-0 z-30 bg-white/95 backdrop-blur-md border-b border-indigo-100 shadow-sm">
+  <header class="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-indigo-100 shadow-sm">
     <div class="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between gap-3">
       <div class="min-w-0">
         <h1 id="adminPageTitle" class="text-lg sm:text-xl font-semibold text-slate-800 truncate">แดชบอร์ดผู้ดูแลระบบ (Admin)</h1>
@@ -23,13 +25,13 @@
       </div>
 
       <div class="flex items-center gap-2 shrink-0">
-        <button id="refreshBtn" type="button"
+        <button id="refreshBtn" type="button" onclick="loadDashboardData()"
           class="bg-indigo-600 hover:bg-indigo-700 text-white text-xs sm:text-sm font-medium px-3.5 py-2 rounded-xl shadow-xs transition cursor-pointer">
           รีเฟรชข้อมูล
         </button>
 
-        <button id="adminMenuBtn" type="button" aria-label="เปิดเมนูผู้ดูแลระบบ"
-          class="px-3.5 py-2 rounded-xl bg-indigo-50 hover:bg-indigo-100 active:scale-95 text-indigo-700 border border-indigo-200/80 transition flex items-center gap-2 shadow-xs cursor-pointer">
+        <button id="adminMenuBtn" type="button" aria-label="เปิดเมนูผู้ดูแลระบบ" onclick="openAdminMenu()"
+          class="relative z-50 px-3.5 py-2 rounded-xl bg-indigo-50 hover:bg-indigo-100 active:scale-95 text-indigo-700 border border-indigo-200/80 transition flex items-center gap-2 shadow-xs cursor-pointer">
           <svg class="w-5 h-5 pointer-events-none" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16" />
           </svg>
@@ -40,37 +42,38 @@
   </header>
 
   <!-- ฉากหลังมืดเวลาเปิดเมนู -->
-  <div id="adminMenuBackdrop" class="fixed inset-0 bg-slate-900/40 backdrop-blur-[1px] z-40 hidden"></div>
+  <div id="adminMenuBackdrop" onclick="closeAdminMenu()"
+    class="fixed inset-0 bg-slate-900/40 backdrop-blur-[1px] z-[60] hidden"></div>
 
   <!-- ลิ้นชักเมนูแฮมเบอร์เกอร์ -->
   <aside id="adminDrawer"
-    class="fixed top-0 right-0 h-full w-72 max-w-[85vw] bg-white z-50 shadow-2xl border-l border-slate-100 translate-x-full transition-transform duration-200 flex flex-col justify-between p-5">
+    class="fixed top-0 right-0 h-full w-72 max-w-[85vw] bg-white z-[70] shadow-2xl border-l border-slate-100 translate-x-full transition-transform duration-200 flex flex-col justify-between p-5">
     <div class="space-y-4">
       <div class="flex items-center justify-between border-b border-slate-100 pb-3">
         <div>
           <p class="text-sm font-semibold text-slate-800">เมนูผู้ดูแลระบบ</p>
           <p class="text-xs text-slate-400">เลือกหัวข้อที่ต้องการดู</p>
         </div>
-        <button id="closeAdminMenuBtn" type="button" aria-label="ปิดเมนู"
+        <button id="closeAdminMenuBtn" type="button" aria-label="ปิดเมนู" onclick="closeAdminMenu()"
           class="w-8 h-8 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-600 flex items-center justify-center transition cursor-pointer">
           ✕
         </button>
       </div>
 
       <nav class="space-y-1.5">
-        <button type="button" data-admin-view="overview"
+        <button type="button" data-admin-view="overview" onclick="switchAdminView('overview')"
           class="admin-nav-btn w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium text-left bg-indigo-600 text-white transition cursor-pointer">
           <span>📊</span>
           <span>แดชบอร์ดภาพรวม</span>
         </button>
 
-        <button type="button" data-admin-view="deptreport"
+        <button type="button" data-admin-view="deptreport" onclick="switchAdminView('deptreport')"
           class="admin-nav-btn w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium text-left text-slate-700 hover:bg-indigo-50 transition cursor-pointer">
           <span>📑</span>
           <span>รายงานรายกลุ่มงาน</span>
         </button>
 
-        <button type="button" data-admin-view="approvals"
+        <button type="button" data-admin-view="approvals" onclick="switchAdminView('approvals')"
           class="admin-nav-btn w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-sm font-medium text-left text-slate-700 hover:bg-indigo-50 transition cursor-pointer">
           <span class="flex items-center gap-3">
             <span>✅</span>
@@ -79,19 +82,19 @@
           <span id="drawerPendingBadge" class="text-xs px-2 py-0.5 rounded-full bg-rose-100 text-rose-700 font-semibold tabular-nums">0</span>
         </button>
 
-        <button type="button" data-admin-view="attendance"
+        <button type="button" data-admin-view="attendance" onclick="switchAdminView('attendance')"
           class="admin-nav-btn w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium text-left text-slate-700 hover:bg-indigo-50 transition cursor-pointer">
           <span>🕒</span>
           <span>ประวัติการลงเวลา</span>
         </button>
 
-        <button type="button" data-admin-view="directory"
+        <button type="button" data-admin-view="directory" onclick="switchAdminView('directory')"
           class="admin-nav-btn w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium text-left text-slate-700 hover:bg-indigo-50 transition cursor-pointer">
           <span>🗂️</span>
           <span>สมุดรายชื่อพนักงาน</span>
         </button>
 
-        <button type="button" data-admin-view="binder"
+        <button type="button" data-admin-view="binder" onclick="switchAdminView('binder')"
           class="admin-nav-btn w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium text-left text-slate-700 hover:bg-indigo-50 transition cursor-pointer">
           <span>📁</span>
           <span>แฟ้มส่วนตัวรายบุคคล</span>
@@ -119,7 +122,7 @@
 
   <main class="max-w-6xl mx-auto px-4 py-6">
 
-    <!-- หัวข้อ 1: แดชบอร์ดภาพรวม -->
+    <!-- แดชบอร์ดภาพรวม -->
     <section id="view-overview" class="admin-view space-y-6">
       <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <div class="bg-white/95 backdrop-blur-md rounded-2xl p-5 shadow-sm border border-white">
@@ -201,7 +204,7 @@
       </div>
     </section>
 
-    <!-- หัวข้อ: รายงานรายกลุ่มงาน -->
+    <!-- รายงานรายกลุ่มงาน -->
     <section id="view-deptreport" class="admin-view hidden space-y-6">
       <div class="bg-white/95 backdrop-blur-md rounded-2xl p-5 shadow-sm border border-white space-y-4">
         <div class="flex flex-wrap items-center justify-between gap-2">
@@ -304,7 +307,7 @@
       </div>
     </section>
 
-    <!-- หัวข้อ 2: อนุมัติการลา -->
+    <!-- อนุมัติการลา -->
     <section id="view-approvals" class="admin-view hidden space-y-5">
       <div class="bg-white/95 backdrop-blur-md rounded-2xl p-5 shadow-sm border border-white space-y-4">
         <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
@@ -398,7 +401,7 @@
       </div>
     </section>
 
-    <!-- หัวข้อ 3: ประวัติการลงเวลา -->
+    <!-- ประวัติการลงเวลา -->
     <section id="view-attendance" class="admin-view hidden space-y-5">
       <div class="bg-white/95 backdrop-blur-md rounded-2xl p-5 shadow-sm border border-white grid grid-cols-1 sm:grid-cols-2 gap-3">
         <div>
@@ -459,7 +462,7 @@
       </div>
     </section>
 
-    <!-- หัวข้อ 4: สมุดรายชื่อพนักงาน -->
+    <!-- สมุดรายชื่อพนักงาน -->
     <section id="view-directory" class="admin-view hidden space-y-5">
       <div class="bg-white/95 backdrop-blur-md rounded-2xl p-5 shadow-sm border border-white flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
@@ -478,7 +481,7 @@
       </div>
     </section>
 
-    <!-- หัวข้อ 5: แฟ้มส่วนตัวรายบุคคล -->
+    <!-- แฟ้มส่วนตัวรายบุคคล -->
     <section id="view-binder" class="admin-view hidden space-y-5">
       <div class="bg-white/95 backdrop-blur-md rounded-2xl p-5 shadow-sm border border-white space-y-4">
         <div class="flex flex-col md:flex-row md:items-center justify-between gap-3 border-b border-slate-100 pb-4">
@@ -495,7 +498,7 @@
               class="border border-slate-200 rounded-xl px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-indigo-400 min-w-[210px]">
               <option value="">-- เลือกพนักงาน --</option>
             </select>
-            <button type="button" data-admin-view="directory"
+            <button type="button" onclick="switchAdminView('directory')"
               class="bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs sm:text-sm font-medium px-3.5 py-2 rounded-xl transition cursor-pointer">
               สมุดรายชื่อ
             </button>
@@ -566,11 +569,11 @@
   </main>
 
   <!-- โมดอลดูภาพหลักฐาน -->
-  <div id="evidenceModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-50 hidden items-center justify-center p-4">
+  <div id="evidenceModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-[80] hidden items-center justify-center p-4">
     <div class="bg-white rounded-2xl max-w-lg w-full p-4 space-y-3 shadow-2xl">
       <div class="flex items-center justify-between border-b border-slate-100 pb-2.5">
         <h3 id="evidenceModalTitle" class="text-sm font-semibold text-slate-800 truncate">หลักฐานการลา</h3>
-        <button id="closeEvidenceModalBtn" type="button"
+        <button id="closeEvidenceModalBtn" type="button" onclick="closeEvidenceModal()"
           class="w-8 h-8 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-600 flex items-center justify-center cursor-pointer">
           ✕
         </button>
@@ -583,7 +586,7 @@
           class="px-3.5 py-2 rounded-xl bg-indigo-50 hover:bg-indigo-100 text-indigo-700 text-xs font-medium">
           เปิดรูปในแท็บใหม่ ↗
         </a>
-        <button id="doneEvidenceModalBtn" type="button"
+        <button id="doneEvidenceModalBtn" type="button" onclick="closeEvidenceModal()"
           class="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-900 text-white text-xs font-medium cursor-pointer">
           ปิดหน้าต่าง
         </button>
@@ -592,7 +595,7 @@
   </div>
 
   <script>
-    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbw3ovdTdqhw7KuqvA_MJ7lyyCQNur-LRCg1hJul1K3733YxNkwfYtuJ-XYry965vPskHw/exec";
+    const SCRIPT_URL = "วาง_WEB_APP_URL_ตรงนี้";
 
     const DEPT_GROUPS = [
       {
@@ -664,6 +667,30 @@
       }
     };
 
+    function openAdminMenu() {
+      const drawer = document.getElementById("adminDrawer");
+      const backdrop = document.getElementById("adminMenuBackdrop");
+      if (drawer) {
+        drawer.classList.remove("translate-x-full");
+        drawer.classList.add("is-open");
+      }
+      if (backdrop) {
+        backdrop.classList.remove("hidden");
+      }
+    }
+
+    function closeAdminMenu() {
+      const drawer = document.getElementById("adminDrawer");
+      const backdrop = document.getElementById("adminMenuBackdrop");
+      if (drawer) {
+        drawer.classList.add("translate-x-full");
+        drawer.classList.remove("is-open");
+      }
+      if (backdrop) {
+        backdrop.classList.add("hidden");
+      }
+    }
+
     function normalizeKey(row) {
       const code = String(row.emp_code || "").trim().toLowerCase();
       const name = String(row.emp_name || "").trim().toLowerCase();
@@ -714,30 +741,6 @@
       return [...map.values()].sort((a, b) => a.code.localeCompare(b.code, "th"));
     }
 
-    function openAdminMenu() {
-      const drawer = document.getElementById("adminDrawer");
-      const backdrop = document.getElementById("adminMenuBackdrop");
-      if (drawer) {
-        drawer.classList.remove("translate-x-full");
-        drawer.style.transform = "translateX(0px)";
-      }
-      if (backdrop) {
-        backdrop.classList.remove("hidden");
-      }
-    }
-
-    function closeAdminMenu() {
-      const drawer = document.getElementById("adminDrawer");
-      const backdrop = document.getElementById("adminMenuBackdrop");
-      if (drawer) {
-        drawer.classList.add("translate-x-full");
-        drawer.style.transform = "";
-      }
-      if (backdrop) {
-        backdrop.classList.add("hidden");
-      }
-    }
-
     function switchAdminView(viewName) {
       if (!viewName) return;
       if (viewName === "binder" && !selectedEmpKey) {
@@ -766,20 +769,18 @@
       closeAdminMenu();
       window.scrollTo({ top: 0, behavior: "smooth" });
 
-      if (viewName === "overview") renderOverview();
-      if (viewName === "deptreport") renderDeptReport();
-      if (viewName === "approvals") renderApprovals();
-      if (viewName === "attendance") renderAttendanceTab();
-      if (viewName === "directory") renderDirectory();
-      if (viewName === "binder") renderBinder();
+      try {
+        if (viewName === "overview") renderOverview();
+        if (viewName === "deptreport") renderDeptReport();
+        if (viewName === "approvals") renderApprovals();
+        if (viewName === "attendance") renderAttendanceTab();
+        if (viewName === "directory") renderDirectory();
+        if (viewName === "binder") renderBinder();
+      } catch (e) {
+        console.error(e);
+      }
     }
 
-    document.getElementById("adminMenuBtn").addEventListener("click", openAdminMenu);
-    document.getElementById("closeAdminMenuBtn").addEventListener("click", closeAdminMenu);
-    document.getElementById("adminMenuBackdrop").addEventListener("click", closeAdminMenu);
-    document.querySelectorAll("[data-admin-view]").forEach((el) => {
-      el.addEventListener("click", () => switchAdminView(el.dataset.adminView));
-    });
     document.addEventListener("keydown", (e) => {
       if (e.key === "Escape") {
         closeAdminMenu();
@@ -804,8 +805,6 @@
       document.getElementById("evidenceModalImg").src = "";
     }
 
-    document.getElementById("closeEvidenceModalBtn").addEventListener("click", closeEvidenceModal);
-    document.getElementById("doneEvidenceModalBtn").addEventListener("click", closeEvidenceModal);
     document.getElementById("evidenceModal").addEventListener("click", (e) => {
       if (e.target.id === "evidenceModal") closeEvidenceModal();
     });
@@ -1523,7 +1522,6 @@
       }
     }
 
-    document.getElementById("refreshBtn").addEventListener("click", loadDashboardData);
     document.getElementById("monthSelect").addEventListener("change", (e) => {
       selectedMonth = e.target.value;
       renderOverview();
@@ -1534,7 +1532,11 @@
       renderBinder();
     });
 
-    renderCharts(0, 0, 0);
+    try {
+      renderCharts(0, 0, 0);
+    } catch (e) {
+      console.error(e);
+    }
     loadDashboardData();
   </script>
 </body>
