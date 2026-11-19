@@ -31,7 +31,7 @@
   </header>
 
   <!-- พื้นหลังมืดเวลาเปิดลิ้นชักเมนู -->
-  <div id="menuBackdrop" class="fixed inset-0 bg-slate-900/35 backdrop-blur-[1px] z-40 hidden transition-opacity"></div>
+  <div id="menuBackdrop" class="fixed inset-0 bg-slate-900/35 backdrop-blur-[1px] z-40 hidden"></div>
 
   <!-- ลิ้นชักเมนูแฮมเบอร์เกอร์ -->
   <aside id="drawerMenu"
@@ -89,7 +89,7 @@
   <!-- พื้นที่เนื้อหาหลัก -->
   <main class="max-w-3xl mx-auto px-4 py-6">
 
-    <!-- ==================== หน้า 1: ลงเวลาเข้า-ออกงาน ==================== -->
+    <!-- หน้า 1: ลงเวลาเข้า-ออกงาน -->
     <section id="view-attendance" class="page-view bg-white/95 backdrop-blur-md rounded-2xl shadow-lg border border-white p-6 space-y-4 max-w-xl mx-auto">
       <div class="border-b border-slate-100 pb-3">
         <h2 class="text-lg font-semibold text-slate-800">บันทึกเวลาเข้า-ออกงาน</h2>
@@ -125,7 +125,7 @@
       <div id="attResult" class="hidden p-3 rounded-xl text-sm text-center font-medium"></div>
     </section>
 
-    <!-- ==================== หน้า 2: แจ้งลางาน (แยกหน้าออกมา) ==================== -->
+    <!-- หน้า 2: แจ้งลางาน -->
     <section id="view-leave" class="page-view hidden bg-white/95 backdrop-blur-md rounded-2xl shadow-lg border border-white p-6 space-y-4 max-w-xl mx-auto">
       <div class="border-b border-slate-100 pb-3">
         <h2 class="text-lg font-semibold text-slate-800">แบบฟอร์มแจ้งลางาน</h2>
@@ -182,7 +182,7 @@
       <div id="lvResult" class="hidden p-3 rounded-xl text-sm text-center font-medium space-y-2"></div>
     </section>
 
-    <!-- ==================== หน้า 3: ข้อมูลของฉัน (ขาด / ลา / มาสาย) ==================== -->
+    <!-- หน้า 3: ข้อมูลของฉัน -->
     <section id="view-profile" class="page-view hidden space-y-5">
       <div class="bg-white/95 backdrop-blur-md rounded-2xl shadow-lg border border-white p-5 space-y-4">
         <div class="flex flex-col sm:flex-row sm:items-end justify-between gap-3">
@@ -200,7 +200,6 @@
           </div>
         </div>
 
-        <!-- การ์ดข้อมูลพนักงาน -->
         <div class="bg-gradient-to-r from-indigo-50 to-purple-50 border border-indigo-100 rounded-2xl p-4 flex flex-wrap items-center justify-between gap-3">
           <div>
             <p class="text-xs text-indigo-600 font-medium">ข้อมูลผู้ใช้งาน</p>
@@ -212,7 +211,6 @@
           </span>
         </div>
 
-        <!-- การ์ดสรุป ตรงเวลา / มาสาย / ลา (อนุมัติแล้ว) / ใบลารออนุมัติ -->
         <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
           <div class="bg-emerald-50/80 border border-emerald-100 rounded-2xl p-3.5">
             <p class="text-xs text-emerald-700">เข้าตรงเวลา</p>
@@ -233,7 +231,6 @@
         </div>
       </div>
 
-      <!-- ประวัติการลาของฉัน -->
       <div class="bg-white/95 backdrop-blur-md rounded-2xl shadow-sm border border-white p-5 space-y-3">
         <h3 class="text-base font-semibold text-slate-800">ประวัติคำขอลางานของฉัน</h3>
         <div class="overflow-x-auto">
@@ -253,7 +250,6 @@
         </div>
       </div>
 
-      <!-- ประวัติการลงเวลาของฉัน -->
       <div class="bg-white/95 backdrop-blur-md rounded-2xl shadow-sm border border-white p-5 space-y-3">
         <h3 class="text-base font-semibold text-slate-800">ประวัติการลงเวลาของฉัน</h3>
         <div class="overflow-x-auto">
@@ -283,7 +279,6 @@
     const STORAGE_CODE_KEY = "attendance_emp_code";
     const STORAGE_NAME_KEY = "attendance_emp_name";
 
-    // นาฬิกาเวลาจริง
     function updateClock() {
       const now = new Date();
       document.getElementById('clock').textContent = now.toLocaleString('th-TH', {
@@ -294,7 +289,6 @@
     setInterval(updateClock, 1000);
     updateClock();
 
-    // เปิด-ปิด เมนูแฮมเบอร์เกอร์
     const drawer = document.getElementById('drawerMenu');
     const backdrop = document.getElementById('menuBackdrop');
 
@@ -314,7 +308,6 @@
       if (e.key === 'Escape') closeMenu();
     });
 
-    // อัปเดตสรุปผู้ใช้ในลิ้นชักเมนู
     function refreshDrawerUserSummary() {
       const code = (document.getElementById('attEmpCode').value || '').trim();
       const name = (document.getElementById('attEmpName').value || '').trim();
@@ -326,7 +319,6 @@
       }
     }
 
-    // โหลดค่าที่เคยกรอกไว้ในเครื่อง
     const savedCode = localStorage.getItem(STORAGE_CODE_KEY) || '';
     const savedName = localStorage.getItem(STORAGE_NAME_KEY) || '';
     if (savedCode) {
@@ -337,7 +329,6 @@
     }
     refreshDrawerUserSummary();
 
-    // ซิงก์รหัสและชื่อพนักงานระหว่างทุกหน้า
     document.querySelectorAll('.emp-code-sync').forEach(input => {
       input.addEventListener('input', () => {
         const val = input.value;
@@ -360,7 +351,6 @@
       });
     });
 
-    // สลับหน้าผ่านเมนูแฮมเบอร์เกอร์
     const viewTitles = {
       attendance: 'ลงเวลาเข้า-ออกงาน',
       leave: 'แจ้งลางาน',
@@ -411,7 +401,6 @@
       el.classList.remove('hidden');
     }
 
-    // 1. บันทึกการลงเวลาเข้า-ออกงาน
     document.getElementById('attSubmitBtn').addEventListener('click', async () => {
       const emp_code = document.getElementById('attEmpCode').value.trim();
       const emp_name = document.getElementById('attEmpName').value.trim();
@@ -447,7 +436,6 @@
       }
     });
 
-    // 2. ส่งคำขอแจ้งลางาน
     document.getElementById('lvSubmitBtn').addEventListener('click', async () => {
       const emp_code = document.getElementById('lvEmpCode').value.trim();
       const emp_name = document.getElementById('lvEmpName').value.trim();
@@ -502,7 +490,6 @@
       }
     });
 
-    // 3. โหลดข้อมูลส่วนตัวและสถิติของพนักงาน
     async function loadMyProfile() {
       const codeInput = (document.getElementById('profileEmpCode').value || '').trim();
       const nameInput = (document.getElementById('attEmpName').value || '').trim();
