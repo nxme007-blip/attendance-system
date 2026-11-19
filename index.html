@@ -83,6 +83,7 @@
     <div class="bg-indigo-50/80 border border-indigo-100 rounded-xl p-3 text-xs text-indigo-800 space-y-1">
       <p class="font-medium">ผู้ใช้งานปัจจุบัน</p>
       <p id="drawerUserSummary" class="text-indigo-700 truncate">ยังไม่ได้ระบุรหัสพนักงาน</p>
+      <p id="drawerDeptSummary" class="text-[11px] text-indigo-500 truncate">กลุ่มงาน: -</p>
     </div>
   </aside>
 
@@ -90,35 +91,91 @@
   <main class="max-w-3xl mx-auto px-4 py-6">
 
     <!-- หน้า 1: ลงเวลาเข้า-ออกงาน -->
-    <section id="view-attendance" class="page-view bg-white/95 backdrop-blur-md rounded-2xl shadow-lg border border-white p-6 space-y-4 max-w-xl mx-auto">
-      <div class="border-b border-slate-100 pb-3">
-        <h2 class="text-lg font-semibold text-slate-800">บันทึกเวลาเข้า-ออกงาน</h2>
-        <p class="text-xs text-slate-500 mt-0.5">บันทึกเวลาเข้างานหรือออกงานแบบเรียลไทม์เข้าสู่ระบบ</p>
+    <section id="view-attendance" class="page-view bg-white/95 backdrop-blur-md rounded-3xl shadow-lg border border-white p-6 space-y-4 max-w-xl mx-auto">
+      <div class="border-b border-slate-100 pb-3.5 flex items-center justify-between gap-2">
+        <div>
+          <h2 class="text-lg font-semibold text-slate-800">บันทึกเวลาเข้า-ออกงาน</h2>
+          <p class="text-xs text-slate-500 mt-0.5">บันทึกเวลาเข้างานหรือออกงานแบบเรียลไทม์เข้าสู่ระบบ</p>
+        </div>
+        <span class="text-xs font-medium bg-indigo-50 text-indigo-700 border border-indigo-100 px-3 py-1 rounded-full shrink-0">
+          เรียลไทม์
+        </span>
       </div>
 
       <div>
         <label class="block text-sm font-medium text-slate-700 mb-1">รหัสพนักงาน</label>
         <input id="attEmpCode" type="text" placeholder="เช่น EMP001"
-          class="emp-code-sync w-full border border-slate-200 rounded-xl px-3.5 py-2.5 focus:outline-none focus:ring-2 focus:ring-indigo-400" />
+          class="emp-code-sync w-full border border-slate-200 rounded-xl px-3.5 py-2.5 focus:outline-none focus:ring-2 focus:ring-indigo-400 transition" />
       </div>
 
       <div>
         <label class="block text-sm font-medium text-slate-700 mb-1">ชื่อ - นามสกุล</label>
         <input id="attEmpName" type="text" placeholder="กรอกชื่อ-นามสกุลพนักงาน"
-          class="emp-name-sync w-full border border-slate-200 rounded-xl px-3.5 py-2.5 focus:outline-none focus:ring-2 focus:ring-indigo-400" />
+          class="emp-name-sync w-full border border-slate-200 rounded-xl px-3.5 py-2.5 focus:outline-none focus:ring-2 focus:ring-indigo-400 transition" />
       </div>
 
       <div>
-        <label class="block text-sm font-medium text-slate-700 mb-1">เลือกรายการลงเวลา</label>
-        <select id="attType"
-          class="w-full border border-slate-200 rounded-xl px-3.5 py-2.5 bg-white focus:outline-none focus:ring-2 focus:ring-indigo-400">
-          <option value="เข้างาน">ลงเวลาเข้างาน</option>
+        <label class="block text-sm font-medium text-slate-700 mb-1">กลุ่มงาน</label>
+        <select id="attDept"
+          class="dept-sync w-full border border-slate-200 rounded-xl px-3.5 py-2.5 bg-white focus:outline-none focus:ring-2 focus:ring-indigo-400 transition">
+          <option value="">-- เลือกกลุ่มงาน --</option>
+          <optgroup label="กลุ่มงานสนับสนุนและบริหาร">
+            <option value="กลุ่มบริหารทั่วไป">กลุ่มบริหารทั่วไป</option>
+            <option value="กลุ่มพัฒนาองค์กร">กลุ่มพัฒนาองค์กร</option>
+            <option value="กลุ่มยุทธศาสตร์และแผนงาน">กลุ่มยุทธศาสตร์และแผนงาน</option>
+            <option value="กลุ่มพัฒนานวัตกรรมและวิจัย">กลุ่มพัฒนานวัตกรรมและวิจัย</option>
+            <option value="กลุ่มสื่อสารความเสี่ยงโรคและภัยสุขภาพ">กลุ่มสื่อสารความเสี่ยงโรคและภัยสุขภาพ</option>
+          </optgroup>
+          <optgroup label="กลุ่มงานวิชาการและการควบคุมโรค">
+            <option value="กลุ่มห้องปฏิบัติการทางการแพทย์ด้านควบคุมโรค">กลุ่มห้องปฏิบัติการทางการแพทย์ด้านควบคุมโรค</option>
+            <option value="กลุ่มระบาดวิทยาและตอบโต้ภาวะฉุกเฉินทางสาธารณสุข">กลุ่มระบาดวิทยาและตอบโต้ภาวะฉุกเฉินทางสาธารณสุข</option>
+            <option value="กลุ่มโรคติดต่อ">กลุ่มโรคติดต่อ</option>
+            <option value="กลุ่มโรคติดต่อเรื้อรัง">กลุ่มโรคติดต่อเรื้อรัง</option>
+            <option value="กลุ่มโรคไม่ติดต่อ">กลุ่มโรคไม่ติดต่อ</option>
+            <option value="กลุ่มโรคจากการประกอบอาชีพและสิ่งแวดล้อม">กลุ่มโรคจากการประกอบอาชีพและสิ่งแวดล้อม</option>
+            <option value="กลุ่มโรคติดต่อนำโดยแมลง">กลุ่มโรคติดต่อนำโดยแมลง</option>
+          </optgroup>
+        </select>
+      </div>
+
+      <!-- เลือกรายการลงเวลาแบบการ์ดกดง่าย -->
+      <div class="space-y-2">
+        <label class="block text-sm font-medium text-slate-700">เลือกรายการลงเวลา</label>
+        <div class="grid grid-cols-2 gap-3">
+          <button id="pickCheckInBtn" type="button" data-att-choice="เข้างาน"
+            class="att-choice-btn rounded-2xl border-2 border-emerald-500 bg-emerald-50/90 text-emerald-800 p-3.5 text-left transition flex items-center gap-3 shadow-2xs cursor-pointer">
+            <span class="w-9 h-9 rounded-xl bg-emerald-500 text-white flex items-center justify-center text-base shrink-0">🌅</span>
+            <div class="min-w-0">
+              <p class="text-sm font-semibold leading-tight">ลงเวลาเข้างาน</p>
+              <p class="text-[11px] text-emerald-700/80 mt-0.5">เช็กอินตอนเริ่มงาน</p>
+            </div>
+          </button>
+
+          <button id="pickCheckOutBtn" type="button" data-att-choice="ออกงาน"
+            class="att-choice-btn rounded-2xl border border-slate-200 bg-white hover:border-indigo-200 hover:bg-slate-50/80 text-slate-700 p-3.5 text-left transition flex items-center gap-3 cursor-pointer">
+            <span class="w-9 h-9 rounded-xl bg-slate-100 text-slate-600 flex items-center justify-center text-base shrink-0">🌇</span>
+            <div class="min-w-0">
+              <p class="text-sm font-semibold leading-tight">ลงเวลาออกงาน</p>
+              <p class="text-[11px] text-slate-400 mt-0.5">เช็กเอาต์ตอนเลิกงาน</p>
+            </div>
+          </button>
+        </div>
+
+        <!-- เก็บค่าไว้เพื่อความเข้ากันได้กับโค้ดเดิม -->
+        <select id="attType" class="sr-only" aria-hidden="true">
+          <option value="เข้างาน" selected>ลงเวลาเข้างาน</option>
           <option value="ออกงาน">ลงเวลาออกงาน</option>
         </select>
       </div>
 
+      <!-- แถบยืนยันรายการที่เลือก -->
+      <div id="attModeBanner" class="bg-emerald-50/70 border border-emerald-100 rounded-xl px-3.5 py-2.5 flex items-center justify-between text-xs">
+        <span class="text-slate-600">รายการที่เลือก:</span>
+        <span id="attModeText" class="font-semibold text-emerald-700">ลงเวลาเข้างาน</span>
+      </div>
+
       <button id="attSubmitBtn" type="button"
-        class="w-full bg-indigo-600 hover:bg-indigo-700 disabled:bg-slate-400 text-white font-medium py-3 rounded-xl shadow-md transition cursor-pointer">
+        class="w-full bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-700 hover:to-violet-700 active:scale-[0.99] disabled:from-slate-400 disabled:to-slate-400 text-white font-medium py-3.5 rounded-2xl shadow-md shadow-indigo-200/70 transition cursor-pointer">
         ยืนยันการลงเวลา
       </button>
 
@@ -145,14 +202,40 @@
         </div>
       </div>
 
-      <div>
-        <label class="block text-sm font-medium text-slate-700 mb-1">ประเภทการลา</label>
-        <select id="leaveType"
-          class="w-full border border-slate-200 rounded-xl px-3.5 py-2.5 bg-white focus:outline-none focus:ring-2 focus:ring-indigo-400">
-          <option value="ลาป่วย">ลาป่วย</option>
-          <option value="ลากิจ">ลากิจ</option>
-          <option value="ลาพักร้อน">ลาพักร้อน</option>
-        </select>
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <div>
+          <label class="block text-sm font-medium text-slate-700 mb-1">กลุ่มงาน</label>
+          <select id="lvDept"
+            class="dept-sync w-full border border-slate-200 rounded-xl px-3.5 py-2.5 bg-white focus:outline-none focus:ring-2 focus:ring-indigo-400">
+            <option value="">-- เลือกกลุ่มงาน --</option>
+            <optgroup label="กลุ่มงานสนับสนุนและบริหาร">
+              <option value="กลุ่มบริหารทั่วไป">กลุ่มบริหารทั่วไป</option>
+              <option value="กลุ่มพัฒนาองค์กร">กลุ่มพัฒนาองค์กร</option>
+              <option value="กลุ่มยุทธศาสตร์และแผนงาน">กลุ่มยุทธศาสตร์และแผนงาน</option>
+              <option value="กลุ่มพัฒนานวัตกรรมและวิจัย">กลุ่มพัฒนานวัตกรรมและวิจัย</option>
+              <option value="กลุ่มสื่อสารความเสี่ยงโรคและภัยสุขภาพ">กลุ่มสื่อสารความเสี่ยงโรคและภัยสุขภาพ</option>
+            </optgroup>
+            <optgroup label="กลุ่มงานวิชาการและการควบคุมโรค">
+              <option value="กลุ่มห้องปฏิบัติการทางการแพทย์ด้านควบคุมโรค">กลุ่มห้องปฏิบัติการทางการแพทย์ด้านควบคุมโรค</option>
+              <option value="กลุ่มระบาดวิทยาและตอบโต้ภาวะฉุกเฉินทางสาธารณสุข">กลุ่มระบาดวิทยาและตอบโต้ภาวะฉุกเฉินทางสาธารณสุข</option>
+              <option value="กลุ่มโรคติดต่อ">กลุ่มโรคติดต่อ</option>
+              <option value="กลุ่มโรคติดต่อเรื้อรัง">กลุ่มโรคติดต่อเรื้อรัง</option>
+              <option value="กลุ่มโรคไม่ติดต่อ">กลุ่มโรคไม่ติดต่อ</option>
+              <option value="กลุ่มโรคจากการประกอบอาชีพและสิ่งแวดล้อม">กลุ่มโรคจากการประกอบอาชีพและสิ่งแวดล้อม</option>
+              <option value="กลุ่มโรคติดต่อนำโดยแมลง">กลุ่มโรคติดต่อนำโดยแมลง</option>
+            </optgroup>
+          </select>
+        </div>
+
+        <div>
+          <label class="block text-sm font-medium text-slate-700 mb-1">ประเภทการลา</label>
+          <select id="leaveType"
+            class="w-full border border-slate-200 rounded-xl px-3.5 py-2.5 bg-white focus:outline-none focus:ring-2 focus:ring-indigo-400">
+            <option value="ลาป่วย">ลาป่วย</option>
+            <option value="ลากิจ">ลากิจ</option>
+            <option value="ลาพักร้อน">ลาพักร้อน</option>
+          </select>
+        </div>
       </div>
 
       <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -172,6 +255,28 @@
         <label class="block text-sm font-medium text-slate-700 mb-1">เหตุผลการลา</label>
         <textarea id="leaveReason" rows="3" placeholder="ระบุเหตุผลในการลางานให้ชัดเจน..."
           class="w-full border border-slate-200 rounded-xl px-3.5 py-2.5 focus:outline-none focus:ring-2 focus:ring-indigo-400"></textarea>
+      </div>
+
+      <div>
+        <label class="block text-sm font-medium text-slate-700 mb-1">แนบภาพหลักฐาน (ถ้ามี เช่น ใบรับรองแพทย์)</label>
+        <input id="leaveEvidenceInput" type="file" accept="image/*"
+          class="block w-full text-xs sm:text-sm text-slate-600 file:mr-3 file:py-2 file:px-3.5 file:rounded-xl file:border-0 file:text-xs sm:file:text-sm file:font-medium file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100 border border-slate-200 rounded-xl p-1.5 bg-white cursor-pointer" />
+        <p class="text-[11px] text-slate-400 mt-1">รองรับไฟล์รูปภาพ (JPG, PNG, WEBP) ขนาดไม่เกิน 3 MB</p>
+
+        <div id="leaveEvidencePreviewBox" class="hidden mt-2.5 bg-slate-50 border border-slate-200 rounded-xl p-2.5 flex items-center justify-between gap-3">
+          <div class="flex items-center gap-3 min-w-0">
+            <img id="leaveEvidencePreviewImg" src="" alt="ตัวอย่างภาพหลักฐาน"
+              class="w-14 h-14 object-cover rounded-lg border border-slate-200 shrink-0" />
+            <div class="min-w-0">
+              <p id="leaveEvidenceFileName" class="text-xs font-medium text-slate-700 truncate"></p>
+              <p class="text-[11px] text-emerald-600">พร้อมแนบไปกับคำขอลางาน</p>
+            </div>
+          </div>
+          <button id="clearLeaveEvidenceBtn" type="button"
+            class="shrink-0 text-xs text-rose-600 hover:text-rose-800 font-medium px-2.5 py-1 rounded-lg hover:bg-rose-50 transition cursor-pointer">
+            ลบรูป
+          </button>
+        </div>
       </div>
 
       <button id="lvSubmitBtn" type="button"
@@ -204,7 +309,7 @@
           <div>
             <p class="text-xs text-indigo-600 font-medium">ข้อมูลผู้ใช้งาน</p>
             <p id="cardEmpName" class="text-base font-semibold text-slate-800 mt-0.5">กรุณาระบุรหัสพนักงาน</p>
-            <p id="cardEmpCode" class="text-xs text-slate-500">รหัสพนักงาน: -</p>
+            <p id="cardEmpCode" class="text-xs text-slate-500">รหัสพนักงาน: - • กลุ่มงาน: -</p>
           </div>
           <span id="profileStatusBadge" class="text-xs bg-white/90 text-indigo-700 border border-indigo-200 px-3 py-1 rounded-full font-medium">
             พร้อมตรวจสอบ
@@ -276,6 +381,14 @@
     const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbw3ovdTdqhw7KuqvA_MJ7lyyCQNur-LRCg1hJul1K3733YxNkwfYtuJ-XYry965vPskHw/exec";
     const STORAGE_CODE_KEY = "attendance_emp_code";
     const STORAGE_NAME_KEY = "attendance_emp_name";
+    const STORAGE_DEPT_KEY = "attendance_emp_dept";
+
+    let leaveEvidenceData = {
+      name: "",
+      mime: "",
+      base64: "",
+      dataUrl: ""
+    };
 
     function updateClock() {
       const now = new Date();
@@ -289,6 +402,48 @@
     }
     setInterval(updateClock, 1000);
     updateClock();
+
+    function syncAttendanceChoiceUI(value) {
+      const selectEl = document.getElementById('attType');
+      if (selectEl) selectEl.value = value;
+
+      const checkInBtn = document.getElementById('pickCheckInBtn');
+      const checkOutBtn = document.getElementById('pickCheckOutBtn');
+      const banner = document.getElementById('attModeBanner');
+      const modeText = document.getElementById('attModeText');
+
+      if (value === 'ออกงาน') {
+        checkOutBtn.className = 'att-choice-btn rounded-2xl border-2 border-amber-500 bg-amber-50/90 text-amber-800 p-3.5 text-left transition flex items-center gap-3 shadow-2xs cursor-pointer';
+        checkOutBtn.querySelector('span').className = 'w-9 h-9 rounded-xl bg-amber-500 text-white flex items-center justify-center text-base shrink-0';
+        checkOutBtn.querySelectorAll('p')[1].className = 'text-[11px] text-amber-700/80 mt-0.5';
+
+        checkInBtn.className = 'att-choice-btn rounded-2xl border border-slate-200 bg-white hover:border-indigo-200 hover:bg-slate-50/80 text-slate-700 p-3.5 text-left transition flex items-center gap-3 cursor-pointer';
+        checkInBtn.querySelector('span').className = 'w-9 h-9 rounded-xl bg-slate-100 text-slate-600 flex items-center justify-center text-base shrink-0';
+        checkInBtn.querySelectorAll('p')[1].className = 'text-[11px] text-slate-400 mt-0.5';
+
+        banner.className = 'bg-amber-50/70 border border-amber-100 rounded-xl px-3.5 py-2.5 flex items-center justify-between text-xs';
+        modeText.className = 'font-semibold text-amber-700';
+        modeText.textContent = 'ลงเวลาออกงาน';
+      } else {
+        checkInBtn.className = 'att-choice-btn rounded-2xl border-2 border-emerald-500 bg-emerald-50/90 text-emerald-800 p-3.5 text-left transition flex items-center gap-3 shadow-2xs cursor-pointer';
+        checkInBtn.querySelector('span').className = 'w-9 h-9 rounded-xl bg-emerald-500 text-white flex items-center justify-center text-base shrink-0';
+        checkInBtn.querySelectorAll('p')[1].className = 'text-[11px] text-emerald-700/80 mt-0.5';
+
+        checkOutBtn.className = 'att-choice-btn rounded-2xl border border-slate-200 bg-white hover:border-indigo-200 hover:bg-slate-50/80 text-slate-700 p-3.5 text-left transition flex items-center gap-3 cursor-pointer';
+        checkOutBtn.querySelector('span').className = 'w-9 h-9 rounded-xl bg-slate-100 text-slate-600 flex items-center justify-center text-base shrink-0';
+        checkOutBtn.querySelectorAll('p')[1].className = 'text-[11px] text-slate-400 mt-0.5';
+
+        banner.className = 'bg-emerald-50/70 border border-emerald-100 rounded-xl px-3.5 py-2.5 flex items-center justify-between text-xs';
+        modeText.className = 'font-semibold text-emerald-700';
+        modeText.textContent = 'ลงเวลาเข้างาน';
+      }
+    }
+
+    document.querySelectorAll('.att-choice-btn').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        syncAttendanceChoiceUI(btn.dataset.attChoice);
+      });
+    });
 
     const drawer = document.getElementById('drawerMenu');
     const backdrop = document.getElementById('menuBackdrop');
@@ -312,21 +467,30 @@
     function refreshDrawerUserSummary() {
       const code = (document.getElementById('attEmpCode').value || '').trim();
       const name = (document.getElementById('attEmpName').value || '').trim();
+      const dept = (document.getElementById('attDept').value || '').trim();
       const el = document.getElementById('drawerUserSummary');
+      const deptEl = document.getElementById('drawerDeptSummary');
+
       if (!code && !name) {
         el.textContent = 'ยังไม่ได้ระบุรหัสพนักงาน';
       } else {
         el.textContent = `${name || 'ไม่ระบุชื่อ'} (${code || '-'})`;
       }
+      deptEl.textContent = `กลุ่มงาน: ${dept || '-'}`;
     }
 
     const savedCode = localStorage.getItem(STORAGE_CODE_KEY) || '';
     const savedName = localStorage.getItem(STORAGE_NAME_KEY) || '';
+    const savedDept = localStorage.getItem(STORAGE_DEPT_KEY) || '';
+
     if (savedCode) {
       document.querySelectorAll('.emp-code-sync').forEach((el) => { el.value = savedCode; });
     }
     if (savedName) {
       document.querySelectorAll('.emp-name-sync').forEach((el) => { el.value = savedName; });
+    }
+    if (savedDept) {
+      document.querySelectorAll('.dept-sync').forEach((el) => { el.value = savedDept; });
     }
     refreshDrawerUserSummary();
 
@@ -348,6 +512,17 @@
           if (other !== input) other.value = val;
         });
         localStorage.setItem(STORAGE_NAME_KEY, val.trim());
+        refreshDrawerUserSummary();
+      });
+    });
+
+    document.querySelectorAll('.dept-sync').forEach((select) => {
+      select.addEventListener('change', () => {
+        const val = select.value;
+        document.querySelectorAll('.dept-sync').forEach((other) => {
+          if (other !== select) other.value = val;
+        });
+        localStorage.setItem(STORAGE_DEPT_KEY, val.trim());
         refreshDrawerUserSummary();
       });
     });
@@ -384,6 +559,58 @@
       el.addEventListener('click', () => switchView(el.dataset.nav));
     });
 
+    function clearLeaveEvidence() {
+      leaveEvidenceData = { name: "", mime: "", base64: "", dataUrl: "" };
+      const input = document.getElementById('leaveEvidenceInput');
+      if (input) input.value = "";
+      document.getElementById('leaveEvidencePreviewBox').classList.add('hidden');
+      document.getElementById('leaveEvidencePreviewImg').src = "";
+      document.getElementById('leaveEvidenceFileName').textContent = "";
+    }
+
+    document.getElementById('clearLeaveEvidenceBtn').addEventListener('click', clearLeaveEvidence);
+
+    document.getElementById('leaveEvidenceInput').addEventListener('change', (e) => {
+      const file = e.target.files && e.target.files[0];
+      const box = document.getElementById('lvResult');
+      if (!file) {
+        clearLeaveEvidence();
+        return;
+      }
+
+      if (!file.type.startsWith('image/')) {
+        showMessage(box, false, 'กรุณาเลือกไฟล์รูปภาพเท่านั้น');
+        clearLeaveEvidence();
+        return;
+      }
+
+      const maxBytes = 3 * 1024 * 1024;
+      if (file.size > maxBytes) {
+        showMessage(box, false, 'ขนาดรูปภาพต้องไม่เกิน 3 MB');
+        clearLeaveEvidence();
+        return;
+      }
+
+      const reader = new FileReader();
+      reader.onload = () => {
+        const dataUrl = String(reader.result || '');
+        const commaIdx = dataUrl.indexOf(',');
+        const base64 = commaIdx >= 0 ? dataUrl.slice(commaIdx + 1) : '';
+
+        leaveEvidenceData = {
+          name: file.name,
+          mime: file.type || 'image/jpeg',
+          base64,
+          dataUrl
+        };
+
+        document.getElementById('leaveEvidencePreviewImg').src = dataUrl;
+        document.getElementById('leaveEvidenceFileName').textContent = file.name;
+        document.getElementById('leaveEvidencePreviewBox').classList.remove('hidden');
+      };
+      reader.readAsDataURL(file);
+    });
+
     function showMessage(el, ok, msg, showGoProfile = false) {
       el.className = ok
         ? 'p-3 rounded-xl text-sm text-center font-medium bg-emerald-100 text-emerald-700 space-y-2'
@@ -405,6 +632,7 @@
     document.getElementById('attSubmitBtn').addEventListener('click', async () => {
       const emp_code = document.getElementById('attEmpCode').value.trim();
       const emp_name = document.getElementById('attEmpName').value.trim();
+      const department = document.getElementById('attDept').value.trim();
       const record_type = document.getElementById('attType').value;
       const box = document.getElementById('attResult');
       const btn = document.getElementById('attSubmitBtn');
@@ -416,6 +644,7 @@
 
       localStorage.setItem(STORAGE_CODE_KEY, emp_code);
       localStorage.setItem(STORAGE_NAME_KEY, emp_name);
+      localStorage.setItem(STORAGE_DEPT_KEY, department);
       refreshDrawerUserSummary();
 
       btn.disabled = true;
@@ -425,7 +654,7 @@
       try {
         const res = await fetch(SCRIPT_URL, {
           method: 'POST',
-          body: JSON.stringify({ action: 'attendance', emp_code, emp_name, record_type })
+          body: JSON.stringify({ action: 'attendance', emp_code, emp_name, department, record_type })
         });
         const data = await res.json();
         showMessage(box, Boolean(data.ok), data.message || 'บันทึกการลงเวลาเรียบร้อยแล้ว');
@@ -440,6 +669,7 @@
     document.getElementById('lvSubmitBtn').addEventListener('click', async () => {
       const emp_code = document.getElementById('lvEmpCode').value.trim();
       const emp_name = document.getElementById('lvEmpName').value.trim();
+      const department = document.getElementById('lvDept').value.trim();
       const leave_type = document.getElementById('leaveType').value;
       const start_date = document.getElementById('startDate').value;
       const end_date = document.getElementById('endDate').value;
@@ -459,6 +689,7 @@
 
       localStorage.setItem(STORAGE_CODE_KEY, emp_code);
       localStorage.setItem(STORAGE_NAME_KEY, emp_name);
+      localStorage.setItem(STORAGE_DEPT_KEY, department);
       refreshDrawerUserSummary();
 
       btn.disabled = true;
@@ -466,22 +697,32 @@
       box.classList.add('hidden');
 
       try {
+        const payload = {
+          action: 'leave',
+          emp_code,
+          emp_name,
+          department,
+          leave_type,
+          start_date,
+          end_date,
+          reason
+        };
+
+        if (leaveEvidenceData.base64) {
+          payload.attachment_name = leaveEvidenceData.name;
+          payload.attachment_mime = leaveEvidenceData.mime;
+          payload.attachment_base64 = leaveEvidenceData.base64;
+        }
+
         const res = await fetch(SCRIPT_URL, {
           method: 'POST',
-          body: JSON.stringify({
-            action: 'leave',
-            emp_code,
-            emp_name,
-            leave_type,
-            start_date,
-            end_date,
-            reason
-          })
+          body: JSON.stringify(payload)
         });
         const data = await res.json();
         showMessage(box, Boolean(data.ok), data.message || 'ส่งคำขอลางานเรียบร้อยแล้ว', Boolean(data.ok));
         if (data.ok) {
           document.getElementById('leaveReason').value = '';
+          clearLeaveEvidence();
         }
       } catch (err) {
         showMessage(box, false, 'เชื่อมต่อไม่สำเร็จ: ' + err.message);
@@ -494,11 +735,12 @@
     async function loadMyProfile() {
       const codeInput = (document.getElementById('profileEmpCode').value || '').trim();
       const nameInput = (document.getElementById('attEmpName').value || '').trim();
+      const deptInput = (document.getElementById('attDept').value || '').trim();
       const badgeEl = document.getElementById('profileStatusBadge');
 
       if (!codeInput) {
         document.getElementById('cardEmpName').textContent = nameInput || 'กรุณาระบุรหัสพนักงาน';
-        document.getElementById('cardEmpCode').textContent = 'รหัสพนักงาน: -';
+        document.getElementById('cardEmpCode').textContent = `รหัสพนักงาน: - • กลุ่มงาน: ${deptInput || '-'}`;
         badgeEl.textContent = 'รอระบุรหัส';
         return;
       }
@@ -523,8 +765,14 @@
           nameInput ||
           'พนักงาน';
 
+        const foundDept =
+          (myAtt[0] && myAtt[0].department) ||
+          (myLeaves[0] && myLeaves[0].department) ||
+          deptInput ||
+          'ไม่ระบุกลุ่มงาน';
+
         document.getElementById('cardEmpName').textContent = foundName;
-        document.getElementById('cardEmpCode').textContent = 'รหัสพนักงาน: ' + codeInput.toUpperCase();
+        document.getElementById('cardEmpCode').textContent = `รหัสพนักงาน: ${codeInput.toUpperCase()} • กลุ่มงาน: ${foundDept}`;
         badgeEl.textContent = 'อัปเดตแล้ว';
 
         const onTimeCount = myAtt.filter((r) => r.status === 'ตรงเวลา').length;
