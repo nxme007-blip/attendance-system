@@ -64,6 +64,12 @@
           <span>แดชบอร์ดภาพรวม</span>
         </button>
 
+        <button type="button" data-admin-view="deptreport"
+          class="admin-nav-btn w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium text-left text-slate-700 hover:bg-indigo-50 transition cursor-pointer">
+          <span>📑</span>
+          <span>รายงานรายกลุ่มงาน</span>
+        </button>
+
         <button type="button" data-admin-view="approvals"
           class="admin-nav-btn w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-sm font-medium text-left text-slate-700 hover:bg-indigo-50 transition cursor-pointer">
           <span class="flex items-center gap-3">
@@ -191,6 +197,106 @@
               </div>
             </div>
           </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- หัวข้อ: รายงานรายกลุ่มงาน (แยกหมวดชัดเจน + เลือกกลุ่มได้ง่าย) -->
+    <section id="view-deptreport" class="admin-view hidden space-y-6">
+      <div class="bg-white/95 backdrop-blur-md rounded-2xl p-5 shadow-sm border border-white space-y-4">
+        <div class="flex flex-wrap items-center justify-between gap-2">
+          <div class="flex flex-wrap gap-2">
+            <button type="button" data-report-cat="ALL"
+              class="report-cat-btn px-3.5 py-2 rounded-xl text-xs sm:text-sm font-medium bg-indigo-600 text-white transition cursor-pointer">
+              ทุกหมวด (12)
+            </button>
+            <button type="button" data-report-cat="support"
+              class="report-cat-btn px-3.5 py-2 rounded-xl text-xs sm:text-sm font-medium bg-slate-100 text-slate-700 hover:bg-indigo-50 transition cursor-pointer">
+              สนับสนุนและบริหาร (5)
+            </button>
+            <button type="button" data-report-cat="academic"
+              class="report-cat-btn px-3.5 py-2 rounded-xl text-xs sm:text-sm font-medium bg-slate-100 text-slate-700 hover:bg-indigo-50 transition cursor-pointer">
+              วิชาการและการควบคุมโรค (7)
+            </button>
+          </div>
+
+          <button id="exportDeptCsvBtn" type="button"
+            class="px-3.5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs sm:text-sm font-medium transition cursor-pointer">
+            📥 ส่งออก CSV
+          </button>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-1">
+          <div>
+            <label for="reportSingleDeptSelect" class="block text-xs font-medium text-slate-600 mb-1">เลือกดูเฉพาะกลุ่มงาน</label>
+            <select id="reportSingleDeptSelect"
+              class="w-full border border-slate-200 rounded-xl px-3.5 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-indigo-400">
+              <option value="">-- แสดงทุกกลุ่มในหมวดที่เลือก --</option>
+              <optgroup label="กลุ่มงานสนับสนุนและบริหาร">
+                <option value="กลุ่มบริหารทั่วไป">กลุ่มบริหารทั่วไป</option>
+                <option value="กลุ่มพัฒนาองค์กร">กลุ่มพัฒนาองค์กร</option>
+                <option value="กลุ่มยุทธศาสตร์และแผนงาน">กลุ่มยุทธศาสตร์และแผนงาน</option>
+                <option value="กลุ่มพัฒนานวัตกรรมและวิจัย">กลุ่มพัฒนานวัตกรรมและวิจัย</option>
+                <option value="กลุ่มสื่อสารความเสี่ยงโรคและภัยสุขภาพ">กลุ่มสื่อสารความเสี่ยงโรคและภัยสุขภาพ</option>
+              </optgroup>
+              <optgroup label="กลุ่มงานวิชาการและการควบคุมโรค">
+                <option value="กลุ่มห้องปฏิบัติการทางการแพทย์ด้านควบคุมโรค">กลุ่มห้องปฏิบัติการทางการแพทย์ด้านควบคุมโรค</option>
+                <option value="กลุ่มระบาดวิทยาและตอบโต้ภาวะฉุกเฉินทางสาธารณสุข">กลุ่มระบาดวิทยาและตอบโต้ภาวะฉุกเฉินทางสาธารณสุข</option>
+                <option value="กลุ่มโรคติดต่อ">กลุ่มโรคติดต่อ</option>
+                <option value="กลุ่มโรคติดต่อเรื้อรัง">กลุ่มโรคติดต่อเรื้อรัง</option>
+                <option value="กลุ่มโรคไม่ติดต่อ">กลุ่มโรคไม่ติดต่อ</option>
+                <option value="กลุ่มโรคจากการประกอบอาชีพและสิ่งแวดล้อม">กลุ่มโรคจากการประกอบอาชีพและสิ่งแวดล้อม</option>
+                <option value="กลุ่มโรคติดต่อนำโดยแมลง">กลุ่มโรคติดต่อนำโดยแมลง</option>
+              </optgroup>
+            </select>
+          </div>
+
+          <div>
+            <label for="reportMonthSelect" class="block text-xs font-medium text-slate-600 mb-1">ช่วงเดือน</label>
+            <select id="reportMonthSelect"
+              class="w-full border border-slate-200 rounded-xl px-3.5 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-indigo-400">
+              <option value="ALL">ทุกเดือน (ทั้งหมด)</option>
+            </select>
+          </div>
+
+          <div class="flex items-end">
+            <button id="resetReportFilterBtn" type="button"
+              class="w-full px-3.5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs sm:text-sm font-medium transition cursor-pointer">
+              ล้างตัวกรอง
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- การ์ดสรุปแยกตามหมวดแบบคลีน ๆ -->
+      <div id="deptReportCardsContainer" class="space-y-6"></div>
+
+      <!-- ตารางสรุปเปรียบเทียบ -->
+      <div class="bg-white/95 backdrop-blur-md rounded-2xl p-5 shadow-sm border border-white space-y-3">
+        <div class="flex flex-wrap items-center justify-between gap-2">
+          <div>
+            <h3 class="text-base sm:text-lg font-semibold text-slate-800">ตารางสรุปรายกลุ่มงาน</h3>
+            <p class="text-xs text-slate-500">คลิกที่ชื่อกลุ่มงานเพื่อเปิดดูประวัติการลงเวลาของกลุ่มนั้น</p>
+          </div>
+          <span id="reportDeptCountBadge" class="text-xs bg-indigo-50 text-indigo-700 px-3 py-1 rounded-full font-medium">0 กลุ่มงาน</span>
+        </div>
+
+        <div class="overflow-x-auto">
+          <table class="w-full text-xs sm:text-sm text-left border-collapse">
+            <thead>
+              <tr class="border-b border-slate-200 text-slate-600 bg-slate-50">
+                <th class="py-2.5 px-3">กลุ่มงาน</th>
+                <th class="py-2.5 px-3">หมวด</th>
+                <th class="py-2.5 px-3 text-center">ครั้งที่บันทึก</th>
+                <th class="py-2.5 px-3 text-center">ตรงเวลา</th>
+                <th class="py-2.5 px-3 text-center">มาสาย</th>
+                <th class="py-2.5 px-3 text-center">ใบลา</th>
+              </tr>
+            </thead>
+            <tbody id="deptReportTableBody" class="divide-y divide-slate-100 tabular-nums">
+              <tr><td colspan="6" class="py-6 text-center text-slate-400">กำลังประมวลผลรายงาน...</td></tr>
+            </tbody>
+          </table>
         </div>
       </div>
     </section>
@@ -485,6 +591,35 @@
   <script>
     const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbw3ovdTdqhw7KuqvA_MJ7lyyCQNur-LRCg1hJul1K3733YxNkwfYtuJ-XYry965vPskHw/exec";
 
+    const DEPT_GROUPS = [
+      {
+        category: "support",
+        categoryLabel: "กลุ่มงานสนับสนุนและบริหาร",
+        shortCat: "สนับสนุนและบริหาร",
+        items: [
+          "กลุ่มบริหารทั่วไป",
+          "กลุ่มพัฒนาองค์กร",
+          "กลุ่มยุทธศาสตร์และแผนงาน",
+          "กลุ่มพัฒนานวัตกรรมและวิจัย",
+          "กลุ่มสื่อสารความเสี่ยงโรคและภัยสุขภาพ"
+        ]
+      },
+      {
+        category: "academic",
+        categoryLabel: "กลุ่มงานวิชาการและการควบคุมโรค",
+        shortCat: "วิชาการและการควบคุมโรค",
+        items: [
+          "กลุ่มห้องปฏิบัติการทางการแพทย์ด้านควบคุมโรค",
+          "กลุ่มระบาดวิทยาและตอบโต้ภาวะฉุกเฉินทางสาธารณสุข",
+          "กลุ่มโรคติดต่อ",
+          "กลุ่มโรคติดต่อเรื้อรัง",
+          "กลุ่มโรคไม่ติดต่อ",
+          "กลุ่มโรคจากการประกอบอาชีพและสิ่งแวดล้อม",
+          "กลุ่มโรคติดต่อนำโดยแมลง"
+        ]
+      }
+    ];
+
     let allAttendance = [];
     let allLeaves = [];
     let activeView = "overview";
@@ -492,6 +627,9 @@
     let leaveStatusFilter = "ALL";
     let selectedDept = "";
     let selectedMonth = "ALL";
+    let reportMonth = "ALL";
+    let reportCategory = "ALL";
+    let reportSingleDept = "";
 
     let barChartInstance = null;
     let doughnutChartInstance = null;
@@ -500,6 +638,10 @@
       overview: {
         title: "แดชบอร์ดผู้ดูแลระบบ (Admin)",
         sub: "สรุปภาพรวมการเข้างาน มาสาย และคำขอลางานของพนักงานทั้งหมด"
+      },
+      deptreport: {
+        title: "รายงานรายกลุ่มงาน",
+        sub: "แยกดูตามหมวดหรือเลือกกลุ่มงานที่ต้องการดูได้ทันที"
       },
       approvals: {
         title: "อนุมัติการลา",
@@ -606,6 +748,7 @@
       window.scrollTo({ top: 0, behavior: "smooth" });
 
       if (viewName === "overview") renderOverview();
+      if (viewName === "deptreport") renderDeptReport();
       if (viewName === "approvals") renderApprovals();
       if (viewName === "attendance") renderAttendanceTab();
       if (viewName === "directory") renderDirectory();
@@ -650,9 +793,7 @@
     }
 
     function syncMonthOptions() {
-      const selectEl = document.getElementById("monthSelect");
       const monthSet = new Set();
-
       allAttendance.forEach((r) => {
         const mk = extractMonthKey(r.date);
         if (mk) monthSet.add(mk);
@@ -663,21 +804,37 @@
       });
 
       const sortedMonths = [...monthSet].sort();
-      const prev = selectedMonth;
-      selectEl.innerHTML = `<option value="ALL">ทุกเดือน (ทั้งหมด)</option>`;
 
+      const ovSelect = document.getElementById("monthSelect");
+      const prevOv = selectedMonth;
+      ovSelect.innerHTML = `<option value="ALL">ทุกเดือน (ทั้งหมด)</option>`;
       sortedMonths.forEach((ym) => {
         const opt = document.createElement("option");
         opt.value = ym;
         opt.textContent = formatMonthThai(ym);
-        selectEl.appendChild(opt);
+        ovSelect.appendChild(opt);
       });
-
-      if (prev !== "ALL" && monthSet.has(prev)) {
-        selectEl.value = prev;
+      if (prevOv !== "ALL" && monthSet.has(prevOv)) {
+        ovSelect.value = prevOv;
       } else {
         selectedMonth = "ALL";
-        selectEl.value = "ALL";
+        ovSelect.value = "ALL";
+      }
+
+      const repSelect = document.getElementById("reportMonthSelect");
+      const prevRep = reportMonth;
+      repSelect.innerHTML = `<option value="ALL">ทุกเดือน (ทั้งหมด)</option>`;
+      sortedMonths.forEach((ym) => {
+        const opt = document.createElement("option");
+        opt.value = ym;
+        opt.textContent = formatMonthThai(ym);
+        repSelect.appendChild(opt);
+      });
+      if (prevRep !== "ALL" && monthSet.has(prevRep)) {
+        repSelect.value = prevRep;
+      } else {
+        reportMonth = "ALL";
+        repSelect.value = "ALL";
       }
     }
 
@@ -787,6 +944,177 @@
 
       renderCharts(onTime, late, leavesFiltered.length);
     }
+
+    function computeDeptReportRows() {
+      const attByMonth = reportMonth === "ALL"
+        ? allAttendance
+        : allAttendance.filter((r) => extractMonthKey(r.date) === reportMonth);
+
+      const leavesByMonth = reportMonth === "ALL"
+        ? allLeaves
+        : allLeaves.filter((l) => extractMonthKey(l.start_date || l.date) === reportMonth);
+
+      const rows = [];
+      DEPT_GROUPS.forEach((grp) => {
+        if (reportCategory !== "ALL" && reportCategory !== grp.category) return;
+
+        grp.items.forEach((deptName) => {
+          if (reportSingleDept && reportSingleDept !== deptName) return;
+
+          const deptAtt = attByMonth.filter((r) => String(r.department || "").trim() === deptName);
+          const deptLeaves = leavesByMonth.filter((l) => String(l.department || "").trim() === deptName);
+
+          rows.push({
+            category: grp.category,
+            categoryLabel: grp.categoryLabel,
+            shortCat: grp.shortCat,
+            deptName,
+            attTotal: deptAtt.length,
+            onTime: deptAtt.filter((r) => r.status === "ตรงเวลา").length,
+            late: deptAtt.filter((r) => r.status === "มาสาย").length,
+            leaveTotal: deptLeaves.length
+          });
+        });
+      });
+
+      return rows;
+    }
+
+    function setReportCategoryUI(cat) {
+      reportCategory = cat;
+      document.querySelectorAll("[data-report-cat]").forEach((btn) => {
+        const active = btn.dataset.reportCat === reportCategory;
+        btn.className = active
+          ? "report-cat-btn px-3.5 py-2 rounded-xl text-xs sm:text-sm font-medium bg-indigo-600 text-white transition cursor-pointer"
+          : "report-cat-btn px-3.5 py-2 rounded-xl text-xs sm:text-sm font-medium bg-slate-100 text-slate-700 hover:bg-indigo-50 transition cursor-pointer";
+      });
+    }
+
+    function openDeptInAttendance(encodedDept) {
+      syncDeptSelects(decodeURIComponent(encodedDept));
+      switchAdminView("attendance");
+    }
+
+    function renderDeptReport() {
+      syncMonthOptions();
+      setReportCategoryUI(reportCategory);
+      document.getElementById("reportSingleDeptSelect").value = reportSingleDept;
+
+      const rows = computeDeptReportRows();
+      document.getElementById("reportDeptCountBadge").textContent = `${rows.length} กลุ่มงาน`;
+
+      const cardsContainer = document.getElementById("deptReportCardsContainer");
+      const activeGroups = DEPT_GROUPS.filter((g) => reportCategory === "ALL" || reportCategory === g.category);
+
+      const sectionsHtml = activeGroups.map((grp) => {
+        const grpRows = rows.filter((r) => r.category === grp.category);
+        if (!grpRows.length) return "";
+
+        return `
+          <div class="space-y-3">
+            <div class="flex items-center justify-between">
+              <h2 class="text-base font-semibold text-slate-800">${grp.categoryLabel}</h2>
+              <span class="text-xs text-slate-500">${grpRows.length} กลุ่ม</span>
+            </div>
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5">
+              ${grpRows.map((d) => `
+                <button type="button" onclick="openDeptInAttendance('${encodeURIComponent(d.deptName)}')"
+                  class="bg-white/95 hover:bg-indigo-50/40 rounded-2xl p-4 shadow-sm border border-white hover:border-indigo-200 text-left transition space-y-3 cursor-pointer">
+                  <p class="text-sm font-semibold text-slate-800 leading-snug">${d.deptName}</p>
+                  <div class="grid grid-cols-3 gap-2 text-center bg-slate-50 rounded-xl py-2 px-1 text-xs tabular-nums">
+                    <div>
+                      <span class="text-slate-400">ตรงเวลา</span>
+                      <p class="font-semibold text-emerald-600 text-sm">${d.onTime}</p>
+                    </div>
+                    <div>
+                      <span class="text-slate-400">มาสาย</span>
+                      <p class="font-semibold text-amber-500 text-sm">${d.late}</p>
+                    </div>
+                    <div>
+                      <span class="text-slate-400">ใบลา</span>
+                      <p class="font-semibold text-indigo-600 text-sm">${d.leaveTotal}</p>
+                    </div>
+                  </div>
+                </button>
+              `).join("")}
+            </div>
+          </div>
+        `;
+      }).filter(Boolean).join("");
+
+      cardsContainer.innerHTML = sectionsHtml || `
+        <div class="bg-white/95 rounded-2xl p-6 text-center text-sm text-slate-400 border border-white">
+          ไม่พบกลุ่มงานตามตัวกรองที่เลือก
+        </div>
+      `;
+
+      const tbody = document.getElementById("deptReportTableBody");
+      if (!rows.length) {
+        tbody.innerHTML = `<tr><td colspan="6" class="py-6 text-center text-slate-400">ไม่มีข้อมูลรายงาน</td></tr>`;
+        return;
+      }
+
+      tbody.innerHTML = rows.map((d) => `
+        <tr>
+          <td class="py-2.5 px-3 font-medium">
+            <button type="button" onclick="openDeptInAttendance('${encodeURIComponent(d.deptName)}')"
+              class="text-indigo-700 hover:underline text-left cursor-pointer">${d.deptName}</button>
+          </td>
+          <td class="py-2.5 px-3 text-xs text-slate-500">${d.shortCat}</td>
+          <td class="py-2.5 px-3 text-center">${d.attTotal}</td>
+          <td class="py-2.5 px-3 text-center font-medium text-emerald-600">${d.onTime}</td>
+          <td class="py-2.5 px-3 text-center font-medium text-amber-500">${d.late}</td>
+          <td class="py-2.5 px-3 text-center font-medium text-indigo-600">${d.leaveTotal}</td>
+        </tr>
+      `).join("");
+    }
+
+    document.querySelectorAll("[data-report-cat]").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        setReportCategoryUI(btn.dataset.reportCat);
+        renderDeptReport();
+      });
+    });
+
+    document.getElementById("reportSingleDeptSelect").addEventListener("change", (e) => {
+      reportSingleDept = e.target.value;
+      renderDeptReport();
+    });
+
+    document.getElementById("reportMonthSelect").addEventListener("change", (e) => {
+      reportMonth = e.target.value;
+      renderDeptReport();
+    });
+
+    document.getElementById("resetReportFilterBtn").addEventListener("click", () => {
+      reportCategory = "ALL";
+      reportSingleDept = "";
+      reportMonth = "ALL";
+      renderDeptReport();
+    });
+
+    document.getElementById("exportDeptCsvBtn").addEventListener("click", () => {
+      const rows = computeDeptReportRows();
+      const header = ["กลุ่มงาน", "หมวดกลุ่มงาน", "ครั้งที่บันทึก", "ตรงเวลา", "มาสาย", "ใบลา"];
+      const csvLines = [
+        header.join(","),
+        ...rows.map((r) => [
+          `"${r.deptName}"`,
+          `"${r.categoryLabel}"`,
+          r.attTotal,
+          r.onTime,
+          r.late,
+          r.leaveTotal
+        ].join(","))
+      ];
+      const blob = new Blob(["\uFEFF" + csvLines.join("\n")], { type: "text/csv;charset=utf-8;" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `รายงานรายกลุ่มงาน_${reportMonth}.csv`;
+      a.click();
+      URL.revokeObjectURL(url);
+    });
 
     function renderLeaveRow(lv, includePersonAndDept = true) {
       const st = lv.approval_status || "รออนุมัติ";
@@ -1140,6 +1468,7 @@
           allLeaves = Array.isArray(data.leaves) ? data.leaves : [];
           syncEmployeeSelectors(getEmployeesList());
           renderOverview();
+          if (activeView === "deptreport") renderDeptReport();
           if (activeView === "approvals") renderApprovals();
           if (activeView === "attendance") renderAttendanceTab();
           if (activeView === "directory") renderDirectory();
