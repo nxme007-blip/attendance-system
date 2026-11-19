@@ -201,15 +201,11 @@
       </div>
     </section>
 
-    <!-- หัวข้อ: รายงานรายกลุ่มงาน (แยกหมวดชัดเจน + เลือกกลุ่มได้ง่าย) -->
+    <!-- หัวข้อ: รายงานรายกลุ่มงาน (เลือกกลุ่มงานก่อนค่อยขึ้นข้อมูล) -->
     <section id="view-deptreport" class="admin-view hidden space-y-6">
       <div class="bg-white/95 backdrop-blur-md rounded-2xl p-5 shadow-sm border border-white space-y-4">
         <div class="flex flex-wrap items-center justify-between gap-2">
           <div class="flex flex-wrap gap-2">
-            <button type="button" data-report-cat="ALL"
-              class="report-cat-btn px-3.5 py-2 rounded-xl text-xs sm:text-sm font-medium bg-indigo-600 text-white transition cursor-pointer">
-              ทุกหมวด (12)
-            </button>
             <button type="button" data-report-cat="support"
               class="report-cat-btn px-3.5 py-2 rounded-xl text-xs sm:text-sm font-medium bg-slate-100 text-slate-700 hover:bg-indigo-50 transition cursor-pointer">
               สนับสนุนและบริหาร (5)
@@ -217,6 +213,10 @@
             <button type="button" data-report-cat="academic"
               class="report-cat-btn px-3.5 py-2 rounded-xl text-xs sm:text-sm font-medium bg-slate-100 text-slate-700 hover:bg-indigo-50 transition cursor-pointer">
               วิชาการและการควบคุมโรค (7)
+            </button>
+            <button type="button" data-report-cat="ALL"
+              class="report-cat-btn px-3.5 py-2 rounded-xl text-xs sm:text-sm font-medium bg-slate-100 text-slate-700 hover:bg-indigo-50 transition cursor-pointer">
+              ดูทั้งหมวด (12)
             </button>
           </div>
 
@@ -228,10 +228,10 @@
 
         <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-1">
           <div>
-            <label for="reportSingleDeptSelect" class="block text-xs font-medium text-slate-600 mb-1">เลือกดูเฉพาะกลุ่มงาน</label>
+            <label for="reportSingleDeptSelect" class="block text-xs font-medium text-slate-600 mb-1">เลือกกลุ่มงานที่ต้องการดู</label>
             <select id="reportSingleDeptSelect"
               class="w-full border border-slate-200 rounded-xl px-3.5 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-indigo-400">
-              <option value="">-- แสดงทุกกลุ่มในหมวดที่เลือก --</option>
+              <option value="">-- เลือกกลุ่มงาน --</option>
               <optgroup label="กลุ่มงานสนับสนุนและบริหาร">
                 <option value="กลุ่มบริหารทั่วไป">กลุ่มบริหารทั่วไป</option>
                 <option value="กลุ่มพัฒนาองค์กร">กลุ่มพัฒนาองค์กร</option>
@@ -262,42 +262,47 @@
           <div class="flex items-end">
             <button id="resetReportFilterBtn" type="button"
               class="w-full px-3.5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs sm:text-sm font-medium transition cursor-pointer">
-              ล้างตัวกรอง
+              ล้างการเลือก
             </button>
           </div>
         </div>
       </div>
 
-      <!-- การ์ดสรุปแยกตามหมวดแบบคลีน ๆ -->
-      <div id="deptReportCardsContainer" class="space-y-6"></div>
+      <!-- พื้นที่แสดงผลเมื่อเลือกกลุ่มงานหรือหมวดแล้ว -->
+      <div id="deptReportContentBox" class="hidden space-y-6">
+        <div id="deptReportCardsContainer" class="space-y-6"></div>
 
-      <!-- ตารางสรุปเปรียบเทียบ -->
-      <div class="bg-white/95 backdrop-blur-md rounded-2xl p-5 shadow-sm border border-white space-y-3">
-        <div class="flex flex-wrap items-center justify-between gap-2">
-          <div>
-            <h3 class="text-base sm:text-lg font-semibold text-slate-800">ตารางสรุปรายกลุ่มงาน</h3>
-            <p class="text-xs text-slate-500">คลิกที่ชื่อกลุ่มงานเพื่อเปิดดูประวัติการลงเวลาของกลุ่มนั้น</p>
+        <div class="bg-white/95 backdrop-blur-md rounded-2xl p-5 shadow-sm border border-white space-y-3">
+          <div class="flex flex-wrap items-center justify-between gap-2">
+            <div>
+              <h3 class="text-base sm:text-lg font-semibold text-slate-800">ตารางสรุปรายกลุ่มงาน</h3>
+              <p class="text-xs text-slate-500">คลิกที่ชื่อกลุ่มงานเพื่อเปิดดูประวัติการลงเวลาของกลุ่มนั้น</p>
+            </div>
+            <span id="reportDeptCountBadge" class="text-xs bg-indigo-50 text-indigo-700 px-3 py-1 rounded-full font-medium">0 กลุ่มงาน</span>
           </div>
-          <span id="reportDeptCountBadge" class="text-xs bg-indigo-50 text-indigo-700 px-3 py-1 rounded-full font-medium">0 กลุ่มงาน</span>
-        </div>
 
-        <div class="overflow-x-auto">
-          <table class="w-full text-xs sm:text-sm text-left border-collapse">
-            <thead>
-              <tr class="border-b border-slate-200 text-slate-600 bg-slate-50">
-                <th class="py-2.5 px-3">กลุ่มงาน</th>
-                <th class="py-2.5 px-3">หมวด</th>
-                <th class="py-2.5 px-3 text-center">ครั้งที่บันทึก</th>
-                <th class="py-2.5 px-3 text-center">ตรงเวลา</th>
-                <th class="py-2.5 px-3 text-center">มาสาย</th>
-                <th class="py-2.5 px-3 text-center">ใบลา</th>
-              </tr>
-            </thead>
-            <tbody id="deptReportTableBody" class="divide-y divide-slate-100 tabular-nums">
-              <tr><td colspan="6" class="py-6 text-center text-slate-400">กำลังประมวลผลรายงาน...</td></tr>
-            </tbody>
-          </table>
+          <div class="overflow-x-auto">
+            <table class="w-full text-xs sm:text-sm text-left border-collapse">
+              <thead>
+                <tr class="border-b border-slate-200 text-slate-600 bg-slate-50">
+                  <th class="py-2.5 px-3">กลุ่มงาน</th>
+                  <th class="py-2.5 px-3">หมวด</th>
+                  <th class="py-2.5 px-3 text-center">ครั้งที่บันทึก</th>
+                  <th class="py-2.5 px-3 text-center">ตรงเวลา</th>
+                  <th class="py-2.5 px-3 text-center">มาสาย</th>
+                  <th class="py-2.5 px-3 text-center">ใบลา</th>
+                </tr>
+              </thead>
+              <tbody id="deptReportTableBody" class="divide-y divide-slate-100 tabular-nums"></tbody>
+            </table>
+          </div>
         </div>
+      </div>
+
+      <!-- กล่องชวนเลือกกลุ่มงานก่อนแสดงผล -->
+      <div id="deptReportEmptyPrompt" class="bg-white/95 backdrop-blur-md rounded-2xl p-8 shadow-sm border border-white text-center space-y-2">
+        <p class="text-base font-semibold text-slate-700">เลือกกลุ่มงานที่ต้องการดูรายงาน</p>
+        <p class="text-xs sm:text-sm text-slate-500">เลือกกลุ่มงานจากช่องด้านบน หรือกดปุ่มหมวดเพื่อแสดงข้อมูลเฉพาะส่วนที่ต้องการ</p>
       </div>
     </section>
 
@@ -628,7 +633,7 @@
     let selectedDept = "";
     let selectedMonth = "ALL";
     let reportMonth = "ALL";
-    let reportCategory = "ALL";
+    let reportCategory = "";
     let reportSingleDept = "";
 
     let barChartInstance = null;
@@ -641,7 +646,7 @@
       },
       deptreport: {
         title: "รายงานรายกลุ่มงาน",
-        sub: "แยกดูตามหมวดหรือเลือกกลุ่มงานที่ต้องการดูได้ทันที"
+        sub: "เลือกกลุ่มงานหรือหมวดที่ต้องการดูรายงาน"
       },
       approvals: {
         title: "อนุมัติการลา",
@@ -956,7 +961,11 @@
 
       const rows = [];
       DEPT_GROUPS.forEach((grp) => {
-        if (reportCategory !== "ALL" && reportCategory !== grp.category) return;
+        if (reportSingleDept) {
+          if (!grp.items.includes(reportSingleDept)) return;
+        } else if (reportCategory !== "ALL" && reportCategory !== grp.category) {
+          return;
+        }
 
         grp.items.forEach((deptName) => {
           if (reportSingleDept && reportSingleDept !== deptName) return;
@@ -983,7 +992,7 @@
     function setReportCategoryUI(cat) {
       reportCategory = cat;
       document.querySelectorAll("[data-report-cat]").forEach((btn) => {
-        const active = btn.dataset.reportCat === reportCategory;
+        const active = !reportSingleDept && btn.dataset.reportCat === reportCategory;
         btn.className = active
           ? "report-cat-btn px-3.5 py-2 rounded-xl text-xs sm:text-sm font-medium bg-indigo-600 text-white transition cursor-pointer"
           : "report-cat-btn px-3.5 py-2 rounded-xl text-xs sm:text-sm font-medium bg-slate-100 text-slate-700 hover:bg-indigo-50 transition cursor-pointer";
@@ -1000,16 +1009,30 @@
       setReportCategoryUI(reportCategory);
       document.getElementById("reportSingleDeptSelect").value = reportSingleDept;
 
+      const hasSelection = Boolean(reportSingleDept || reportCategory);
+      const contentBox = document.getElementById("deptReportContentBox");
+      const emptyPrompt = document.getElementById("deptReportEmptyPrompt");
+
+      if (!hasSelection) {
+        contentBox.classList.add("hidden");
+        emptyPrompt.classList.remove("hidden");
+        return;
+      }
+
+      contentBox.classList.remove("hidden");
+      emptyPrompt.classList.add("hidden");
+
       const rows = computeDeptReportRows();
       document.getElementById("reportDeptCountBadge").textContent = `${rows.length} กลุ่มงาน`;
 
       const cardsContainer = document.getElementById("deptReportCardsContainer");
-      const activeGroups = DEPT_GROUPS.filter((g) => reportCategory === "ALL" || reportCategory === g.category);
+      const activeGroups = DEPT_GROUPS.filter((g) => {
+        if (reportSingleDept) return g.items.includes(reportSingleDept);
+        return reportCategory === "ALL" || reportCategory === g.category;
+      });
 
-      const sectionsHtml = activeGroups.map((grp) => {
+      cardsContainer.innerHTML = activeGroups.map((grp) => {
         const grpRows = rows.filter((r) => r.category === grp.category);
-        if (!grpRows.length) return "";
-
         return `
           <div class="space-y-3">
             <div class="flex items-center justify-between">
@@ -1040,20 +1063,9 @@
             </div>
           </div>
         `;
-      }).filter(Boolean).join("");
-
-      cardsContainer.innerHTML = sectionsHtml || `
-        <div class="bg-white/95 rounded-2xl p-6 text-center text-sm text-slate-400 border border-white">
-          ไม่พบกลุ่มงานตามตัวกรองที่เลือก
-        </div>
-      `;
+      }).join("");
 
       const tbody = document.getElementById("deptReportTableBody");
-      if (!rows.length) {
-        tbody.innerHTML = `<tr><td colspan="6" class="py-6 text-center text-slate-400">ไม่มีข้อมูลรายงาน</td></tr>`;
-        return;
-      }
-
       tbody.innerHTML = rows.map((d) => `
         <tr>
           <td class="py-2.5 px-3 font-medium">
@@ -1071,6 +1083,7 @@
 
     document.querySelectorAll("[data-report-cat]").forEach((btn) => {
       btn.addEventListener("click", () => {
+        reportSingleDept = "";
         setReportCategoryUI(btn.dataset.reportCat);
         renderDeptReport();
       });
@@ -1078,6 +1091,7 @@
 
     document.getElementById("reportSingleDeptSelect").addEventListener("change", (e) => {
       reportSingleDept = e.target.value;
+      if (reportSingleDept) reportCategory = "";
       renderDeptReport();
     });
 
@@ -1087,14 +1101,22 @@
     });
 
     document.getElementById("resetReportFilterBtn").addEventListener("click", () => {
-      reportCategory = "ALL";
+      reportCategory = "";
       reportSingleDept = "";
       reportMonth = "ALL";
       renderDeptReport();
     });
 
     document.getElementById("exportDeptCsvBtn").addEventListener("click", () => {
+      const prevCat = reportCategory;
+      const prevSingle = reportSingleDept;
+      if (!prevCat && !prevSingle) {
+        reportCategory = "ALL";
+      }
       const rows = computeDeptReportRows();
+      reportCategory = prevCat;
+      reportSingleDept = prevSingle;
+
       const header = ["กลุ่มงาน", "หมวดกลุ่มงาน", "ครั้งที่บันทึก", "ตรงเวลา", "มาสาย", "ใบลา"];
       const csvLines = [
         header.join(","),
