@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>แดชบอร์ดผู้ดูแลระบบ (Admin)</title>
   <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600&display=swap" rel="stylesheet">
   <style>
     body { font-family: 'Kanit', sans-serif; }
@@ -104,8 +105,9 @@
 
   <main class="max-w-6xl mx-auto px-4 py-6">
 
-    <!-- หน้า 1: แดชบอร์ดภาพรวม (แสดงเฉพาะการ์ดสถิติภาพรวม 4 ช่อง) -->
-    <section id="view-overview" class="admin-view">
+    <!-- หน้า 1: แดชบอร์ดภาพรวม -->
+    <section id="view-overview" class="admin-view space-y-6">
+      <!-- การ์ดสถิติภาพรวม 4 ช่อง -->
       <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <div class="bg-white/95 backdrop-blur-md rounded-2xl p-5 shadow-sm border border-white">
           <p class="text-xs sm:text-sm text-slate-500">เข้างานตรงเวลา (รวม)</p>
@@ -131,9 +133,65 @@
           <span class="inline-block w-5 h-1 bg-indigo-500 rounded-full mt-3"></span>
         </div>
       </div>
+
+      <!-- แถบเลือกดูย้อนหลังแต่ละเดือน + กราฟ -->
+      <div class="bg-white/95 backdrop-blur-md rounded-2xl p-5 shadow-sm border border-white space-y-5">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-4">
+          <div>
+            <h2 class="text-base sm:text-lg font-semibold text-slate-800">กราฟสรุปการเข้างานและคำขอลางาน</h2>
+            <p id="monthFilterLabel" class="text-xs text-slate-500">กำลังแสดงข้อมูล: ทุกเดือน (ทั้งหมด)</p>
+          </div>
+
+          <div class="flex items-center gap-2">
+            <label for="monthSelect" class="text-xs sm:text-sm text-slate-600 font-medium">ดูย้อนหลัง:</label>
+            <select id="monthSelect"
+              class="border border-slate-200 rounded-xl px-3.5 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-indigo-400">
+              <option value="ALL">ทุกเดือน (ทั้งหมด)</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-5 items-center">
+          <!-- กราฟแท่งเปรียบเทียบรายเดือน -->
+          <div class="lg:col-span-2 bg-slate-50/70 border border-slate-100 rounded-2xl p-4">
+            <div class="flex items-center justify-between mb-2">
+              <p class="text-sm font-medium text-slate-700">สถิติเปรียบเทียบแต่ละเดือน</p>
+              <span class="text-xs text-slate-400">ตรงเวลา / มาสาย / ใบลา</span>
+            </div>
+            <div class="relative h-60">
+              <canvas id="monthlyBarChart"></canvas>
+            </div>
+          </div>
+
+          <!-- กราฟโดนัทสัดส่วน -->
+          <div class="bg-slate-50/70 border border-slate-100 rounded-2xl p-4 flex flex-col justify-between h-full">
+            <div class="mb-2">
+              <p class="text-sm font-medium text-slate-700">สัดส่วนการบันทึก</p>
+              <p class="text-xs text-slate-400">ภาพรวมตามช่วงเวลาที่เลือก</p>
+            </div>
+            <div class="relative h-44 flex items-center justify-center">
+              <canvas id="ratioDoughnutChart"></canvas>
+            </div>
+            <div class="grid grid-cols-3 gap-1.5 text-center pt-3 border-t border-slate-200/70 text-xs">
+              <div>
+                <p class="text-slate-400">ตรงเวลา</p>
+                <p id="chartSumOnTime" class="font-semibold text-emerald-600">0</p>
+              </div>
+              <div>
+                <p class="text-slate-400">มาสาย</p>
+                <p id="chartSumLate" class="font-semibold text-amber-500">0</p>
+              </div>
+              <div>
+                <p class="text-slate-400">ใบลา</p>
+                <p id="chartSumLeave" class="font-semibold text-indigo-600">0</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
     </section>
 
-    <!-- หน้า 2: อนุมัติการลา (เปิดเมื่อกดเลือกจากเมนู) -->
+    <!-- หน้า 2: อนุมัติการลา -->
     <section id="view-approvals" class="admin-view hidden space-y-5">
       <div class="bg-white/95 backdrop-blur-md rounded-2xl p-5 shadow-sm border border-white space-y-4">
         <div class="flex flex-col md:flex-row md:items-center justify-between gap-3">
@@ -192,7 +250,7 @@
       </div>
     </section>
 
-    <!-- หน้า 3: สมุดรายชื่อพนักงาน (เปิดเมื่อกดเลือกจากเมนู) -->
+    <!-- หน้า 3: สมุดรายชื่อพนักงาน -->
     <section id="view-directory" class="admin-view hidden space-y-5">
       <div class="bg-white/95 backdrop-blur-md rounded-2xl p-5 shadow-sm border border-white flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
@@ -211,7 +269,7 @@
       </div>
     </section>
 
-    <!-- หน้า 4: แฟ้มส่วนตัวรายบุคคล (เปิดเมื่อกดเลือกจากเมนูหรือเลือกคนในสมุดรายชื่อ) -->
+    <!-- หน้า 4: แฟ้มส่วนตัวรายบุคคล -->
     <section id="view-binder" class="admin-view hidden space-y-5">
       <div class="bg-white/95 backdrop-blur-md rounded-2xl p-5 shadow-sm border border-white space-y-4">
         <div class="flex flex-col md:flex-row md:items-center justify-between gap-3 border-b border-slate-100 pb-4">
@@ -305,6 +363,10 @@
     let activeView = "overview";
     let selectedEmpKey = "";
     let leaveStatusFilter = "ALL";
+    let selectedMonth = "ALL";
+
+    let barChartInstance = null;
+    let doughnutChartInstance = null;
 
     const viewMeta = {
       overview: {
@@ -380,6 +442,199 @@
       el.addEventListener("click", () => switchAdminView(el.dataset.adminView));
     });
 
+    function extractMonthKey(dateStr) {
+      const s = String(dateStr || "").trim();
+      const isoMatch = s.match(/^(\d{4})[-/](\d{1,2})/);
+      if (isoMatch) {
+        return `${isoMatch[1]}-${String(isoMatch[2]).padStart(2, "0")}`;
+      }
+      const dmyMatch = s.match(/^(\d{1,2})[-/](\d{1,2})[-/](\d{4})/);
+      if (dmyMatch) {
+        return `${dmyMatch[3]}-${String(dmyMatch[2]).padStart(2, "0")}`;
+      }
+      return "";
+    }
+
+    function formatMonthThai(ym) {
+      const [y, m] = ym.split("-");
+      const months = [
+        "ม.ค.", "ก.พ.", "มี.ค.", "เม.ย.", "พ.ค.", "มิ.ย.",
+        "ก.ค.", "ส.ค.", "ก.ย.", "ต.ค.", "พ.ย.", "ธ.ค."
+      ];
+      const idx = Number(m) - 1;
+      return `${months[idx] || m} ${y}`;
+    }
+
+    function syncMonthOptions() {
+      const selectEl = document.getElementById("monthSelect");
+      const monthSet = new Set();
+
+      allAttendance.forEach((r) => {
+        const mk = extractMonthKey(r.date);
+        if (mk) monthSet.add(mk);
+      });
+      allLeaves.forEach((l) => {
+        const mk = extractMonthKey(l.start_date || l.date);
+        if (mk) monthSet.add(mk);
+      });
+
+      const sortedMonths = [...monthSet].sort();
+      const prev = selectedMonth;
+      selectEl.innerHTML = `<option value="ALL">ทุกเดือน (ทั้งหมด)</option>`;
+
+      sortedMonths.forEach((ym) => {
+        const opt = document.createElement("option");
+        opt.value = ym;
+        opt.textContent = formatMonthThai(ym);
+        selectEl.appendChild(opt);
+      });
+
+      if (prev !== "ALL" && monthSet.has(prev)) {
+        selectEl.value = prev;
+      } else {
+        selectedMonth = "ALL";
+        selectEl.value = "ALL";
+      }
+    }
+
+    function buildMonthlySeries() {
+      const buckets = new Map();
+      const ensureBucket = (ym) => {
+        if (!buckets.has(ym)) {
+          buckets.set(ym, { ym, label: formatMonthThai(ym), onTime: 0, late: 0, leaves: 0 });
+        }
+        return buckets.get(ym);
+      };
+
+      allAttendance.forEach((r) => {
+        const ym = extractMonthKey(r.date);
+        if (!ym) return;
+        const b = ensureBucket(ym);
+        if (r.status === "ตรงเวลา") b.onTime += 1;
+        if (r.status === "มาสาย") b.late += 1;
+      });
+
+      allLeaves.forEach((l) => {
+        const ym = extractMonthKey(l.start_date || l.date);
+        if (!ym) return;
+        const b = ensureBucket(ym);
+        b.leaves += 1;
+      });
+
+      const list = [...buckets.values()].sort((a, b) => a.ym.localeCompare(b.ym));
+      if (!list.length) {
+        return [{ ym: "current", label: "เดือนปัจจุบัน", onTime: 0, late: 0, leaves: 0 }];
+      }
+      return list;
+    }
+
+    function renderCharts(onTime, late, leavesCount) {
+      const series = buildMonthlySeries();
+      const barLabels = series.map((s) => s.label);
+      const barOnTime = series.map((s) => s.onTime);
+      const barLate = series.map((s) => s.late);
+      const barLeaves = series.map((s) => s.leaves);
+
+      const barCtx = document.getElementById("monthlyBarChart").getContext("2d");
+      if (barChartInstance) barChartInstance.destroy();
+      barChartInstance = new Chart(barCtx, {
+        type: "bar",
+        data: {
+          labels: barLabels,
+          datasets: [
+            {
+              label: "ตรงเวลา",
+              data: barOnTime,
+              backgroundColor: "rgba(16, 185, 129, 0.8)",
+              borderRadius: 8
+            },
+            {
+              label: "มาสาย",
+              data: barLate,
+              backgroundColor: "rgba(245, 158, 11, 0.8)",
+              borderRadius: 8
+            },
+            {
+              label: "ใบลา",
+              data: barLeaves,
+              backgroundColor: "rgba(99, 102, 241, 0.8)",
+              borderRadius: 8
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { position: "bottom", labels: { boxWidth: 12, font: { family: "Kanit", size: 12 } } }
+          },
+          scales: {
+            y: { beginAtZero: true, ticks: { precision: 0, font: { family: "Kanit" } } },
+            x: { ticks: { font: { family: "Kanit" } } }
+          }
+        }
+      });
+
+      const hasAny = (onTime + late + leavesCount) > 0;
+      const doughnutCtx = document.getElementById("ratioDoughnutChart").getContext("2d");
+      if (doughnutChartInstance) doughnutChartInstance.destroy();
+      doughnutChartInstance = new Chart(doughnutCtx, {
+        type: "doughnut",
+        data: {
+          labels: hasAny ? ["ตรงเวลา", "มาสาย", "ใบลา"] : ["ยังไม่มีข้อมูล"],
+          datasets: [{
+            data: hasAny ? [onTime, late, leavesCount] : [1],
+            backgroundColor: hasAny
+              ? ["#10b981", "#f59e0b", "#6366f1"]
+              : ["#e2e8f0"],
+            borderWidth: 0
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          cutout: "66%",
+          plugins: {
+            legend: { display: false }
+          }
+        }
+      });
+
+      document.getElementById("chartSumOnTime").textContent = onTime;
+      document.getElementById("chartSumLate").textContent = late;
+      document.getElementById("chartSumLeave").textContent = leavesCount;
+    }
+
+    function renderOverview() {
+      updateLeaveBadges();
+      syncMonthOptions();
+
+      const attFiltered = selectedMonth === "ALL"
+        ? allAttendance
+        : allAttendance.filter((r) => extractMonthKey(r.date) === selectedMonth);
+
+      const leavesFiltered = selectedMonth === "ALL"
+        ? allLeaves
+        : allLeaves.filter((l) => extractMonthKey(l.start_date || l.date) === selectedMonth);
+
+      const onTime = attFiltered.filter((r) => r.status === "ตรงเวลา").length;
+      const late = attFiltered.filter((r) => r.status === "มาสาย").length;
+      const pendingLeave = leavesFiltered.filter((l) => (l.approval_status || "รออนุมัติ") === "รออนุมัติ").length;
+      const total = attFiltered.length + leavesFiltered.length;
+
+      document.getElementById("ovOnTime").textContent = onTime;
+      document.getElementById("ovLate").textContent = late;
+      document.getElementById("ovPendingLeave").textContent = pendingLeave;
+      document.getElementById("ovTotalRecords").textContent = total;
+
+      document.getElementById("monthFilterLabel").textContent =
+        selectedMonth === "ALL"
+          ? "กำลังแสดงข้อมูล: ทุกเดือน (ทั้งหมด)"
+          : `กำลังแสดงข้อมูลย้อนหลัง: ${formatMonthThai(selectedMonth)}`;
+
+      renderCharts(onTime, late, leavesFiltered.length);
+    }
+
     function renderLeaveRow(lv, includePersonCol = true) {
       const st = lv.approval_status || "รออนุมัติ";
       const badge =
@@ -418,19 +673,6 @@
       document.getElementById("countLeavePending").textContent = pendingCount;
       document.getElementById("countLeaveApproved").textContent = approvedCount;
       document.getElementById("countLeaveRejected").textContent = rejectedCount;
-    }
-
-    function renderOverview() {
-      updateLeaveBadges();
-      const onTime = allAttendance.filter((r) => r.status === "ตรงเวลา").length;
-      const late = allAttendance.filter((r) => r.status === "มาสาย").length;
-      const pendingLeave = allLeaves.filter((l) => (l.approval_status || "รออนุมัติ") === "รออนุมัติ").length;
-      const total = allAttendance.length + allLeaves.length;
-
-      document.getElementById("ovOnTime").textContent = onTime;
-      document.getElementById("ovLate").textContent = late;
-      document.getElementById("ovPendingLeave").textContent = pendingLeave;
-      document.getElementById("ovTotalRecords").textContent = total;
     }
 
     function renderApprovals() {
@@ -718,12 +960,17 @@
     }
 
     document.getElementById("refreshBtn").addEventListener("click", loadDashboardData);
+    document.getElementById("monthSelect").addEventListener("change", (e) => {
+      selectedMonth = e.target.value;
+      renderOverview();
+    });
     document.getElementById("directorySearch").addEventListener("input", renderDirectory);
     document.getElementById("binderSelect").addEventListener("change", (e) => {
       selectedEmpKey = e.target.value;
       renderBinder();
     });
 
+    renderCharts(0, 0, 0);
     loadDashboardData();
   </script>
 </body>
