@@ -3,211 +3,76 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>ระบบบันทึกการขาด ลา มาสาย พนักงาน</title>
+  <title>หลังบ้าน Admin - ระบบบันทึกการขาด ลา มาสาย</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600&display=swap" rel="stylesheet">
   <style>
     body { font-family: 'Kanit', sans-serif; }
+    .tabular-nums { font-variant-numeric: tabular-nums; }
   </style>
 </head>
-<body class="bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 min-h-screen text-slate-800">
+<body class="bg-gradient-to-br from-slate-100 via-indigo-50/60 to-blue-50 min-h-screen text-slate-800">
 
   <!-- แถบด้านบน -->
-  <header class="sticky top-0 z-30 bg-white/90 backdrop-blur-md border-b border-indigo-100 shadow-sm">
-    <div class="max-w-3xl mx-auto px-4 py-3 flex items-center justify-between gap-3">
-      <div class="min-w-0">
-        <h1 id="pageTitle" class="text-lg sm:text-xl font-semibold text-slate-800 truncate">ลงเวลาเข้า-ออกงาน</h1>
-        <p id="clock" class="text-xs text-indigo-600 font-medium truncate"></p>
+  <header class="sticky top-0 z-30 bg-white/95 backdrop-blur-md border-b border-slate-200/80 shadow-xs">
+    <div class="max-w-6xl mx-auto px-4 py-3 flex flex-wrap items-center justify-between gap-3">
+      <div>
+        <div class="flex items-center gap-2">
+          <span class="w-8 h-8 rounded-xl bg-indigo-600 text-white flex items-center justify-center text-sm">🛡️</span>
+          <h1 class="text-lg sm:text-xl font-semibold text-slate-800">ระบบจัดการหลังบ้าน (Admin)</h1>
+        </div>
+        <p class="text-xs text-slate-500 mt-0.5">ตรวจสอบการเข้า-ออกงาน แยกกลุ่มงาน และอนุมัติคำขอลางาน</p>
       </div>
 
-      <button id="menuBtn" type="button" aria-label="เปิดเมนูการทำงาน"
-        class="shrink-0 px-3.5 py-2 rounded-xl bg-indigo-50 hover:bg-indigo-100 active:scale-95 text-indigo-700 border border-indigo-200/80 transition flex items-center gap-2 shadow-xs cursor-pointer">
-        <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16" />
-        </svg>
-        <span class="text-sm font-medium">เมนู</span>
-      </button>
+      <div class="flex items-center gap-2">
+        <button id="refreshBtn" type="button"
+          class="px-3.5 py-2 rounded-xl bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 text-xs sm:text-sm font-medium transition cursor-pointer">
+          🔄 รีเฟรชข้อมูล
+        </button>
+        <a href="index.html"
+          class="px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-900 text-white text-xs sm:text-sm font-medium transition">
+          ← หน้าพนักงาน
+        </a>
+      </div>
     </div>
   </header>
 
-  <!-- พื้นหลังมืดเวลาเปิดลิ้นชักเมนู -->
-  <div id="menuBackdrop" class="fixed inset-0 bg-slate-900/35 backdrop-blur-[1px] z-40 hidden"></div>
+  <main class="max-w-6xl mx-auto px-4 py-6 space-y-6">
 
-  <!-- ลิ้นชักเมนูแฮมเบอร์เกอร์ -->
-  <aside id="drawerMenu"
-    class="fixed top-0 right-0 h-full w-72 max-w-[85vw] bg-white z-50 shadow-2xl border-l border-slate-100 transform translate-x-full transition-transform duration-200 flex flex-col justify-between p-5">
-    <div class="space-y-4">
-      <div class="flex items-center justify-between border-b border-slate-100 pb-3">
-        <div>
-          <p class="text-sm font-semibold text-slate-800">เมนูการทำงาน</p>
-          <p class="text-xs text-slate-400">เลือกหน้าต่างที่ต้องการใช้งาน</p>
-        </div>
-        <button id="closeMenuBtn" type="button" aria-label="ปิดเมนู"
-          class="w-8 h-8 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-600 flex items-center justify-center transition cursor-pointer">
-          ✕
-        </button>
+    <!-- การ์ดสรุปภาพรวม -->
+    <section class="grid grid-cols-2 lg:grid-cols-4 gap-3.5">
+      <div class="bg-white rounded-2xl p-4 shadow-xs border border-slate-200/70">
+        <p class="text-xs text-slate-500">รายการลงเวลาทั้งหมด</p>
+        <p id="statTotalAtt" class="text-2xl font-semibold text-slate-800 mt-1 tabular-nums">0</p>
       </div>
-
-      <nav class="space-y-1.5">
-        <button type="button" data-nav="attendance"
-          class="nav-item w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium text-left bg-indigo-600 text-white transition cursor-pointer">
-          <span>🕒</span>
-          <span>ลงเวลาเข้า-ออกงาน</span>
-        </button>
-
-        <button type="button" data-nav="leave"
-          class="nav-item w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium text-left text-slate-700 hover:bg-indigo-50 transition cursor-pointer">
-          <span>📝</span>
-          <span>แจ้งลางาน</span>
-        </button>
-
-        <button type="button" data-nav="profile"
-          class="nav-item w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium text-left text-slate-700 hover:bg-indigo-50 transition cursor-pointer">
-          <span>👤</span>
-          <span>ข้อมูลของฉัน (ขาด/ลา/มาสาย)</span>
-        </button>
-
-        <div class="pt-3 mt-3 border-t border-slate-100">
-          <a href="admin.html"
-            class="w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-sm font-medium text-slate-700 hover:bg-slate-100 transition">
-            <span class="flex items-center gap-3">
-              <span>🛡️</span>
-              <span>หลังบ้าน Admin</span>
-            </span>
-            <span class="text-xs text-slate-400">→</span>
-          </a>
-        </div>
-      </nav>
-    </div>
-
-    <div class="bg-indigo-50/80 border border-indigo-100 rounded-xl p-3 text-xs text-indigo-800 space-y-1">
-      <p class="font-medium">ผู้ใช้งานปัจจุบัน</p>
-      <p id="drawerUserSummary" class="text-indigo-700 truncate">ยังไม่ได้ระบุรหัสพนักงาน</p>
-      <p id="drawerDeptSummary" class="text-[11px] text-indigo-500 truncate">กลุ่มงาน: -</p>
-    </div>
-  </aside>
-
-  <!-- พื้นที่เนื้อหาหลัก -->
-  <main class="max-w-3xl mx-auto px-4 py-6">
-
-    <!-- หน้า 1: ลงเวลาเข้า-ออกงาน -->
-    <section id="view-attendance" class="page-view bg-white/95 backdrop-blur-md rounded-3xl shadow-lg border border-white p-6 space-y-4 max-w-xl mx-auto">
-      <div class="border-b border-slate-100 pb-3.5 flex items-center justify-between gap-2">
-        <div>
-          <h2 class="text-lg font-semibold text-slate-800">บันทึกเวลาเข้า-ออกงาน</h2>
-          <p class="text-xs text-slate-500 mt-0.5">บันทึกเวลาเข้างานหรือออกงานแบบเรียลไทม์เข้าสู่ระบบ</p>
-        </div>
-        <span class="text-xs font-medium bg-indigo-50 text-indigo-700 border border-indigo-100 px-3 py-1 rounded-full shrink-0">
-          เรียลไทม์
-        </span>
+      <div class="bg-white rounded-2xl p-4 shadow-xs border border-emerald-100">
+        <p class="text-xs text-emerald-700">เข้างานตรงเวลา</p>
+        <p id="statOnTime" class="text-2xl font-semibold text-emerald-600 mt-1 tabular-nums">0</p>
       </div>
-
-      <div>
-        <label class="block text-sm font-medium text-slate-700 mb-1">รหัสพนักงาน</label>
-        <input id="attEmpCode" type="text" placeholder="เช่น EMP001"
-          class="emp-code-sync w-full border border-slate-200 rounded-xl px-3.5 py-2.5 focus:outline-none focus:ring-2 focus:ring-indigo-400 transition" />
+      <div class="bg-white rounded-2xl p-4 shadow-xs border border-amber-100">
+        <p class="text-xs text-amber-700">มาสาย</p>
+        <p id="statLate" class="text-2xl font-semibold text-amber-600 mt-1 tabular-nums">0</p>
       </div>
-
-      <div>
-        <label class="block text-sm font-medium text-slate-700 mb-1">ชื่อ - นามสกุล</label>
-        <input id="attEmpName" type="text" placeholder="กรอกชื่อ-นามสกุลพนักงาน"
-          class="emp-name-sync w-full border border-slate-200 rounded-xl px-3.5 py-2.5 focus:outline-none focus:ring-2 focus:ring-indigo-400 transition" />
+      <div class="bg-white rounded-2xl p-4 shadow-xs border border-indigo-100">
+        <p class="text-xs text-indigo-700">ใบลารออนุมัติ</p>
+        <p id="statPendingLeave" class="text-2xl font-semibold text-indigo-600 mt-1 tabular-nums">0</p>
       </div>
-
-      <div>
-        <label class="block text-sm font-medium text-slate-700 mb-1">กลุ่มงาน</label>
-        <select id="attDept"
-          class="dept-sync w-full border border-slate-200 rounded-xl px-3.5 py-2.5 bg-white focus:outline-none focus:ring-2 focus:ring-indigo-400 transition">
-          <option value="">-- เลือกกลุ่มงาน --</option>
-          <optgroup label="กลุ่มงานสนับสนุนและบริหาร">
-            <option value="กลุ่มบริหารทั่วไป">กลุ่มบริหารทั่วไป</option>
-            <option value="กลุ่มพัฒนาองค์กร">กลุ่มพัฒนาองค์กร</option>
-            <option value="กลุ่มยุทธศาสตร์และแผนงาน">กลุ่มยุทธศาสตร์และแผนงาน</option>
-            <option value="กลุ่มพัฒนานวัตกรรมและวิจัย">กลุ่มพัฒนานวัตกรรมและวิจัย</option>
-            <option value="กลุ่มสื่อสารความเสี่ยงโรคและภัยสุขภาพ">กลุ่มสื่อสารความเสี่ยงโรคและภัยสุขภาพ</option>
-          </optgroup>
-          <optgroup label="กลุ่มงานวิชาการและการควบคุมโรค">
-            <option value="กลุ่มห้องปฏิบัติการทางการแพทย์ด้านควบคุมโรค">กลุ่มห้องปฏิบัติการทางการแพทย์ด้านควบคุมโรค</option>
-            <option value="กลุ่มระบาดวิทยาและตอบโต้ภาวะฉุกเฉินทางสาธารณสุข">กลุ่มระบาดวิทยาและตอบโต้ภาวะฉุกเฉินทางสาธารณสุข</option>
-            <option value="กลุ่มโรคติดต่อ">กลุ่มโรคติดต่อ</option>
-            <option value="กลุ่มโรคติดต่อเรื้อรัง">กลุ่มโรคติดต่อเรื้อรัง</option>
-            <option value="กลุ่มโรคไม่ติดต่อ">กลุ่มโรคไม่ติดต่อ</option>
-            <option value="กลุ่มโรคจากการประกอบอาชีพและสิ่งแวดล้อม">กลุ่มโรคจากการประกอบอาชีพและสิ่งแวดล้อม</option>
-            <option value="กลุ่มโรคติดต่อนำโดยแมลง">กลุ่มโรคติดต่อนำโดยแมลง</option>
-          </optgroup>
-        </select>
-      </div>
-
-      <!-- เลือกรายการลงเวลาแบบการ์ดกดง่าย -->
-      <div class="space-y-2">
-        <label class="block text-sm font-medium text-slate-700">เลือกรายการลงเวลา</label>
-        <div class="grid grid-cols-2 gap-3">
-          <button id="pickCheckInBtn" type="button" data-att-choice="เข้างาน"
-            class="att-choice-btn rounded-2xl border-2 border-emerald-500 bg-emerald-50/90 text-emerald-800 p-3.5 text-left transition flex items-center gap-3 shadow-2xs cursor-pointer">
-            <span class="w-9 h-9 rounded-xl bg-emerald-500 text-white flex items-center justify-center text-base shrink-0">🌅</span>
-            <div class="min-w-0">
-              <p class="text-sm font-semibold leading-tight">ลงเวลาเข้างาน</p>
-              <p class="text-[11px] text-emerald-700/80 mt-0.5">เช็กอินตอนเริ่มงาน</p>
-            </div>
-          </button>
-
-          <button id="pickCheckOutBtn" type="button" data-att-choice="ออกงาน"
-            class="att-choice-btn rounded-2xl border border-slate-200 bg-white hover:border-indigo-200 hover:bg-slate-50/80 text-slate-700 p-3.5 text-left transition flex items-center gap-3 cursor-pointer">
-            <span class="w-9 h-9 rounded-xl bg-slate-100 text-slate-600 flex items-center justify-center text-base shrink-0">🌇</span>
-            <div class="min-w-0">
-              <p class="text-sm font-semibold leading-tight">ลงเวลาออกงาน</p>
-              <p class="text-[11px] text-slate-400 mt-0.5">เช็กเอาต์ตอนเลิกงาน</p>
-            </div>
-          </button>
-        </div>
-
-        <!-- เก็บค่าไว้เพื่อความเข้ากันได้กับโค้ดเดิม -->
-        <select id="attType" class="sr-only" aria-hidden="true">
-          <option value="เข้างาน" selected>ลงเวลาเข้างาน</option>
-          <option value="ออกงาน">ลงเวลาออกงาน</option>
-        </select>
-      </div>
-
-      <!-- แถบยืนยันรายการที่เลือก -->
-      <div id="attModeBanner" class="bg-emerald-50/70 border border-emerald-100 rounded-xl px-3.5 py-2.5 flex items-center justify-between text-xs">
-        <span class="text-slate-600">รายการที่เลือก:</span>
-        <span id="attModeText" class="font-semibold text-emerald-700">ลงเวลาเข้างาน</span>
-      </div>
-
-      <button id="attSubmitBtn" type="button"
-        class="w-full bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-700 hover:to-violet-700 active:scale-[0.99] disabled:from-slate-400 disabled:to-slate-400 text-white font-medium py-3.5 rounded-2xl shadow-md shadow-indigo-200/70 transition cursor-pointer">
-        ยืนยันการลงเวลา
-      </button>
-
-      <div id="attResult" class="hidden p-3 rounded-xl text-sm text-center font-medium"></div>
     </section>
 
-    <!-- หน้า 2: แจ้งลางาน -->
-    <section id="view-leave" class="page-view hidden bg-white/95 backdrop-blur-md rounded-2xl shadow-lg border border-white p-6 space-y-4 max-w-xl mx-auto">
-      <div class="border-b border-slate-100 pb-3">
-        <h2 class="text-lg font-semibold text-slate-800">แบบฟอร์มแจ้งลางาน</h2>
-        <p class="text-xs text-slate-500 mt-0.5">ส่งคำขอลางานเพื่อรอผู้ดูแลระบบตรวจสอบและอนุมัติ</p>
-      </div>
-
-      <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+    <!-- แถบตัวกรองข้อมูล -->
+    <section class="bg-white rounded-2xl p-4 shadow-xs border border-slate-200/70 flex flex-col md:flex-row gap-3 items-stretch md:items-end justify-between">
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 flex-1">
         <div>
-          <label class="block text-sm font-medium text-slate-700 mb-1">รหัสพนักงาน</label>
-          <input id="lvEmpCode" type="text" placeholder="เช่น EMP001"
-            class="emp-code-sync w-full border border-slate-200 rounded-xl px-3.5 py-2.5 focus:outline-none focus:ring-2 focus:ring-indigo-400" />
+          <label class="block text-xs font-medium text-slate-600 mb-1">ค้นหารหัสหรือชื่อพนักงาน</label>
+          <input id="searchInput" type="text" placeholder="พิมพ์รหัส หรือชื่อ..."
+            class="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400" />
         </div>
-        <div>
-          <label class="block text-sm font-medium text-slate-700 mb-1">ชื่อ - นามสกุล</label>
-          <input id="lvEmpName" type="text" placeholder="กรอกชื่อ-นามสกุล"
-            class="emp-name-sync w-full border border-slate-200 rounded-xl px-3.5 py-2.5 focus:outline-none focus:ring-2 focus:ring-indigo-400" />
-        </div>
-      </div>
 
-      <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
         <div>
-          <label class="block text-sm font-medium text-slate-700 mb-1">กลุ่มงาน</label>
-          <select id="lvDept"
-            class="dept-sync w-full border border-slate-200 rounded-xl px-3.5 py-2.5 bg-white focus:outline-none focus:ring-2 focus:ring-indigo-400">
-            <option value="">-- เลือกกลุ่มงาน --</option>
+          <label class="block text-xs font-medium text-slate-600 mb-1">กรองตามกลุ่มงาน</label>
+          <select id="deptFilter"
+            class="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-indigo-400">
+            <option value="">ทุกกลุ่มงาน</option>
             <optgroup label="กลุ่มงานสนับสนุนและบริหาร">
               <option value="กลุ่มบริหารทั่วไป">กลุ่มบริหารทั่วไป</option>
               <option value="กลุ่มพัฒนาองค์กร">กลุ่มพัฒนาองค์กร</option>
@@ -228,609 +93,322 @@
         </div>
 
         <div>
-          <label class="block text-sm font-medium text-slate-700 mb-1">ประเภทการลา</label>
-          <select id="leaveType"
-            class="w-full border border-slate-200 rounded-xl px-3.5 py-2.5 bg-white focus:outline-none focus:ring-2 focus:ring-indigo-400">
-            <option value="ลาป่วย">ลาป่วย</option>
-            <option value="ลากิจ">ลากิจ</option>
-            <option value="ลาพักร้อน">ลาพักร้อน</option>
+          <label class="block text-xs font-medium text-slate-600 mb-1">กรองสถานะใบลา</label>
+          <select id="leaveStatusFilter"
+            class="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-indigo-400">
+            <option value="">ทุกสถานะ</option>
+            <option value="รออนุมัติ">รออนุมัติ</option>
+            <option value="อนุมัติ">อนุมัติ</option>
+            <option value="ไม่อนุมัติ">ไม่อนุมัติ</option>
           </select>
         </div>
       </div>
 
-      <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-        <div>
-          <label class="block text-sm font-medium text-slate-700 mb-1">ตั้งแต่วันที่</label>
-          <input id="startDate" type="date"
-            class="w-full border border-slate-200 rounded-xl px-3.5 py-2.5 bg-white focus:outline-none focus:ring-2 focus:ring-indigo-400" />
-        </div>
-        <div>
-          <label class="block text-sm font-medium text-slate-700 mb-1">ถึงวันที่</label>
-          <input id="endDate" type="date"
-            class="w-full border border-slate-200 rounded-xl px-3.5 py-2.5 bg-white focus:outline-none focus:ring-2 focus:ring-indigo-400" />
-        </div>
-      </div>
-
-      <div>
-        <label class="block text-sm font-medium text-slate-700 mb-1">เหตุผลการลา</label>
-        <textarea id="leaveReason" rows="3" placeholder="ระบุเหตุผลในการลางานให้ชัดเจน..."
-          class="w-full border border-slate-200 rounded-xl px-3.5 py-2.5 focus:outline-none focus:ring-2 focus:ring-indigo-400"></textarea>
-      </div>
-
-      <div>
-        <label class="block text-sm font-medium text-slate-700 mb-1">แนบภาพหลักฐาน (ถ้ามี เช่น ใบรับรองแพทย์)</label>
-        <input id="leaveEvidenceInput" type="file" accept="image/*"
-          class="block w-full text-xs sm:text-sm text-slate-600 file:mr-3 file:py-2 file:px-3.5 file:rounded-xl file:border-0 file:text-xs sm:file:text-sm file:font-medium file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100 border border-slate-200 rounded-xl p-1.5 bg-white cursor-pointer" />
-        <p class="text-[11px] text-slate-400 mt-1">รองรับไฟล์รูปภาพ (JPG, PNG, WEBP) ขนาดไม่เกิน 3 MB</p>
-
-        <div id="leaveEvidencePreviewBox" class="hidden mt-2.5 bg-slate-50 border border-slate-200 rounded-xl p-2.5 flex items-center justify-between gap-3">
-          <div class="flex items-center gap-3 min-w-0">
-            <img id="leaveEvidencePreviewImg" src="" alt="ตัวอย่างภาพหลักฐาน"
-              class="w-14 h-14 object-cover rounded-lg border border-slate-200 shrink-0" />
-            <div class="min-w-0">
-              <p id="leaveEvidenceFileName" class="text-xs font-medium text-slate-700 truncate"></p>
-              <p class="text-[11px] text-emerald-600">พร้อมแนบไปกับคำขอลางาน</p>
-            </div>
-          </div>
-          <button id="clearLeaveEvidenceBtn" type="button"
-            class="shrink-0 text-xs text-rose-600 hover:text-rose-800 font-medium px-2.5 py-1 rounded-lg hover:bg-rose-50 transition cursor-pointer">
-            ลบรูป
-          </button>
-        </div>
-      </div>
-
-      <button id="lvSubmitBtn" type="button"
-        class="w-full bg-indigo-600 hover:bg-indigo-700 disabled:bg-slate-400 text-white font-medium py-3 rounded-xl shadow-md transition cursor-pointer">
-        ส่งคำขอลางาน
-      </button>
-
-      <div id="lvResult" class="hidden p-3 rounded-xl text-sm text-center font-medium space-y-2"></div>
+      <span id="syncStatusText" class="text-xs text-slate-500 font-medium shrink-0">พร้อมใช้งาน</span>
     </section>
 
-    <!-- หน้า 3: ข้อมูลของฉัน -->
-    <section id="view-profile" class="page-view hidden space-y-5">
-      <div class="bg-white/95 backdrop-blur-md rounded-2xl shadow-lg border border-white p-5 space-y-4">
-        <div class="flex flex-col sm:flex-row sm:items-end justify-between gap-3">
-          <div>
-            <h2 class="text-lg font-semibold text-slate-800">ข้อมูลพนักงาน & สถิติส่วนตัว</h2>
-            <p class="text-xs text-slate-500 mt-0.5">ดูข้อมูลส่วนตัว ยอดเข้าตรงเวลา มาสาย และสถานะการลางาน</p>
-          </div>
-          <div class="flex gap-2">
-            <input id="profileEmpCode" type="text" placeholder="รหัสพนักงาน เช่น EMP001"
-              class="emp-code-sync border border-slate-200 rounded-xl px-3.5 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400 w-44 sm:w-52" />
-            <button id="loadProfileBtn" type="button"
-              class="bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium px-4 py-2 rounded-xl transition cursor-pointer">
-              ดึงข้อมูล
-            </button>
-          </div>
+    <!-- ตาราง 1: คำขอลางาน & หลักฐาน -->
+    <section class="bg-white rounded-2xl shadow-xs border border-slate-200/70 p-5 space-y-3">
+      <div class="flex items-center justify-between gap-2">
+        <div>
+          <h2 class="text-base sm:text-lg font-semibold text-slate-800">รายการคำขอลางาน</h2>
+          <p class="text-xs text-slate-500">ตรวจสอบรายละเอียด หลักฐานแนบ และกดอนุมัติ/ไม่อนุมัติ</p>
         </div>
-
-        <div class="bg-gradient-to-r from-indigo-50 to-purple-50 border border-indigo-100 rounded-2xl p-4 flex flex-wrap items-center justify-between gap-3">
-          <div>
-            <p class="text-xs text-indigo-600 font-medium">ข้อมูลผู้ใช้งาน</p>
-            <p id="cardEmpName" class="text-base font-semibold text-slate-800 mt-0.5">กรุณาระบุรหัสพนักงาน</p>
-            <p id="cardEmpCode" class="text-xs text-slate-500">รหัสพนักงาน: - • กลุ่มงาน: -</p>
-          </div>
-          <span id="profileStatusBadge" class="text-xs bg-white/90 text-indigo-700 border border-indigo-200 px-3 py-1 rounded-full font-medium">
-            พร้อมตรวจสอบ
-          </span>
-        </div>
-
-        <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
-          <div class="bg-emerald-50/80 border border-emerald-100 rounded-2xl p-3.5">
-            <p class="text-xs text-emerald-700">เข้าตรงเวลา</p>
-            <p id="myOnTime" class="text-2xl font-semibold text-emerald-600 mt-1">0</p>
-          </div>
-          <div class="bg-amber-50/80 border border-amber-100 rounded-2xl p-3.5">
-            <p class="text-xs text-amber-700">มาสาย</p>
-            <p id="myLate" class="text-2xl font-semibold text-amber-600 mt-1">0</p>
-          </div>
-          <div class="bg-indigo-50/80 border border-indigo-100 rounded-2xl p-3.5">
-            <p class="text-xs text-indigo-700">ลา (อนุมัติแล้ว)</p>
-            <p id="myApprovedLeaves" class="text-2xl font-semibold text-indigo-600 mt-1">0</p>
-          </div>
-          <div class="bg-rose-50/80 border border-rose-100 rounded-2xl p-3.5">
-            <p class="text-xs text-rose-700">ใบลารออนุมัติ</p>
-            <p id="myPendingLeaves" class="text-2xl font-semibold text-rose-600 mt-1">0</p>
-          </div>
-        </div>
+        <span id="leaveCountBadge" class="text-xs bg-indigo-50 text-indigo-700 px-3 py-1 rounded-full font-medium">0 รายการ</span>
       </div>
 
-      <div class="bg-white/95 backdrop-blur-md rounded-2xl shadow-sm border border-white p-5 space-y-3">
-        <h3 class="text-base font-semibold text-slate-800">ประวัติคำขอลางานของฉัน</h3>
-        <div class="overflow-x-auto">
-          <table class="w-full text-xs sm:text-sm text-left border-collapse">
-            <thead>
-              <tr class="border-b border-slate-200 text-slate-600 bg-slate-50">
-                <th class="py-2.5 px-3">ประเภท</th>
-                <th class="py-2.5 px-3">ช่วงวันที่ลา</th>
-                <th class="py-2.5 px-3">เหตุผล</th>
-                <th class="py-2.5 px-3">สถานะ</th>
-              </tr>
-            </thead>
-            <tbody id="myLeavesBody" class="divide-y divide-slate-100">
-              <tr><td colspan="4" class="py-5 text-center text-slate-400">ยังไม่มีข้อมูลการลา</td></tr>
-            </tbody>
-          </table>
+      <div class="overflow-x-auto">
+        <table class="w-full text-xs sm:text-sm text-left border-collapse">
+          <thead>
+            <tr class="border-b border-slate-200 text-slate-600 bg-slate-50">
+              <th class="py-2.5 px-3">พนักงาน</th>
+              <th class="py-2.5 px-3">กลุ่มงาน</th>
+              <th class="py-2.5 px-3">ประเภท</th>
+              <th class="py-2.5 px-3">ช่วงวันที่ลา</th>
+              <th class="py-2.5 px-3">เหตุผล</th>
+              <th class="py-2.5 px-3">หลักฐาน</th>
+              <th class="py-2.5 px-3">สถานะ</th>
+              <th class="py-2.5 px-3 text-right">จัดการ</th>
+            </tr>
+          </thead>
+          <tbody id="leavesTableBody" class="divide-y divide-slate-100">
+            <tr><td colspan="8" class="py-6 text-center text-slate-400">กำลังโหลดข้อมูล...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- ตาราง 2: ประวัติการลงเวลา -->
+    <section class="bg-white rounded-2xl shadow-xs border border-slate-200/70 p-5 space-y-3">
+      <div class="flex items-center justify-between gap-2">
+        <div>
+          <h2 class="text-base sm:text-lg font-semibold text-slate-800">ประวัติการลงเวลาเข้า-ออกงาน</h2>
+          <p class="text-xs text-slate-500">แสดงเวลาเข้างาน เวลาออกงาน กลุ่มงาน และสถานะ</p>
         </div>
+        <span id="attCountBadge" class="text-xs bg-slate-100 text-slate-700 px-3 py-1 rounded-full font-medium">0 รายการ</span>
       </div>
 
-      <div class="bg-white/95 backdrop-blur-md rounded-2xl shadow-sm border border-white p-5 space-y-3">
-        <h3 class="text-base font-semibold text-slate-800">ประวัติการลงเวลาของฉัน</h3>
-        <div class="overflow-x-auto">
-          <table class="w-full text-xs sm:text-sm text-left border-collapse">
-            <thead>
-              <tr class="border-b border-slate-200 text-slate-600 bg-slate-50">
-                <th class="py-2.5 px-3">วันที่</th>
-                <th class="py-2.5 px-3">เข้างาน</th>
-                <th class="py-2.5 px-3">ออกงาน</th>
-                <th class="py-2.5 px-3">สถานะ</th>
-              </tr>
-            </thead>
-            <tbody id="myAttBody" class="divide-y divide-slate-100">
-              <tr><td colspan="4" class="py-5 text-center text-slate-400">ยังไม่มีข้อมูลการลงเวลา</td></tr>
-            </tbody>
-          </table>
-        </div>
+      <div class="overflow-x-auto">
+        <table class="w-full text-xs sm:text-sm text-left border-collapse">
+          <thead>
+            <tr class="border-b border-slate-200 text-slate-600 bg-slate-50">
+              <th class="py-2.5 px-3">วันที่</th>
+              <th class="py-2.5 px-3">รหัส</th>
+              <th class="py-2.5 px-3">ชื่อ - นามสกุล</th>
+              <th class="py-2.5 px-3">กลุ่มงาน</th>
+              <th class="py-2.5 px-3">เข้างาน</th>
+              <th class="py-2.5 px-3">ออกงาน</th>
+              <th class="py-2.5 px-3">สถานะ</th>
+            </tr>
+          </thead>
+          <tbody id="attTableBody" class="divide-y divide-slate-100">
+            <tr><td colspan="7" class="py-6 text-center text-slate-400">กำลังโหลดข้อมูล...</td></tr>
+          </tbody>
+        </table>
       </div>
     </section>
 
   </main>
 
+  <!-- โมดอลดูภาพหลักฐาน -->
+  <div id="evidenceModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-50 hidden items-center justify-center p-4">
+    <div class="bg-white rounded-2xl max-w-lg w-full p-4 space-y-3 shadow-2xl">
+      <div class="flex items-center justify-between border-b border-slate-100 pb-2.5">
+        <h3 id="evidenceModalTitle" class="text-sm font-semibold text-slate-800 truncate">หลักฐานการลา</h3>
+        <button id="closeEvidenceModalBtn" type="button"
+          class="w-8 h-8 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-600 flex items-center justify-center cursor-pointer">
+          ✕
+        </button>
+      </div>
+      <div class="bg-slate-50 rounded-xl p-2 flex items-center justify-center max-h-[65vh] overflow-auto">
+        <img id="evidenceModalImg" src="" alt="ภาพหลักฐาน" class="max-h-[58vh] rounded-lg object-contain" />
+      </div>
+      <div class="flex justify-end gap-2">
+        <a id="evidenceModalOpenLink" href="#" target="_blank" rel="noopener noreferrer"
+          class="px-3.5 py-2 rounded-xl bg-indigo-50 hover:bg-indigo-100 text-indigo-700 text-xs font-medium">
+          เปิดรูปในแท็บใหม่ ↗
+        </a>
+        <button id="doneEvidenceModalBtn" type="button"
+          class="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-900 text-white text-xs font-medium cursor-pointer">
+          ปิดหน้าต่าง
+        </button>
+      </div>
+    </div>
+  </div>
+
   <script>
     const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbw3ovdTdqhw7KuqvA_MJ7lyyCQNur-LRCg1hJul1K3733YxNkwfYtuJ-XYry965vPskHw/exec";
-    const STORAGE_CODE_KEY = "attendance_emp_code";
-    const STORAGE_NAME_KEY = "attendance_emp_name";
-    const STORAGE_DEPT_KEY = "attendance_emp_dept";
 
-    let leaveEvidenceData = {
-      name: "",
-      mime: "",
-      base64: "",
-      dataUrl: ""
-    };
+    let allAttendance = [];
+    let allLeaves = [];
 
-    function updateClock() {
-      const now = new Date();
-      const clockEl = document.getElementById('clock');
-      if (clockEl) {
-        clockEl.textContent = now.toLocaleString('th-TH', {
-          dateStyle: 'full',
-          timeStyle: 'medium'
-        });
-      }
+    function setSyncText(msg) {
+      const el = document.getElementById('syncStatusText');
+      if (el) el.textContent = msg;
     }
-    setInterval(updateClock, 1000);
-    updateClock();
 
-    function syncAttendanceChoiceUI(value) {
-      const selectEl = document.getElementById('attType');
-      if (selectEl) selectEl.value = value;
+    function openEvidenceModal(url, titleText) {
+      if (!url) return;
+      document.getElementById('evidenceModalTitle').textContent = titleText || 'หลักฐานการลา';
+      document.getElementById('evidenceModalImg').src = url;
+      document.getElementById('evidenceModalOpenLink').href = url;
+      const modal = document.getElementById('evidenceModal');
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+    }
 
-      const checkInBtn = document.getElementById('pickCheckInBtn');
-      const checkOutBtn = document.getElementById('pickCheckOutBtn');
-      const banner = document.getElementById('attModeBanner');
-      const modeText = document.getElementById('attModeText');
+    function closeEvidenceModal() {
+      const modal = document.getElementById('evidenceModal');
+      modal.classList.add('hidden');
+      modal.classList.remove('flex');
+      document.getElementById('evidenceModalImg').src = '';
+    }
 
-      if (value === 'ออกงาน') {
-        checkOutBtn.className = 'att-choice-btn rounded-2xl border-2 border-amber-500 bg-amber-50/90 text-amber-800 p-3.5 text-left transition flex items-center gap-3 shadow-2xs cursor-pointer';
-        checkOutBtn.querySelector('span').className = 'w-9 h-9 rounded-xl bg-amber-500 text-white flex items-center justify-center text-base shrink-0';
-        checkOutBtn.querySelectorAll('p')[1].className = 'text-[11px] text-amber-700/80 mt-0.5';
+    document.getElementById('closeEvidenceModalBtn').addEventListener('click', closeEvidenceModal);
+    document.getElementById('doneEvidenceModalBtn').addEventListener('click', closeEvidenceModal);
+    document.getElementById('evidenceModal').addEventListener('click', (e) => {
+      if (e.target.id === 'evidenceModal') closeEvidenceModal();
+    });
 
-        checkInBtn.className = 'att-choice-btn rounded-2xl border border-slate-200 bg-white hover:border-indigo-200 hover:bg-slate-50/80 text-slate-700 p-3.5 text-left transition flex items-center gap-3 cursor-pointer';
-        checkInBtn.querySelector('span').className = 'w-9 h-9 rounded-xl bg-slate-100 text-slate-600 flex items-center justify-center text-base shrink-0';
-        checkInBtn.querySelectorAll('p')[1].className = 'text-[11px] text-slate-400 mt-0.5';
+    function getEvidenceUrl(lv) {
+      return lv.attachment_url || lv.evidence_url || lv.file_url || lv.attachment || '';
+    }
 
-        banner.className = 'bg-amber-50/70 border border-amber-100 rounded-xl px-3.5 py-2.5 flex items-center justify-between text-xs';
-        modeText.className = 'font-semibold text-amber-700';
-        modeText.textContent = 'ลงเวลาออกงาน';
+    function renderStats() {
+      document.getElementById('statTotalAtt').textContent = allAttendance.length;
+      document.getElementById('statOnTime').textContent = allAttendance.filter((r) => r.status === 'ตรงเวลา').length;
+      document.getElementById('statLate').textContent = allAttendance.filter((r) => r.status === 'มาสาย').length;
+      document.getElementById('statPendingLeave').textContent = allLeaves.filter((l) => l.approval_status === 'รออนุมัติ').length;
+    }
+
+    function renderTables() {
+      const kw = (document.getElementById('searchInput').value || '').trim().toLowerCase();
+      const dept = (document.getElementById('deptFilter').value || '').trim();
+      const lvStatus = (document.getElementById('leaveStatusFilter').value || '').trim();
+
+      const filteredLeaves = allLeaves.filter((lv) => {
+        const matchKw =
+          !kw ||
+          String(lv.emp_code || '').toLowerCase().includes(kw) ||
+          String(lv.emp_name || '').toLowerCase().includes(kw) ||
+          String(lv.reason || '').toLowerCase().includes(kw);
+        const matchDept = !dept || String(lv.department || '') === dept;
+        const matchStatus = !lvStatus || String(lv.approval_status || 'รออนุมัติ') === lvStatus;
+        return matchKw && matchDept && matchStatus;
+      });
+
+      const filteredAtt = allAttendance.filter((r) => {
+        const matchKw =
+          !kw ||
+          String(r.emp_code || '').toLowerCase().includes(kw) ||
+          String(r.emp_name || '').toLowerCase().includes(kw);
+        const matchDept = !dept || String(r.department || '') === dept;
+        return matchKw && matchDept;
+      });
+
+      document.getElementById('leaveCountBadge').textContent = `${filteredLeaves.length} รายการ`;
+      document.getElementById('attCountBadge').textContent = `${filteredAtt.length} รายการ`;
+
+      const leavesBody = document.getElementById('leavesTableBody');
+      if (!filteredLeaves.length) {
+        leavesBody.innerHTML = '<tr><td colspan="8" class="py-6 text-center text-slate-400">ไม่พบข้อมูลคำขอลางาน</td></tr>';
       } else {
-        checkInBtn.className = 'att-choice-btn rounded-2xl border-2 border-emerald-500 bg-emerald-50/90 text-emerald-800 p-3.5 text-left transition flex items-center gap-3 shadow-2xs cursor-pointer';
-        checkInBtn.querySelector('span').className = 'w-9 h-9 rounded-xl bg-emerald-500 text-white flex items-center justify-center text-base shrink-0';
-        checkInBtn.querySelectorAll('p')[1].className = 'text-[11px] text-emerald-700/80 mt-0.5';
+        leavesBody.innerHTML = filteredLeaves.map((lv) => {
+          const st = lv.approval_status || 'รออนุมัติ';
+          const badgeCls =
+            st === 'อนุมัติ' ? 'bg-emerald-100 text-emerald-700' :
+            st === 'ไม่อนุมัติ' ? 'bg-rose-100 text-rose-700' :
+            'bg-amber-100 text-amber-700';
 
-        checkOutBtn.className = 'att-choice-btn rounded-2xl border border-slate-200 bg-white hover:border-indigo-200 hover:bg-slate-50/80 text-slate-700 p-3.5 text-left transition flex items-center gap-3 cursor-pointer';
-        checkOutBtn.querySelector('span').className = 'w-9 h-9 rounded-xl bg-slate-100 text-slate-600 flex items-center justify-center text-base shrink-0';
-        checkOutBtn.querySelectorAll('p')[1].className = 'text-[11px] text-slate-400 mt-0.5';
+          const evUrl = getEvidenceUrl(lv);
+          const evCell = evUrl
+            ? `<button type="button" data-ev-url="${encodeURIComponent(evUrl)}" data-ev-name="${encodeURIComponent(lv.emp_name || 'หลักฐาน')}"
+                 class="view-ev-btn text-xs font-medium text-indigo-600 hover:text-indigo-800 underline cursor-pointer">
+                 ดูรูป
+               </button>`
+            : `<span class="text-xs text-slate-400">-</span>`;
 
-        banner.className = 'bg-emerald-50/70 border border-emerald-100 rounded-xl px-3.5 py-2.5 flex items-center justify-between text-xs';
-        modeText.className = 'font-semibold text-emerald-700';
-        modeText.textContent = 'ลงเวลาเข้างาน';
+          const rowId = lv.id || lv.row_id || lv.leave_id || '';
+          const approveBtn = rowId
+            ? `<button type="button" onclick="updateLeaveStatus('${encodeURIComponent(rowId)}', 'อนุมัติ')"
+                 class="px-2.5 py-1 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-medium cursor-pointer">
+                 อนุมัติ
+               </button>
+               <button type="button" onclick="updateLeaveStatus('${encodeURIComponent(rowId)}', 'ไม่อนุมัติ')"
+                 class="px-2.5 py-1 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 text-xs font-medium cursor-pointer">
+                 ไม่อนุมัติ
+               </button>`
+            : `<span class="text-xs text-slate-400">ไม่มีรหัสแถว</span>`;
+
+          return `
+            <tr>
+              <td class="py-2.5 px-3">
+                <div class="font-medium text-slate-800">${lv.emp_name || '-'}</div>
+                <div class="text-xs text-slate-400">${lv.emp_code || '-'}</div>
+              </td>
+              <td class="py-2.5 px-3 text-xs text-slate-600">${lv.department || '-'}</td>
+              <td class="py-2.5 px-3 font-medium">${lv.leave_type || '-'}</td>
+              <td class="py-2.5 px-3 text-xs whitespace-nowrap">${lv.start_date || '-'} ถึง ${lv.end_date || '-'}</td>
+              <td class="py-2.5 px-3 max-w-xs truncate" title="${lv.reason || ''}">${lv.reason || '-'}</td>
+              <td class="py-2.5 px-3 whitespace-nowrap">${evCell}</td>
+              <td class="py-2.5 px-3 whitespace-nowrap">
+                <span class="px-2.5 py-0.5 rounded-full text-xs font-medium ${badgeCls}">${st}</span>
+              </td>
+              <td class="py-2.5 px-3 text-right whitespace-nowrap space-x-1">${approveBtn}</td>
+            </tr>
+          `;
+        }).join('');
+
+        document.querySelectorAll('.view-ev-btn').forEach((btn) => {
+          btn.addEventListener('click', () => {
+            openEvidenceModal(
+              decodeURIComponent(btn.dataset.evUrl || ''),
+              `หลักฐานการลา - ${decodeURIComponent(btn.dataset.evName || '')}`
+            );
+          });
+        });
       }
-    }
 
-    document.querySelectorAll('.att-choice-btn').forEach((btn) => {
-      btn.addEventListener('click', () => {
-        syncAttendanceChoiceUI(btn.dataset.attChoice);
-      });
-    });
-
-    const drawer = document.getElementById('drawerMenu');
-    const backdrop = document.getElementById('menuBackdrop');
-
-    function openMenu() {
-      drawer.classList.remove('translate-x-full');
-      backdrop.classList.remove('hidden');
-    }
-    function closeMenu() {
-      drawer.classList.add('translate-x-full');
-      backdrop.classList.add('hidden');
-    }
-
-    document.getElementById('menuBtn').addEventListener('click', openMenu);
-    document.getElementById('closeMenuBtn').addEventListener('click', closeMenu);
-    backdrop.addEventListener('click', closeMenu);
-    document.addEventListener('keydown', (e) => {
-      if (e.key === 'Escape') closeMenu();
-    });
-
-    function refreshDrawerUserSummary() {
-      const code = (document.getElementById('attEmpCode').value || '').trim();
-      const name = (document.getElementById('attEmpName').value || '').trim();
-      const dept = (document.getElementById('attDept').value || '').trim();
-      const el = document.getElementById('drawerUserSummary');
-      const deptEl = document.getElementById('drawerDeptSummary');
-
-      if (!code && !name) {
-        el.textContent = 'ยังไม่ได้ระบุรหัสพนักงาน';
+      const attBody = document.getElementById('attTableBody');
+      if (!filteredAtt.length) {
+        attBody.innerHTML = '<tr><td colspan="7" class="py-6 text-center text-slate-400">ไม่พบข้อมูลการลงเวลา</td></tr>';
       } else {
-        el.textContent = `${name || 'ไม่ระบุชื่อ'} (${code || '-'})`;
-      }
-      deptEl.textContent = `กลุ่มงาน: ${dept || '-'}`;
-    }
+        attBody.innerHTML = filteredAtt.map((r) => {
+          const st = r.status || '-';
+          const badgeCls =
+            st === 'ตรงเวลา' ? 'bg-emerald-100 text-emerald-700' :
+            st === 'มาสาย' ? 'bg-amber-100 text-amber-700' :
+            'bg-slate-100 text-slate-700';
 
-    const savedCode = localStorage.getItem(STORAGE_CODE_KEY) || '';
-    const savedName = localStorage.getItem(STORAGE_NAME_KEY) || '';
-    const savedDept = localStorage.getItem(STORAGE_DEPT_KEY) || '';
-
-    if (savedCode) {
-      document.querySelectorAll('.emp-code-sync').forEach((el) => { el.value = savedCode; });
-    }
-    if (savedName) {
-      document.querySelectorAll('.emp-name-sync').forEach((el) => { el.value = savedName; });
-    }
-    if (savedDept) {
-      document.querySelectorAll('.dept-sync').forEach((el) => { el.value = savedDept; });
-    }
-    refreshDrawerUserSummary();
-
-    document.querySelectorAll('.emp-code-sync').forEach((input) => {
-      input.addEventListener('input', () => {
-        const val = input.value;
-        document.querySelectorAll('.emp-code-sync').forEach((other) => {
-          if (other !== input) other.value = val;
-        });
-        localStorage.setItem(STORAGE_CODE_KEY, val.trim());
-        refreshDrawerUserSummary();
-      });
-    });
-
-    document.querySelectorAll('.emp-name-sync').forEach((input) => {
-      input.addEventListener('input', () => {
-        const val = input.value;
-        document.querySelectorAll('.emp-name-sync').forEach((other) => {
-          if (other !== input) other.value = val;
-        });
-        localStorage.setItem(STORAGE_NAME_KEY, val.trim());
-        refreshDrawerUserSummary();
-      });
-    });
-
-    document.querySelectorAll('.dept-sync').forEach((select) => {
-      select.addEventListener('change', () => {
-        const val = select.value;
-        document.querySelectorAll('.dept-sync').forEach((other) => {
-          if (other !== select) other.value = val;
-        });
-        localStorage.setItem(STORAGE_DEPT_KEY, val.trim());
-        refreshDrawerUserSummary();
-      });
-    });
-
-    const viewTitles = {
-      attendance: 'ลงเวลาเข้า-ออกงาน',
-      leave: 'แจ้งลางาน',
-      profile: 'ข้อมูลของฉัน (ขาด / ลา / มาสาย)'
-    };
-
-    function switchView(viewName) {
-      document.querySelectorAll('.page-view').forEach((sec) => sec.classList.add('hidden'));
-      const target = document.getElementById('view-' + viewName);
-      if (target) target.classList.remove('hidden');
-
-      document.getElementById('pageTitle').textContent = viewTitles[viewName] || 'ระบบพนักงาน';
-
-      document.querySelectorAll('.nav-item').forEach((btn) => {
-        const active = btn.dataset.nav === viewName;
-        btn.className = active
-          ? 'nav-item w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium text-left bg-indigo-600 text-white transition cursor-pointer'
-          : 'nav-item w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium text-left text-slate-700 hover:bg-indigo-50 transition cursor-pointer';
-      });
-
-      closeMenu();
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-
-      if (viewName === 'profile') {
-        loadMyProfile();
+          return `
+            <tr>
+              <td class="py-2.5 px-3 whitespace-nowrap">${r.date || '-'}</td>
+              <td class="py-2.5 px-3 font-medium text-indigo-700">${r.emp_code || '-'}</td>
+              <td class="py-2.5 px-3 font-medium">${r.emp_name || '-'}</td>
+              <td class="py-2.5 px-3 text-xs text-slate-600">${r.department || '-'}</td>
+              <td class="py-2.5 px-3 tabular-nums">${r.check_in || '-'}</td>
+              <td class="py-2.5 px-3 tabular-nums">${r.check_out || '-'}</td>
+              <td class="py-2.5 px-3 whitespace-nowrap">
+                <span class="px-2.5 py-0.5 rounded-full text-xs font-medium ${badgeCls}">${st}</span>
+              </td>
+            </tr>
+          `;
+        }).join('');
       }
     }
 
-    document.querySelectorAll('[data-nav]').forEach((el) => {
-      el.addEventListener('click', () => switchView(el.dataset.nav));
-    });
-
-    function clearLeaveEvidence() {
-      leaveEvidenceData = { name: "", mime: "", base64: "", dataUrl: "" };
-      const input = document.getElementById('leaveEvidenceInput');
-      if (input) input.value = "";
-      document.getElementById('leaveEvidencePreviewBox').classList.add('hidden');
-      document.getElementById('leaveEvidencePreviewImg').src = "";
-      document.getElementById('leaveEvidenceFileName').textContent = "";
-    }
-
-    document.getElementById('clearLeaveEvidenceBtn').addEventListener('click', clearLeaveEvidence);
-
-    document.getElementById('leaveEvidenceInput').addEventListener('change', (e) => {
-      const file = e.target.files && e.target.files[0];
-      const box = document.getElementById('lvResult');
-      if (!file) {
-        clearLeaveEvidence();
-        return;
-      }
-
-      if (!file.type.startsWith('image/')) {
-        showMessage(box, false, 'กรุณาเลือกไฟล์รูปภาพเท่านั้น');
-        clearLeaveEvidence();
-        return;
-      }
-
-      const maxBytes = 3 * 1024 * 1024;
-      if (file.size > maxBytes) {
-        showMessage(box, false, 'ขนาดรูปภาพต้องไม่เกิน 3 MB');
-        clearLeaveEvidence();
-        return;
-      }
-
-      const reader = new FileReader();
-      reader.onload = () => {
-        const dataUrl = String(reader.result || '');
-        const commaIdx = dataUrl.indexOf(',');
-        const base64 = commaIdx >= 0 ? dataUrl.slice(commaIdx + 1) : '';
-
-        leaveEvidenceData = {
-          name: file.name,
-          mime: file.type || 'image/jpeg',
-          base64,
-          dataUrl
-        };
-
-        document.getElementById('leaveEvidencePreviewImg').src = dataUrl;
-        document.getElementById('leaveEvidenceFileName').textContent = file.name;
-        document.getElementById('leaveEvidencePreviewBox').classList.remove('hidden');
-      };
-      reader.readAsDataURL(file);
-    });
-
-    function showMessage(el, ok, msg, showGoProfile = false) {
-      el.className = ok
-        ? 'p-3 rounded-xl text-sm text-center font-medium bg-emerald-100 text-emerald-700 space-y-2'
-        : 'p-3 rounded-xl text-sm text-center font-medium bg-red-100 text-red-700 space-y-2';
-
-      if (showGoProfile && ok) {
-        el.innerHTML = `
-          <div>${msg}</div>
-          <button type="button" onclick="switchView('profile')" class="inline-block text-xs underline font-semibold text-emerald-800 hover:text-emerald-950 cursor-pointer">
-            ไปดูสถานะใบลาที่หน้า "ข้อมูลของฉัน" →
-          </button>
-        `;
-      } else {
-        el.textContent = msg;
-      }
-      el.classList.remove('hidden');
-    }
-
-    document.getElementById('attSubmitBtn').addEventListener('click', async () => {
-      const emp_code = document.getElementById('attEmpCode').value.trim();
-      const emp_name = document.getElementById('attEmpName').value.trim();
-      const department = document.getElementById('attDept').value.trim();
-      const record_type = document.getElementById('attType').value;
-      const box = document.getElementById('attResult');
-      const btn = document.getElementById('attSubmitBtn');
-
-      if (!emp_code || !emp_name) {
-        showMessage(box, false, 'กรุณากรอกรหัสและชื่อพนักงานให้ครบถ้วน');
-        return;
-      }
-
-      localStorage.setItem(STORAGE_CODE_KEY, emp_code);
-      localStorage.setItem(STORAGE_NAME_KEY, emp_name);
-      localStorage.setItem(STORAGE_DEPT_KEY, department);
-      refreshDrawerUserSummary();
-
-      btn.disabled = true;
-      btn.textContent = 'กำลังบันทึก...';
-      box.classList.add('hidden');
-
-      try {
-        const res = await fetch(SCRIPT_URL, {
-          method: 'POST',
-          body: JSON.stringify({ action: 'attendance', emp_code, emp_name, department, record_type })
-        });
-        const data = await res.json();
-        showMessage(box, Boolean(data.ok), data.message || 'บันทึกการลงเวลาเรียบร้อยแล้ว');
-      } catch (err) {
-        showMessage(box, false, 'เชื่อมต่อไม่สำเร็จ: ' + err.message);
-      } finally {
-        btn.disabled = false;
-        btn.textContent = 'ยืนยันการลงเวลา';
-      }
-    });
-
-    document.getElementById('lvSubmitBtn').addEventListener('click', async () => {
-      const emp_code = document.getElementById('lvEmpCode').value.trim();
-      const emp_name = document.getElementById('lvEmpName').value.trim();
-      const department = document.getElementById('lvDept').value.trim();
-      const leave_type = document.getElementById('leaveType').value;
-      const start_date = document.getElementById('startDate').value;
-      const end_date = document.getElementById('endDate').value;
-      const reason = document.getElementById('leaveReason').value.trim();
-      const box = document.getElementById('lvResult');
-      const btn = document.getElementById('lvSubmitBtn');
-
-      if (!emp_code || !emp_name || !start_date || !end_date || !reason) {
-        showMessage(box, false, 'กรุณากรอกข้อมูลการลาให้ครบทุกช่อง');
-        return;
-      }
-
-      if (end_date < start_date) {
-        showMessage(box, false, 'วันที่สิ้นสุดต้องไม่น้อยกว่าวันที่เริ่มต้น');
-        return;
-      }
-
-      localStorage.setItem(STORAGE_CODE_KEY, emp_code);
-      localStorage.setItem(STORAGE_NAME_KEY, emp_name);
-      localStorage.setItem(STORAGE_DEPT_KEY, department);
-      refreshDrawerUserSummary();
-
-      btn.disabled = true;
-      btn.textContent = 'กำลังส่งคำขอ...';
-      box.classList.add('hidden');
-
-      try {
-        const payload = {
-          action: 'leave',
-          emp_code,
-          emp_name,
-          department,
-          leave_type,
-          start_date,
-          end_date,
-          reason
-        };
-
-        if (leaveEvidenceData.base64) {
-          payload.attachment_name = leaveEvidenceData.name;
-          payload.attachment_mime = leaveEvidenceData.mime;
-          payload.attachment_base64 = leaveEvidenceData.base64;
-        }
-
-        const res = await fetch(SCRIPT_URL, {
-          method: 'POST',
-          body: JSON.stringify(payload)
-        });
-        const data = await res.json();
-        showMessage(box, Boolean(data.ok), data.message || 'ส่งคำขอลางานเรียบร้อยแล้ว', Boolean(data.ok));
-        if (data.ok) {
-          document.getElementById('leaveReason').value = '';
-          clearLeaveEvidence();
-        }
-      } catch (err) {
-        showMessage(box, false, 'เชื่อมต่อไม่สำเร็จ: ' + err.message);
-      } finally {
-        btn.disabled = false;
-        btn.textContent = 'ส่งคำขอลางาน';
-      }
-    });
-
-    async function loadMyProfile() {
-      const codeInput = (document.getElementById('profileEmpCode').value || '').trim();
-      const nameInput = (document.getElementById('attEmpName').value || '').trim();
-      const deptInput = (document.getElementById('attDept').value || '').trim();
-      const badgeEl = document.getElementById('profileStatusBadge');
-
-      if (!codeInput) {
-        document.getElementById('cardEmpName').textContent = nameInput || 'กรุณาระบุรหัสพนักงาน';
-        document.getElementById('cardEmpCode').textContent = `รหัสพนักงาน: - • กลุ่มงาน: ${deptInput || '-'}`;
-        badgeEl.textContent = 'รอระบุรหัส';
-        return;
-      }
-
-      badgeEl.textContent = 'กำลังโหลด...';
-
+    async function loadDashboard() {
+      setSyncText('กำลังดึงข้อมูล...');
       try {
         const res = await fetch(`${SCRIPT_URL}?action=dashboard`);
         const data = await res.json();
         if (!data.ok) {
-          badgeEl.textContent = 'ดึงข้อมูลไม่สำเร็จ';
+          setSyncText('ดึงข้อมูลไม่สำเร็จ');
           return;
         }
-
-        const targetCode = codeInput.toLowerCase();
-        const myAtt = (data.attendance || []).filter((r) => String(r.emp_code || '').toLowerCase() === targetCode);
-        const myLeaves = (data.leaves || []).filter((l) => String(l.emp_code || '').toLowerCase() === targetCode);
-
-        const foundName =
-          (myAtt[0] && myAtt[0].emp_name) ||
-          (myLeaves[0] && myLeaves[0].emp_name) ||
-          nameInput ||
-          'พนักงาน';
-
-        const foundDept =
-          (myAtt[0] && myAtt[0].department) ||
-          (myLeaves[0] && myLeaves[0].department) ||
-          deptInput ||
-          'ไม่ระบุกลุ่มงาน';
-
-        document.getElementById('cardEmpName').textContent = foundName;
-        document.getElementById('cardEmpCode').textContent = `รหัสพนักงาน: ${codeInput.toUpperCase()} • กลุ่มงาน: ${foundDept}`;
-        badgeEl.textContent = 'อัปเดตแล้ว';
-
-        const onTimeCount = myAtt.filter((r) => r.status === 'ตรงเวลา').length;
-        const lateCount = myAtt.filter((r) => r.status === 'มาสาย').length;
-        const approvedLeaves = myLeaves.filter((l) => l.approval_status === 'อนุมัติ').length;
-        const pendingLeaves = myLeaves.filter((l) => l.approval_status === 'รออนุมัติ').length;
-
-        document.getElementById('myOnTime').textContent = onTimeCount;
-        document.getElementById('myLate').textContent = lateCount;
-        document.getElementById('myApprovedLeaves').textContent = approvedLeaves;
-        document.getElementById('myPendingLeaves').textContent = pendingLeaves;
-
-        const leavesBody = document.getElementById('myLeavesBody');
-        if (!myLeaves.length) {
-          leavesBody.innerHTML = '<tr><td colspan="4" class="py-5 text-center text-slate-400">ไม่พบประวัติการลาของรหัสนี้</td></tr>';
-        } else {
-          leavesBody.innerHTML = myLeaves.map((lv) => {
-            const stBadge =
-              lv.approval_status === 'อนุมัติ' ? 'bg-emerald-100 text-emerald-700' :
-              lv.approval_status === 'ไม่อนุมัติ' ? 'bg-rose-100 text-rose-700' :
-              'bg-amber-100 text-amber-700';
-            return `
-              <tr>
-                <td class="py-2.5 px-3 font-medium">${lv.leave_type || '-'}</td>
-                <td class="py-2.5 px-3 text-xs">${lv.start_date || '-'} ถึง ${lv.end_date || '-'}</td>
-                <td class="py-2.5 px-3">${lv.reason || '-'}</td>
-                <td class="py-2.5 px-3"><span class="px-2.5 py-0.5 rounded-full text-xs font-medium ${stBadge}">${lv.approval_status || 'รออนุมัติ'}</span></td>
-              </tr>
-            `;
-          }).join('');
-        }
-
-        const attBody = document.getElementById('myAttBody');
-        if (!myAtt.length) {
-          attBody.innerHTML = '<tr><td colspan="4" class="py-5 text-center text-slate-400">ไม่พบประวัติการลงเวลาของรหัสนี้</td></tr>';
-        } else {
-          attBody.innerHTML = myAtt.map((r) => {
-            const stBadge =
-              r.status === 'ตรงเวลา' ? 'bg-emerald-100 text-emerald-700' :
-              r.status === 'มาสาย' ? 'bg-amber-100 text-amber-700' :
-              'bg-slate-100 text-slate-700';
-            return `
-              <tr>
-                <td class="py-2.5 px-3">${r.date || '-'}</td>
-                <td class="py-2.5 px-3">${r.check_in || '-'}</td>
-                <td class="py-2.5 px-3">${r.check_out || '-'}</td>
-                <td class="py-2.5 px-3"><span class="px-2.5 py-0.5 rounded-full text-xs font-medium ${stBadge}">${r.status || '-'}</span></td>
-              </tr>
-            `;
-          }).join('');
-        }
+        allAttendance = Array.isArray(data.attendance) ? data.attendance : [];
+        allLeaves = Array.isArray(data.leaves) ? data.leaves : [];
+        renderStats();
+        renderTables();
+        setSyncText('อัปเดตล่าสุดแล้ว');
       } catch (err) {
-        badgeEl.textContent = 'เชื่อมต่อไม่ได้';
         console.error(err);
+        setSyncText('เชื่อมต่อไม่ได้');
       }
     }
 
-    document.getElementById('loadProfileBtn').addEventListener('click', loadMyProfile);
+    async function updateLeaveStatus(encodedId, approval_status) {
+      const id = decodeURIComponent(encodedId);
+      setSyncText('กำลังอัปเดตสถานะ...');
+      try {
+        const res = await fetch(SCRIPT_URL, {
+          method: 'POST',
+          body: JSON.stringify({
+            action: 'update_leave',
+            id,
+            row_id: id,
+            leave_id: id,
+            approval_status
+          })
+        });
+        const data = await res.json();
+        if (data.ok) {
+          await loadDashboard();
+        } else {
+          setSyncText(data.message || 'อัปเดตไม่สำเร็จ');
+        }
+      } catch (err) {
+        console.error(err);
+        setSyncText('อัปเดตไม่สำเร็จ');
+      }
+    }
+
+    document.getElementById('refreshBtn').addEventListener('click', loadDashboard);
+    document.getElementById('searchInput').addEventListener('input', renderTables);
+    document.getElementById('deptFilter').addEventListener('change', renderTables);
+    document.getElementById('leaveStatusFilter').addEventListener('change', renderTables);
+
+    loadDashboard();
   </script>
 </body>
 </html>
