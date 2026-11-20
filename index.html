@@ -17,7 +17,7 @@
   <header class="sticky top-0 z-30 bg-white/90 backdrop-blur-md border-b border-indigo-100 shadow-sm">
     <div class="max-w-3xl mx-auto px-4 py-3 flex items-center justify-between gap-3">
       <div class="min-w-0">
-        <h1 id="pageTitle" class="text-lg sm:text-xl font-semibold text-slate-800 truncate">ลงเวลาเข้า-ออกงาน</h1>
+        <h1 id="pageTitle" class="text-lg sm:text-xl font-semibold text-slate-800 truncate">เข้าสู่ระบบลงเวลา</h1>
         <p id="clock" class="text-xs text-indigo-600 font-medium truncate tabular-clock"></p>
       </div>
 
@@ -50,6 +50,12 @@
       </div>
 
       <nav class="space-y-1.5">
+        <button type="button" data-nav="auth"
+          class="nav-item w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium text-left text-slate-700 hover:bg-indigo-50 transition cursor-pointer">
+          <span>🔐</span>
+          <span>เข้าสู่ระบบ / สมัครสมาชิก</span>
+        </button>
+
         <button type="button" data-nav="attendance"
           class="nav-item w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium text-left bg-indigo-600 text-white transition cursor-pointer">
           <span>🕒</span>
@@ -68,7 +74,15 @@
           <span>ข้อมูลของฉัน (ขาด/ลา/มาสาย)</span>
         </button>
 
-        <div class="pt-3 mt-3 border-t border-slate-100">
+        <div class="pt-3 mt-3 border-t border-slate-100 space-y-1.5">
+          <button id="logoutBtn" type="button"
+            class="w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-sm font-medium text-rose-600 hover:bg-rose-50 transition cursor-pointer">
+            <span class="flex items-center gap-3">
+              <span>🚪</span>
+              <span>ออกจากระบบ</span>
+            </span>
+          </button>
+
           <a href="admin.html"
             class="w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-sm font-medium text-slate-700 hover:bg-slate-100 transition">
             <span class="flex items-center gap-3">
@@ -83,13 +97,133 @@
 
     <div class="bg-indigo-50/80 border border-indigo-100 rounded-xl p-3 text-xs text-indigo-800 space-y-1">
       <p class="font-medium">ผู้ใช้งานปัจจุบัน</p>
-      <p id="drawerUserSummary" class="text-indigo-700 truncate">ยังไม่ได้ระบุรหัสพนักงาน</p>
+      <p id="drawerUserSummary" class="text-indigo-700 truncate">ยังไม่ได้เข้าสู่ระบบ</p>
       <p id="drawerDeptSummary" class="text-[11px] text-indigo-500 truncate">กลุ่มงาน: -</p>
     </div>
   </aside>
 
   <!-- พื้นที่เนื้อหาหลัก -->
-  <main class="max-w-3xl mx-auto px-4 py-6">
+  <main class="max-w-3xl mx-auto px-4 py-6 space-y-4">
+
+    <!-- แถบสถานะบัญชีผู้ใช้งานที่เข้าสู่ระบบอยู่ -->
+    <div id="activeUserBar" class="max-w-xl mx-auto bg-white/95 backdrop-blur-md border border-indigo-100 rounded-2xl px-4 py-3 shadow-xs flex flex-wrap items-center justify-between gap-2 text-xs">
+      <div class="flex items-center gap-2.5 min-w-0">
+        <span class="w-8 h-8 rounded-xl bg-indigo-100 text-indigo-700 flex items-center justify-center font-semibold shrink-0">👤</span>
+        <div class="min-w-0">
+          <p id="activeUserLabel" class="font-semibold text-slate-800 truncate">ยังไม่ได้เข้าสู่ระบบพนักงาน</p>
+          <p id="activeUserSubLabel" class="text-[11px] text-slate-500 truncate">เข้าสู่ระบบหรือสมัครสมาชิกเพื่อบันทึกเวลาได้สะดวกขึ้น</p>
+        </div>
+      </div>
+      <div class="flex items-center gap-2 shrink-0">
+        <button id="goAuthBtn" type="button"
+          class="px-3 py-1.5 rounded-xl bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-medium transition cursor-pointer">
+          เข้าสู่ระบบ / สมัครสมาชิก
+        </button>
+        <button id="quickLogoutBtn" type="button"
+          class="hidden px-3 py-1.5 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-600 font-medium transition cursor-pointer">
+          ออกจากระบบ
+        </button>
+      </div>
+    </div>
+
+    <!-- หน้า 0: เข้าสู่ระบบ / สมัครสมาชิก -->
+    <section id="view-auth" class="page-view hidden bg-white/95 backdrop-blur-md rounded-3xl shadow-lg border border-white p-6 space-y-5 max-w-xl mx-auto">
+      <div class="border-b border-slate-100 pb-3.5">
+        <h2 class="text-lg font-semibold text-slate-800">บัญชีพนักงานสำหรับลงเวลา</h2>
+        <p class="text-xs text-slate-500 mt-0.5">เข้าสู่ระบบด้วยรหัสพนักงาน หรือสมัครสมาชิกใหม่เพื่อใช้งานระบบลงเวลา</p>
+      </div>
+
+      <!-- ปุ่มสลับแท็บ เข้าสู่ระบบ / สมัครสมาชิก -->
+      <div class="grid grid-cols-2 gap-2 bg-slate-100 p-1 rounded-2xl">
+        <button id="tabLoginBtn" type="button"
+          class="py-2 rounded-xl text-sm font-medium bg-white text-indigo-700 shadow-2xs transition cursor-pointer">
+          เข้าสู่ระบบ
+        </button>
+        <button id="tabRegisterBtn" type="button"
+          class="py-2 rounded-xl text-sm font-medium text-slate-600 hover:text-slate-800 transition cursor-pointer">
+          สมัครสมาชิก
+        </button>
+      </div>
+
+      <!-- ฟอร์มเข้าสู่ระบบ -->
+      <div id="loginPanel" class="space-y-4">
+        <div>
+          <label class="block text-sm font-medium text-slate-700 mb-1">รหัสพนักงาน</label>
+          <input id="loginEmpCode" type="text" placeholder="เช่น EMP001"
+            class="w-full border border-slate-200 rounded-xl px-3.5 py-2.5 focus:outline-none focus:ring-2 focus:ring-indigo-400 transition" />
+        </div>
+
+        <div>
+          <label class="block text-sm font-medium text-slate-700 mb-1">รหัสผ่าน</label>
+          <input id="loginPassword" type="password" placeholder="กรอกรหัสผ่าน"
+            class="w-full border border-slate-200 rounded-xl px-3.5 py-2.5 focus:outline-none focus:ring-2 focus:ring-indigo-400 transition" />
+        </div>
+
+        <button id="loginSubmitBtn" type="button"
+          class="w-full bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-700 hover:to-violet-700 text-white font-medium py-3 rounded-2xl shadow-md transition cursor-pointer">
+          เข้าสู่ระบบเพื่อลงเวลา
+        </button>
+      </div>
+
+      <!-- ฟอร์มสมัครสมาชิก -->
+      <div id="registerPanel" class="hidden space-y-4">
+        <div>
+          <label class="block text-sm font-medium text-slate-700 mb-1">รหัสพนักงาน</label>
+          <input id="regEmpCode" type="text" placeholder="เช่น EMP001"
+            class="w-full border border-slate-200 rounded-xl px-3.5 py-2.5 focus:outline-none focus:ring-2 focus:ring-indigo-400 transition" />
+        </div>
+
+        <div>
+          <label class="block text-sm font-medium text-slate-700 mb-1">ชื่อ - นามสกุล</label>
+          <input id="regEmpName" type="text" placeholder="กรอกชื่อ-นามสกุลพนักงาน"
+            class="w-full border border-slate-200 rounded-xl px-3.5 py-2.5 focus:outline-none focus:ring-2 focus:ring-indigo-400 transition" />
+        </div>
+
+        <div>
+          <label class="block text-sm font-medium text-slate-700 mb-1">กลุ่มงาน</label>
+          <select id="regDept"
+            class="w-full border border-slate-200 rounded-xl px-3.5 py-2.5 bg-white focus:outline-none focus:ring-2 focus:ring-indigo-400 transition">
+            <option value="">-- เลือกกลุ่มงาน --</option>
+            <optgroup label="กลุ่มงานสนับสนุนและบริหาร">
+              <option value="กลุ่มบริหารทั่วไป">กลุ่มบริหารทั่วไป</option>
+              <option value="กลุ่มพัฒนาองค์กร">กลุ่มพัฒนาองค์กร</option>
+              <option value="กลุ่มยุทธศาสตร์และแผนงาน">กลุ่มยุทธศาสตร์และแผนงาน</option>
+              <option value="กลุ่มพัฒนานวัตกรรมและวิจัย">กลุ่มพัฒนานวัตกรรมและวิจัย</option>
+              <option value="กลุ่มสื่อสารความเสี่ยงโรคและภัยสุขภาพ">กลุ่มสื่อสารความเสี่ยงโรคและภัยสุขภาพ</option>
+            </optgroup>
+            <optgroup label="กลุ่มงานวิชาการและการควบคุมโรค">
+              <option value="กลุ่มห้องปฏิบัติการทางการแพทย์ด้านควบคุมโรค">กลุ่มห้องปฏิบัติการทางการแพทย์ด้านควบคุมโรค</option>
+              <option value="กลุ่มระบาดวิทยาและตอบโต้ภาวะฉุกเฉินทางสาธารณสุข">กลุ่มระบาดวิทยาและตอบโต้ภาวะฉุกเฉินทางสาธารณสุข</option>
+              <option value="กลุ่มโรคติดต่อ">กลุ่มโรคติดต่อ</option>
+              <option value="กลุ่มโรคติดต่อเรื้อรัง">กลุ่มโรคติดต่อเรื้อรัง</option>
+              <option value="กลุ่มโรคไม่ติดต่อ">กลุ่มโรคไม่ติดต่อ</option>
+              <option value="กลุ่มโรคจากการประกอบอาชีพและสิ่งแวดล้อม">กลุ่มโรคจากการประกอบอาชีพและสิ่งแวดล้อม</option>
+              <option value="กลุ่มโรคติดต่อนำโดยแมลง">กลุ่มโรคติดต่อนำโดยแมลง</option>
+            </optgroup>
+          </select>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div>
+            <label class="block text-sm font-medium text-slate-700 mb-1">ตั้งรหัสผ่าน</label>
+            <input id="regPassword" type="password" placeholder="อย่างน้อย 4 ตัวอักษร"
+              class="w-full border border-slate-200 rounded-xl px-3.5 py-2.5 focus:outline-none focus:ring-2 focus:ring-indigo-400 transition" />
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-slate-700 mb-1">ยืนยันรหัสผ่าน</label>
+            <input id="regConfirmPassword" type="password" placeholder="กรอกรหัสผ่านอีกครั้ง"
+              class="w-full border border-slate-200 rounded-xl px-3.5 py-2.5 focus:outline-none focus:ring-2 focus:ring-indigo-400 transition" />
+          </div>
+        </div>
+
+        <button id="registerSubmitBtn" type="button"
+          class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-medium py-3 rounded-2xl shadow-md transition cursor-pointer">
+          สมัครสมาชิกและเข้าสู่ระบบ
+        </button>
+      </div>
+
+      <div id="authResult" class="hidden p-3 rounded-xl text-sm text-center font-medium"></div>
+    </section>
 
     <!-- หน้า 1: ลงเวลาเข้า-ออกงาน -->
     <section id="view-attendance" class="page-view bg-white/95 backdrop-blur-md rounded-3xl shadow-lg border border-white p-6 space-y-4 max-w-xl mx-auto">
@@ -399,6 +533,8 @@
     const STORAGE_DAY_KEY = "attendance_session_day";
     const STORAGE_CHECKED_IN_KEY = "attendance_checked_in_today";
     const STORAGE_CHECKED_OUT_KEY = "attendance_checked_out_today";
+    const STORAGE_AUTH_USER_KEY = "attendance_auth_user";
+    const STORAGE_USERS_DB_KEY = "attendance_registered_users";
 
     let leaveEvidenceData = {
       name: "",
@@ -409,6 +545,7 @@
 
     let checkedInToday = false;
     let checkedOutToday = false;
+    let currentAuthUser = null;
 
     function pad2(n) {
       return String(n).padStart(2, '0');
@@ -419,19 +556,75 @@
       return `${now.getFullYear()}-${pad2(now.getMonth() + 1)}-${pad2(now.getDate())}`;
     }
 
+    function getRegisteredUsers() {
+      try {
+        const raw = localStorage.getItem(STORAGE_USERS_DB_KEY);
+        const parsed = raw ? JSON.parse(raw) : [];
+        return Array.isArray(parsed) ? parsed : [];
+      } catch (e) {
+        return [];
+      }
+    }
+
+    function saveRegisteredUsers(users) {
+      localStorage.setItem(STORAGE_USERS_DB_KEY, JSON.stringify(users));
+    }
+
+    function fillUserFields(code, name, dept) {
+      document.querySelectorAll('.emp-code-sync').forEach((el) => { el.value = code || ''; });
+      document.querySelectorAll('.emp-name-sync').forEach((el) => { el.value = name || ''; });
+      document.querySelectorAll('.dept-sync').forEach((el) => { el.value = dept || ''; });
+      refreshDrawerUserSummary();
+      updateActiveUserUI();
+    }
+
+    function updateActiveUserUI() {
+      const labelEl = document.getElementById('activeUserLabel');
+      const subEl = document.getElementById('activeUserSubLabel');
+      const quickLogoutBtn = document.getElementById('quickLogoutBtn');
+      const goAuthBtn = document.getElementById('goAuthBtn');
+
+      if (currentAuthUser && currentAuthUser.emp_code) {
+        labelEl.textContent = `เข้าสู่ระบบแล้ว: ${currentAuthUser.emp_name || '-'} (${currentAuthUser.emp_code})`;
+        subEl.textContent = `กลุ่มงาน: ${currentAuthUser.department || '-'}`;
+        quickLogoutBtn.classList.remove('hidden');
+        goAuthBtn.textContent = 'สลับบัญชี';
+      } else {
+        labelEl.textContent = 'ยังไม่ได้เข้าสู่ระบบพนักงาน';
+        subEl.textContent = 'เข้าสู่ระบบหรือสมัครสมาชิกเพื่อบันทึกเวลาได้สะดวกขึ้น';
+        quickLogoutBtn.classList.add('hidden');
+        goAuthBtn.textContent = 'เข้าสู่ระบบ / สมัครสมาชิก';
+      }
+    }
+
     function refreshDrawerUserSummary() {
-      const code = (document.getElementById('attEmpCode').value || '').trim();
-      const name = (document.getElementById('attEmpName').value || '').trim();
-      const dept = (document.getElementById('attDept').value || '').trim();
+      const code = (document.getElementById('attEmpCode').value || (currentAuthUser && currentAuthUser.emp_code) || '').trim();
+      const name = (document.getElementById('attEmpName').value || (currentAuthUser && currentAuthUser.emp_name) || '').trim();
+      const dept = (document.getElementById('attDept').value || (currentAuthUser && currentAuthUser.department) || '').trim();
       const el = document.getElementById('drawerUserSummary');
       const deptEl = document.getElementById('drawerDeptSummary');
 
       if (!code && !name) {
-        el.textContent = 'ยังไม่ได้ระบุรหัสพนักงาน';
+        el.textContent = 'ยังไม่ได้เข้าสู่ระบบ';
       } else {
         el.textContent = `${name || 'ไม่ระบุชื่อ'} (${code || '-'})`;
       }
       deptEl.textContent = `กลุ่มงาน: ${dept || '-'}`;
+    }
+
+    function clearFormInputsForNextEntry() {
+      localStorage.removeItem(STORAGE_CODE_KEY);
+      localStorage.removeItem(STORAGE_NAME_KEY);
+      localStorage.removeItem(STORAGE_DEPT_KEY);
+
+      if (currentAuthUser && currentAuthUser.emp_code) {
+        fillUserFields(currentAuthUser.emp_code, currentAuthUser.emp_name, currentAuthUser.department);
+      } else {
+        document.querySelectorAll('.emp-code-sync').forEach((el) => { el.value = ''; });
+        document.querySelectorAll('.emp-name-sync').forEach((el) => { el.value = ''; });
+        document.querySelectorAll('.dept-sync').forEach((el) => { el.selectedIndex = 0; });
+        refreshDrawerUserSummary();
+      }
     }
 
     function saveTodayAttendanceState() {
@@ -462,11 +655,11 @@
       if (selectEl) selectEl.value = chosen;
 
       if (checkedInToday && checkedOutToday) {
-        checkInBtn.className = 'att-choice-btn rounded-2xl border border-slate-200 bg-slate-100/90 text-slate-400 opacity-60 p-3.5 text-left transition flex items-center gap-3 cursor-not-allowed';
+        checkInBtn.className = 'att-choice-btn rounded-2xl border border-slate-200 bg-slate-100/90 text-slate-400 opacity-50 p-3.5 text-left transition flex items-center gap-3 cursor-not-allowed';
         checkInBtn.querySelector('span').className = 'w-9 h-9 rounded-xl bg-slate-200 text-slate-400 flex items-center justify-center text-base shrink-0';
         checkInBtn.querySelectorAll('p')[1].className = 'text-[11px] text-slate-400 mt-0.5 tabular-clock';
 
-        checkOutBtn.className = 'att-choice-btn rounded-2xl border border-slate-200 bg-slate-100/90 text-slate-400 opacity-60 p-3.5 text-left transition flex items-center gap-3 cursor-not-allowed';
+        checkOutBtn.className = 'att-choice-btn rounded-2xl border border-slate-200 bg-slate-100/90 text-slate-400 opacity-50 p-3.5 text-left transition flex items-center gap-3 cursor-not-allowed';
         checkOutBtn.querySelector('span').className = 'w-9 h-9 rounded-xl bg-slate-200 text-slate-400 flex items-center justify-center text-base shrink-0';
         checkOutBtn.querySelectorAll('p')[1].className = 'text-[11px] text-slate-400 mt-0.5 tabular-clock';
 
@@ -484,7 +677,7 @@
       submitBtn.textContent = 'ยืนยันการลงเวลา';
 
       if (checkedInToday && !checkedOutToday) {
-        checkInBtn.className = 'att-choice-btn rounded-2xl border border-slate-200 bg-slate-100/80 text-slate-400 opacity-55 p-3.5 text-left transition flex items-center gap-3 cursor-not-allowed';
+        checkInBtn.className = 'att-choice-btn rounded-2xl border border-slate-200 bg-slate-100/80 text-slate-400 opacity-50 p-3.5 text-left transition flex items-center gap-3 cursor-not-allowed';
         checkInBtn.querySelector('span').className = 'w-9 h-9 rounded-xl bg-slate-200 text-slate-400 flex items-center justify-center text-base shrink-0';
         checkInBtn.querySelectorAll('p')[1].className = 'text-[11px] text-slate-400 mt-0.5 tabular-clock';
 
@@ -538,16 +731,10 @@
       checkedInToday = false;
       checkedOutToday = false;
 
-      localStorage.removeItem(STORAGE_CODE_KEY);
-      localStorage.removeItem(STORAGE_NAME_KEY);
-      localStorage.removeItem(STORAGE_DEPT_KEY);
       localStorage.setItem(STORAGE_DAY_KEY, getTodayKey());
       localStorage.setItem(STORAGE_CHECKED_IN_KEY, '0');
       localStorage.setItem(STORAGE_CHECKED_OUT_KEY, '0');
-
-      document.querySelectorAll('.emp-code-sync').forEach((el) => { el.value = ''; });
-      document.querySelectorAll('.emp-name-sync').forEach((el) => { el.value = ''; });
-      document.querySelectorAll('.dept-sync').forEach((el) => { el.selectedIndex = 0; });
+      clearFormInputsForNextEntry();
 
       const resultBox = document.getElementById('attResult');
       if (resultBox) {
@@ -555,7 +742,6 @@
         resultBox.textContent = '';
       }
 
-      refreshDrawerUserSummary();
       applyAttendanceLockState('เข้างาน');
     }
 
@@ -604,11 +790,196 @@
       });
     }
 
+    function setAuthTab(mode) {
+      const loginPanel = document.getElementById('loginPanel');
+      const registerPanel = document.getElementById('registerPanel');
+      const tabLoginBtn = document.getElementById('tabLoginBtn');
+      const tabRegisterBtn = document.getElementById('tabRegisterBtn');
+      const authResult = document.getElementById('authResult');
+
+      authResult.classList.add('hidden');
+
+      if (mode === 'register') {
+        loginPanel.classList.add('hidden');
+        registerPanel.classList.remove('hidden');
+        tabRegisterBtn.className = 'py-2 rounded-xl text-sm font-medium bg-white text-indigo-700 shadow-2xs transition cursor-pointer';
+        tabLoginBtn.className = 'py-2 rounded-xl text-sm font-medium text-slate-600 hover:text-slate-800 transition cursor-pointer';
+      } else {
+        registerPanel.classList.add('hidden');
+        loginPanel.classList.remove('hidden');
+        tabLoginBtn.className = 'py-2 rounded-xl text-sm font-medium bg-white text-indigo-700 shadow-2xs transition cursor-pointer';
+        tabRegisterBtn.className = 'py-2 rounded-xl text-sm font-medium text-slate-600 hover:text-slate-800 transition cursor-pointer';
+      }
+    }
+
+    document.getElementById('tabLoginBtn').addEventListener('click', () => setAuthTab('login'));
+    document.getElementById('tabRegisterBtn').addEventListener('click', () => setAuthTab('register'));
+    document.getElementById('goAuthBtn').addEventListener('click', () => switchView('auth'));
+
+    function completeLoginSession(user) {
+      currentAuthUser = {
+        emp_code: String(user.emp_code || '').trim(),
+        emp_name: String(user.emp_name || '').trim(),
+        department: String(user.department || '').trim()
+      };
+      localStorage.setItem(STORAGE_AUTH_USER_KEY, JSON.stringify(currentAuthUser));
+      localStorage.setItem(STORAGE_DAY_KEY, getTodayKey());
+      localStorage.setItem(STORAGE_CODE_KEY, currentAuthUser.emp_code);
+      localStorage.setItem(STORAGE_NAME_KEY, currentAuthUser.emp_name);
+      localStorage.setItem(STORAGE_DEPT_KEY, currentAuthUser.department);
+
+      fillUserFields(currentAuthUser.emp_code, currentAuthUser.emp_name, currentAuthUser.department);
+      updateActiveUserUI();
+    }
+
+    function logoutSession() {
+      currentAuthUser = null;
+      localStorage.removeItem(STORAGE_AUTH_USER_KEY);
+      clearFormInputsForNextEntry();
+      updateActiveUserUI();
+      closeMenu();
+      switchView('auth');
+    }
+
+    document.getElementById('logoutBtn').addEventListener('click', logoutSession);
+    document.getElementById('quickLogoutBtn').addEventListener('click', logoutSession);
+
+    document.getElementById('loginSubmitBtn').addEventListener('click', async () => {
+      const emp_code = document.getElementById('loginEmpCode').value.trim();
+      const password = document.getElementById('loginPassword').value.trim();
+      const box = document.getElementById('authResult');
+      const btn = document.getElementById('loginSubmitBtn');
+
+      if (!emp_code || !password) {
+        showMessage(box, false, 'กรุณากรอกรหัสพนักงานและรหัสผ่าน');
+        return;
+      }
+
+      btn.disabled = true;
+      btn.textContent = 'กำลังเข้าสู่ระบบ...';
+      box.classList.add('hidden');
+
+      try {
+        const res = await fetch(SCRIPT_URL, {
+          method: 'POST',
+          body: JSON.stringify({ action: 'login', emp_code, password })
+        });
+        const data = await res.json();
+        if (data && data.ok && data.user) {
+          completeLoginSession(data.user);
+          showMessage(box, true, `เข้าสู่ระบบสำเร็จ ยินดีต้อนรับ ${data.user.emp_name || emp_code}`);
+          setTimeout(() => switchView('attendance'), 500);
+          return;
+        }
+      } catch (e) {
+        // สำรองตรวจสอบบัญชีในเครื่องหากฝั่ง Apps Script ยังไม่ได้สร้าง endpoint login
+      }
+
+      const users = getRegisteredUsers();
+      const matched = users.find(
+        (u) => String(u.emp_code || '').toLowerCase() === emp_code.toLowerCase() && String(u.password || '') === password
+      );
+
+      btn.disabled = false;
+      btn.textContent = 'เข้าสู่ระบบเพื่อลงเวลา';
+
+      if (!matched) {
+        showMessage(box, false, 'รหัสพนักงานหรือรหัสผ่านไม่ถูกต้อง (หากยังไม่เคยลงทะเบียน ให้กดแท็บ "สมัครสมาชิก")');
+        return;
+      }
+
+      completeLoginSession(matched);
+      showMessage(box, true, `เข้าสู่ระบบสำเร็จ ยินดีต้อนรับ ${matched.emp_name}`);
+      setTimeout(() => switchView('attendance'), 500);
+    });
+
+    document.getElementById('registerSubmitBtn').addEventListener('click', async () => {
+      const emp_code = document.getElementById('regEmpCode').value.trim();
+      const emp_name = document.getElementById('regEmpName').value.trim();
+      const department = document.getElementById('regDept').value.trim();
+      const password = document.getElementById('regPassword').value.trim();
+      const confirmPassword = document.getElementById('regConfirmPassword').value.trim();
+      const box = document.getElementById('authResult');
+      const btn = document.getElementById('registerSubmitBtn');
+
+      if (!emp_code || !emp_name || !department || !password) {
+        showMessage(box, false, 'กรุณากรอกข้อมูลสมัครสมาชิกให้ครบทุกช่อง');
+        return;
+      }
+
+      if (password.length < 4) {
+        showMessage(box, false, 'รหัสผ่านต้องมีอย่างน้อย 4 ตัวอักษร');
+        return;
+      }
+
+      if (password !== confirmPassword) {
+        showMessage(box, false, 'รหัสผ่านและยืนยันรหัสผ่านไม่ตรงกัน');
+        return;
+      }
+
+      btn.disabled = true;
+      btn.textContent = 'กำลังสมัครสมาชิก...';
+      box.classList.add('hidden');
+
+      try {
+        const res = await fetch(SCRIPT_URL, {
+          method: 'POST',
+          body: JSON.stringify({ action: 'register', emp_code, emp_name, department, password })
+        });
+        const data = await res.json();
+        if (data && data.ok) {
+          const users = getRegisteredUsers().filter((u) => String(u.emp_code || '').toLowerCase() !== emp_code.toLowerCase());
+          users.push({ emp_code, emp_name, department, password });
+          saveRegisteredUsers(users);
+
+          completeLoginSession({ emp_code, emp_name, department });
+          btn.disabled = false;
+          btn.textContent = 'สมัครสมาชิกและเข้าสู่ระบบ';
+          showMessage(box, true, data.message || 'สมัครสมาชิกสำเร็จแล้ว');
+          setTimeout(() => switchView('attendance'), 500);
+          return;
+        }
+      } catch (e) {
+        // สำรองบันทึกบัญชีในเครื่องหากฝั่ง Apps Script ยังไม่ได้สร้าง endpoint register
+      }
+
+      const users = getRegisteredUsers();
+      const exists = users.some((u) => String(u.emp_code || '').toLowerCase() === emp_code.toLowerCase());
+      btn.disabled = false;
+      btn.textContent = 'สมัครสมาชิกและเข้าสู่ระบบ';
+
+      if (exists) {
+        showMessage(box, false, 'รหัสพนักงานนี้ถูกสมัครสมาชิกไว้แล้ว กรุณาเข้าสู่ระบบ');
+        return;
+      }
+
+      users.push({ emp_code, emp_name, department, password });
+      saveRegisteredUsers(users);
+      completeLoginSession({ emp_code, emp_name, department });
+
+      document.getElementById('regPassword').value = '';
+      document.getElementById('regConfirmPassword').value = '';
+      showMessage(box, true, 'สมัครสมาชิกและเข้าสู่ระบบเรียบร้อยแล้ว');
+      setTimeout(() => switchView('attendance'), 500);
+    });
+
     checkAndSyncDailyState();
 
-    const savedCode = localStorage.getItem(STORAGE_CODE_KEY) || '';
-    const savedName = localStorage.getItem(STORAGE_NAME_KEY) || '';
-    const savedDept = localStorage.getItem(STORAGE_DEPT_KEY) || '';
+    try {
+      const savedAuthRaw = localStorage.getItem(STORAGE_AUTH_USER_KEY);
+      if (savedAuthRaw) {
+        const parsedAuth = JSON.parse(savedAuthRaw);
+        if (parsedAuth && parsedAuth.emp_code) {
+          currentAuthUser = parsedAuth;
+        }
+      }
+    } catch (e) {
+      currentAuthUser = null;
+    }
+
+    const savedCode = localStorage.getItem(STORAGE_CODE_KEY) || (currentAuthUser && currentAuthUser.emp_code) || '';
+    const savedName = localStorage.getItem(STORAGE_NAME_KEY) || (currentAuthUser && currentAuthUser.emp_name) || '';
+    const savedDept = localStorage.getItem(STORAGE_DEPT_KEY) || (currentAuthUser && currentAuthUser.department) || '';
     checkedInToday = localStorage.getItem(STORAGE_CHECKED_IN_KEY) === '1';
     checkedOutToday = localStorage.getItem(STORAGE_CHECKED_OUT_KEY) === '1';
 
@@ -622,6 +993,7 @@
       document.querySelectorAll('.dept-sync').forEach((el) => { el.value = savedDept; });
     }
     refreshDrawerUserSummary();
+    updateActiveUserUI();
     applyAttendanceLockState(checkedInToday && !checkedOutToday ? 'ออกงาน' : 'เข้างาน');
 
     setInterval(updateClock, 1000);
@@ -689,6 +1061,7 @@
     });
 
     const viewTitles = {
+      auth: 'เข้าสู่ระบบ / สมัครสมาชิก',
       attendance: 'ลงเวลาเข้า-ออกงาน',
       leave: 'แจ้งลางาน',
       profile: 'ข้อมูลของฉัน (ขาด / ลา / มาสาย)'
@@ -839,10 +1212,12 @@
           if (record_type === 'เข้างาน') {
             checkedInToday = true;
             saveTodayAttendanceState();
+            clearFormInputsForNextEntry();
             applyAttendanceLockState('ออกงาน');
           } else if (record_type === 'ออกงาน') {
             checkedOutToday = true;
             saveTodayAttendanceState();
+            clearFormInputsForNextEntry();
             applyAttendanceLockState('ออกงาน');
           }
         } else {
