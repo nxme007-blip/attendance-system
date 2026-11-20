@@ -396,6 +396,9 @@
     const STORAGE_CODE_KEY = "attendance_emp_code";
     const STORAGE_NAME_KEY = "attendance_emp_name";
     const STORAGE_DEPT_KEY = "attendance_emp_dept";
+    const STORAGE_DAY_KEY = "attendance_session_day";
+    const STORAGE_CHECKED_IN_KEY = "attendance_checked_in_today";
+    const STORAGE_CHECKED_OUT_KEY = "attendance_checked_out_today";
 
     let leaveEvidenceData = {
       name: "",
@@ -404,46 +407,99 @@
       dataUrl: ""
     };
 
+    let checkedInToday = false;
+    let checkedOutToday = false;
+
     function pad2(n) {
       return String(n).padStart(2, '0');
     }
 
-    function updateClock() {
+    function getTodayKey() {
       const now = new Date();
-      const timeStr = `${pad2(now.getHours())}:${pad2(now.getMinutes())}:${pad2(now.getSeconds())}`;
-
-      const clockEl = document.getElementById('clock');
-      if (clockEl) {
-        clockEl.textContent = now.toLocaleString('th-TH', {
-          dateStyle: 'full',
-          timeStyle: 'medium'
-        });
-      }
-
-      const headerClockEl = document.getElementById('choiceHeaderClock');
-      if (headerClockEl) headerClockEl.textContent = timeStr;
-
-      const bannerTimeEl = document.getElementById('attBannerTime');
-      if (bannerTimeEl) bannerTimeEl.textContent = `${timeStr} น.`;
-
-      document.querySelectorAll('.live-time-slot').forEach((el) => {
-        el.textContent = timeStr;
-      });
+      return `${now.getFullYear()}-${pad2(now.getMonth() + 1)}-${pad2(now.getDate())}`;
     }
-    setInterval(updateClock, 1000);
-    updateClock();
 
-    function syncAttendanceChoiceUI(value) {
+    function refreshDrawerUserSummary() {
+      const code = (document.getElementById('attEmpCode').value || '').trim();
+      const name = (document.getElementById('attEmpName').value || '').trim();
+      const dept = (document.getElementById('attDept').value || '').trim();
+      const el = document.getElementById('drawerUserSummary');
+      const deptEl = document.getElementById('drawerDeptSummary');
+
+      if (!code && !name) {
+        el.textContent = 'ยังไม่ได้ระบุรหัสพนักงาน';
+      } else {
+        el.textContent = `${name || 'ไม่ระบุชื่อ'} (${code || '-'})`;
+      }
+      deptEl.textContent = `กลุ่มงาน: ${dept || '-'}`;
+    }
+
+    function saveTodayAttendanceState() {
+      localStorage.setItem(STORAGE_DAY_KEY, getTodayKey());
+      localStorage.setItem(STORAGE_CHECKED_IN_KEY, checkedInToday ? '1' : '0');
+      localStorage.setItem(STORAGE_CHECKED_OUT_KEY, checkedOutToday ? '1' : '0');
+    }
+
+    function applyAttendanceLockState(preferredChoice) {
       const selectEl = document.getElementById('attType');
-      if (selectEl) selectEl.value = value;
-
       const checkInBtn = document.getElementById('pickCheckInBtn');
       const checkOutBtn = document.getElementById('pickCheckOutBtn');
+      const submitBtn = document.getElementById('attSubmitBtn');
       const banner = document.getElementById('attModeBanner');
       const modeText = document.getElementById('attModeText');
       const bannerTime = document.getElementById('attBannerTime');
 
-      if (value === 'ออกงาน') {
+      checkInBtn.disabled = checkedInToday;
+      checkOutBtn.disabled = checkedOutToday;
+
+      let chosen = preferredChoice || (selectEl ? selectEl.value : 'เข้างาน');
+      if (chosen === 'เข้างาน' && checkedInToday && !checkedOutToday) {
+        chosen = 'ออกงาน';
+      } else if (chosen === 'ออกงาน' && checkedOutToday && !checkedInToday) {
+        chosen = 'เข้างาน';
+      }
+
+      if (selectEl) selectEl.value = chosen;
+
+      if (checkedInToday && checkedOutToday) {
+        checkInBtn.className = 'att-choice-btn rounded-2xl border border-slate-200 bg-slate-100/90 text-slate-400 opacity-60 p-3.5 text-left transition flex items-center gap-3 cursor-not-allowed';
+        checkInBtn.querySelector('span').className = 'w-9 h-9 rounded-xl bg-slate-200 text-slate-400 flex items-center justify-center text-base shrink-0';
+        checkInBtn.querySelectorAll('p')[1].className = 'text-[11px] text-slate-400 mt-0.5 tabular-clock';
+
+        checkOutBtn.className = 'att-choice-btn rounded-2xl border border-slate-200 bg-slate-100/90 text-slate-400 opacity-60 p-3.5 text-left transition flex items-center gap-3 cursor-not-allowed';
+        checkOutBtn.querySelector('span').className = 'w-9 h-9 rounded-xl bg-slate-200 text-slate-400 flex items-center justify-center text-base shrink-0';
+        checkOutBtn.querySelectorAll('p')[1].className = 'text-[11px] text-slate-400 mt-0.5 tabular-clock';
+
+        banner.className = 'bg-slate-100 border border-slate-200 rounded-xl px-3.5 py-2.5 flex items-center justify-between gap-2 text-xs';
+        modeText.className = 'font-semibold text-slate-600';
+        modeText.textContent = 'ลงเวลาเข้า-ออกครบวันนี้แล้ว';
+        bannerTime.className = 'font-semibold text-slate-500';
+
+        submitBtn.disabled = true;
+        submitBtn.textContent = 'บันทึกเข้า-ออกงานครบวันนี้แล้ว';
+        return;
+      }
+
+      submitBtn.disabled = false;
+      submitBtn.textContent = 'ยืนยันการลงเวลา';
+
+      if (checkedInToday && !checkedOutToday) {
+        checkInBtn.className = 'att-choice-btn rounded-2xl border border-slate-200 bg-slate-100/80 text-slate-400 opacity-55 p-3.5 text-left transition flex items-center gap-3 cursor-not-allowed';
+        checkInBtn.querySelector('span').className = 'w-9 h-9 rounded-xl bg-slate-200 text-slate-400 flex items-center justify-center text-base shrink-0';
+        checkInBtn.querySelectorAll('p')[1].className = 'text-[11px] text-slate-400 mt-0.5 tabular-clock';
+
+        checkOutBtn.className = 'att-choice-btn rounded-2xl border-2 border-amber-500 bg-amber-50 text-amber-900 p-3.5 text-left transition flex items-center gap-3 shadow-sm ring-2 ring-amber-200/80 cursor-pointer';
+        checkOutBtn.querySelector('span').className = 'w-9 h-9 rounded-xl bg-amber-500 text-white flex items-center justify-center text-base shrink-0';
+        checkOutBtn.querySelectorAll('p')[1].className = 'text-[11px] text-amber-700 font-medium mt-0.5 tabular-clock';
+
+        banner.className = 'bg-amber-50 border border-amber-200 rounded-xl px-3.5 py-2.5 flex items-center justify-between gap-2 text-xs';
+        modeText.className = 'font-semibold text-amber-800';
+        modeText.textContent = 'ลงเวลาออกงาน (เข้างานแล้ว)';
+        bannerTime.className = 'font-semibold text-amber-800';
+        return;
+      }
+
+      if (chosen === 'ออกงาน') {
         checkOutBtn.className = 'att-choice-btn rounded-2xl border-2 border-amber-500 bg-amber-50/90 text-amber-800 p-3.5 text-left transition flex items-center gap-3 shadow-2xs cursor-pointer';
         checkOutBtn.querySelector('span').className = 'w-9 h-9 rounded-xl bg-amber-500 text-white flex items-center justify-center text-base shrink-0';
         checkOutBtn.querySelectorAll('p')[1].className = 'text-[11px] text-amber-700/80 mt-0.5 tabular-clock';
@@ -472,6 +528,105 @@
       }
     }
 
+    function syncAttendanceChoiceUI(value) {
+      if (value === 'เข้างาน' && checkedInToday) return;
+      if (value === 'ออกงาน' && checkedOutToday) return;
+      applyAttendanceLockState(value);
+    }
+
+    function resetForNewDay() {
+      checkedInToday = false;
+      checkedOutToday = false;
+
+      localStorage.removeItem(STORAGE_CODE_KEY);
+      localStorage.removeItem(STORAGE_NAME_KEY);
+      localStorage.removeItem(STORAGE_DEPT_KEY);
+      localStorage.setItem(STORAGE_DAY_KEY, getTodayKey());
+      localStorage.setItem(STORAGE_CHECKED_IN_KEY, '0');
+      localStorage.setItem(STORAGE_CHECKED_OUT_KEY, '0');
+
+      document.querySelectorAll('.emp-code-sync').forEach((el) => { el.value = ''; });
+      document.querySelectorAll('.emp-name-sync').forEach((el) => { el.value = ''; });
+      document.querySelectorAll('.dept-sync').forEach((el) => { el.selectedIndex = 0; });
+
+      const resultBox = document.getElementById('attResult');
+      if (resultBox) {
+        resultBox.classList.add('hidden');
+        resultBox.textContent = '';
+      }
+
+      refreshDrawerUserSummary();
+      applyAttendanceLockState('เข้างาน');
+    }
+
+    function checkAndSyncDailyState() {
+      const today = getTodayKey();
+      const savedDay = localStorage.getItem(STORAGE_DAY_KEY);
+
+      if (!savedDay) {
+        localStorage.setItem(STORAGE_DAY_KEY, today);
+        return;
+      }
+
+      if (savedDay !== today) {
+        resetForNewDay();
+      }
+    }
+
+    let lastTrackedDay = getTodayKey();
+
+    function updateClock() {
+      const now = new Date();
+      const currentDay = `${now.getFullYear()}-${pad2(now.getMonth() + 1)}-${pad2(now.getDate())}`;
+      if (currentDay !== lastTrackedDay) {
+        lastTrackedDay = currentDay;
+        resetForNewDay();
+      }
+
+      const timeStr = `${pad2(now.getHours())}:${pad2(now.getMinutes())}:${pad2(now.getSeconds())}`;
+
+      const clockEl = document.getElementById('clock');
+      if (clockEl) {
+        clockEl.textContent = now.toLocaleString('th-TH', {
+          dateStyle: 'full',
+          timeStyle: 'medium'
+        });
+      }
+
+      const headerClockEl = document.getElementById('choiceHeaderClock');
+      if (headerClockEl) headerClockEl.textContent = timeStr;
+
+      const bannerTimeEl = document.getElementById('attBannerTime');
+      if (bannerTimeEl) bannerTimeEl.textContent = `${timeStr} น.`;
+
+      document.querySelectorAll('.live-time-slot').forEach((el) => {
+        el.textContent = timeStr;
+      });
+    }
+
+    checkAndSyncDailyState();
+
+    const savedCode = localStorage.getItem(STORAGE_CODE_KEY) || '';
+    const savedName = localStorage.getItem(STORAGE_NAME_KEY) || '';
+    const savedDept = localStorage.getItem(STORAGE_DEPT_KEY) || '';
+    checkedInToday = localStorage.getItem(STORAGE_CHECKED_IN_KEY) === '1';
+    checkedOutToday = localStorage.getItem(STORAGE_CHECKED_OUT_KEY) === '1';
+
+    if (savedCode) {
+      document.querySelectorAll('.emp-code-sync').forEach((el) => { el.value = savedCode; });
+    }
+    if (savedName) {
+      document.querySelectorAll('.emp-name-sync').forEach((el) => { el.value = savedName; });
+    }
+    if (savedDept) {
+      document.querySelectorAll('.dept-sync').forEach((el) => { el.value = savedDept; });
+    }
+    refreshDrawerUserSummary();
+    applyAttendanceLockState(checkedInToday && !checkedOutToday ? 'ออกงาน' : 'เข้างาน');
+
+    setInterval(updateClock, 1000);
+    updateClock();
+
     document.querySelectorAll('.att-choice-btn').forEach((btn) => {
       btn.addEventListener('click', () => {
         syncAttendanceChoiceUI(btn.dataset.attChoice);
@@ -497,42 +652,13 @@
       if (e.key === 'Escape') closeMenu();
     });
 
-    function refreshDrawerUserSummary() {
-      const code = (document.getElementById('attEmpCode').value || '').trim();
-      const name = (document.getElementById('attEmpName').value || '').trim();
-      const dept = (document.getElementById('attDept').value || '').trim();
-      const el = document.getElementById('drawerUserSummary');
-      const deptEl = document.getElementById('drawerDeptSummary');
-
-      if (!code && !name) {
-        el.textContent = 'ยังไม่ได้ระบุรหัสพนักงาน';
-      } else {
-        el.textContent = `${name || 'ไม่ระบุชื่อ'} (${code || '-'})`;
-      }
-      deptEl.textContent = `กลุ่มงาน: ${dept || '-'}`;
-    }
-
-    const savedCode = localStorage.getItem(STORAGE_CODE_KEY) || '';
-    const savedName = localStorage.getItem(STORAGE_NAME_KEY) || '';
-    const savedDept = localStorage.getItem(STORAGE_DEPT_KEY) || '';
-
-    if (savedCode) {
-      document.querySelectorAll('.emp-code-sync').forEach((el) => { el.value = savedCode; });
-    }
-    if (savedName) {
-      document.querySelectorAll('.emp-name-sync').forEach((el) => { el.value = savedName; });
-    }
-    if (savedDept) {
-      document.querySelectorAll('.dept-sync').forEach((el) => { el.value = savedDept; });
-    }
-    refreshDrawerUserSummary();
-
     document.querySelectorAll('.emp-code-sync').forEach((input) => {
       input.addEventListener('input', () => {
         const val = input.value;
         document.querySelectorAll('.emp-code-sync').forEach((other) => {
           if (other !== input) other.value = val;
         });
+        localStorage.setItem(STORAGE_DAY_KEY, getTodayKey());
         localStorage.setItem(STORAGE_CODE_KEY, val.trim());
         refreshDrawerUserSummary();
       });
@@ -544,6 +670,7 @@
         document.querySelectorAll('.emp-name-sync').forEach((other) => {
           if (other !== input) other.value = val;
         });
+        localStorage.setItem(STORAGE_DAY_KEY, getTodayKey());
         localStorage.setItem(STORAGE_NAME_KEY, val.trim());
         refreshDrawerUserSummary();
       });
@@ -555,6 +682,7 @@
         document.querySelectorAll('.dept-sync').forEach((other) => {
           if (other !== select) other.value = val;
         });
+        localStorage.setItem(STORAGE_DAY_KEY, getTodayKey());
         localStorage.setItem(STORAGE_DEPT_KEY, val.trim());
         refreshDrawerUserSummary();
       });
@@ -663,6 +791,8 @@
     }
 
     document.getElementById('attSubmitBtn').addEventListener('click', async () => {
+      checkAndSyncDailyState();
+
       const emp_code = document.getElementById('attEmpCode').value.trim();
       const emp_name = document.getElementById('attEmpName').value.trim();
       const department = document.getElementById('attDept').value.trim();
@@ -675,6 +805,19 @@
         return;
       }
 
+      if (record_type === 'เข้างาน' && checkedInToday) {
+        showMessage(box, false, 'วันนี้ลงเวลาเข้างานไปแล้ว สามารถเลือก "ลงเวลาออกงาน" ได้');
+        applyAttendanceLockState('ออกงาน');
+        return;
+      }
+
+      if (record_type === 'ออกงาน' && checkedOutToday) {
+        showMessage(box, false, 'วันนี้ลงเวลาออกงานไปแล้ว');
+        applyAttendanceLockState('ออกงาน');
+        return;
+      }
+
+      localStorage.setItem(STORAGE_DAY_KEY, getTodayKey());
       localStorage.setItem(STORAGE_CODE_KEY, emp_code);
       localStorage.setItem(STORAGE_NAME_KEY, emp_name);
       localStorage.setItem(STORAGE_DEPT_KEY, department);
@@ -690,12 +833,31 @@
           body: JSON.stringify({ action: 'attendance', emp_code, emp_name, department, record_type })
         });
         const data = await res.json();
-        showMessage(box, Boolean(data.ok), data.message || 'บันทึกการลงเวลาเรียบร้อยแล้ว');
+        const isSuccess = Boolean(data && data.ok);
+
+        if (isSuccess) {
+          if (record_type === 'เข้างาน') {
+            checkedInToday = true;
+            saveTodayAttendanceState();
+            applyAttendanceLockState('ออกงาน');
+          } else if (record_type === 'ออกงาน') {
+            checkedOutToday = true;
+            saveTodayAttendanceState();
+            applyAttendanceLockState('ออกงาน');
+          }
+        } else {
+          applyAttendanceLockState(record_type);
+        }
+
+        showMessage(box, isSuccess, data.message || 'บันทึกการลงเวลาเรียบร้อยแล้ว');
       } catch (err) {
+        applyAttendanceLockState(record_type);
         showMessage(box, false, 'เชื่อมต่อไม่สำเร็จ: ' + err.message);
       } finally {
-        btn.disabled = false;
-        btn.textContent = 'ยืนยันการลงเวลา';
+        if (!(checkedInToday && checkedOutToday)) {
+          btn.disabled = false;
+          btn.textContent = 'ยืนยันการลงเวลา';
+        }
       }
     });
 
@@ -720,6 +882,7 @@
         return;
       }
 
+      localStorage.setItem(STORAGE_DAY_KEY, getTodayKey());
       localStorage.setItem(STORAGE_CODE_KEY, emp_code);
       localStorage.setItem(STORAGE_NAME_KEY, emp_name);
       localStorage.setItem(STORAGE_DEPT_KEY, department);
