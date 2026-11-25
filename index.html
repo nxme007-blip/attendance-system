@@ -237,51 +237,16 @@
       <div id="authResult" class="hidden p-3 rounded-xl text-sm text-center font-medium"></div>
     </section>
 
-    <section id="view-attendance" class="page-view hidden bg-white/95 backdrop-blur-md rounded-3xl shadow-lg border border-white p-6 space-y-4 max-w-xl mx-auto">
+    <!-- หน้า 1: ลงเวลาเข้า-ออกงาน (เหลือเฉพาะตัวลงเวลา) -->
+    <section id="view-attendance" class="page-view hidden bg-white/95 backdrop-blur-md rounded-3xl shadow-lg border border-white p-6 space-y-5 max-w-xl mx-auto">
       <div class="border-b border-slate-100 pb-3.5 flex items-center justify-between gap-2">
         <div>
           <h2 class="text-lg font-semibold text-slate-800">บันทึกเวลาเข้า-ออกงาน</h2>
-          <p class="text-xs text-slate-500 mt-0.5">บันทึกเวลาเข้างานหรือออกงานแบบเรียลไทม์เข้าสู่ระบบ</p>
+          <p class="text-xs text-slate-500 mt-0.5">เลือกรายการและกดยืนยันเวลาสำหรับบัญชีที่กำลังใช้งาน</p>
         </div>
         <span class="text-xs font-medium bg-indigo-50 text-indigo-700 border border-indigo-100 px-3 py-1 rounded-full shrink-0">
           เรียลไทม์
         </span>
-      </div>
-
-      <div>
-        <label class="block text-sm font-medium text-slate-700 mb-1">รหัสพนักงาน</label>
-        <input id="attEmpCode" type="text" placeholder="เช่น EMP001"
-          class="emp-code-sync w-full border border-slate-200 rounded-xl px-3.5 py-2.5 focus:outline-none focus:ring-2 focus:ring-indigo-400 transition" />
-      </div>
-
-      <div>
-        <label class="block text-sm font-medium text-slate-700 mb-1">ชื่อ - นามสกุล</label>
-        <input id="attEmpName" type="text" placeholder="กรอกชื่อ-นามสกุลพนักงาน"
-          class="emp-name-sync w-full border border-slate-200 rounded-xl px-3.5 py-2.5 focus:outline-none focus:ring-2 focus:ring-indigo-400 transition" />
-      </div>
-
-      <div>
-        <label class="block text-sm font-medium text-slate-700 mb-1">กลุ่มงาน</label>
-        <select id="attDept"
-          class="dept-sync w-full border border-slate-200 rounded-xl px-3.5 py-2.5 bg-white focus:outline-none focus:ring-2 focus:ring-indigo-400 transition">
-          <option value="">-- เลือกกลุ่มงาน --</option>
-          <optgroup label="กลุ่มงานสนับสนุนและบริหาร">
-            <option value="กลุ่มบริหารทั่วไป">กลุ่มบริหารทั่วไป</option>
-            <option value="กลุ่มพัฒนาองค์กร">กลุ่มพัฒนาองค์กร</option>
-            <option value="กลุ่มยุทธศาสตร์และแผนงาน">กลุ่มยุทธศาสตร์และแผนงาน</option>
-            <option value="กลุ่มพัฒนานวัตกรรมและวิจัย">กลุ่มพัฒนานวัตกรรมและวิจัย</option>
-            <option value="กลุ่มสื่อสารความเสี่ยงโรคและภัยสุขภาพ">กลุ่มสื่อสารความเสี่ยงโรคและภัยสุขภาพ</option>
-          </optgroup>
-          <optgroup label="กลุ่มงานวิชาการและการควบคุมโรค">
-            <option value="กลุ่มห้องปฏิบัติการทางการแพทย์ด้านควบคุมโรค">กลุ่มห้องปฏิบัติการทางการแพทย์ด้านควบคุมโรค</option>
-            <option value="กลุ่มระบาดวิทยาและตอบโต้ภาวะฉุกเฉินทางสาธารณสุข">กลุ่มระบาดวิทยาและตอบโต้ภาวะฉุกเฉินทางสาธารณสุข</option>
-            <option value="กลุ่มโรคติดต่อ">กลุ่มโรคติดต่อ</option>
-            <option value="กลุ่มโรคติดต่อเรื้อรัง">กลุ่มโรคติดต่อเรื้อรัง</option>
-            <option value="กลุ่มโรคไม่ติดต่อ">กลุ่มโรคไม่ติดต่อ</option>
-            <option value="กลุ่มโรคจากการประกอบอาชีพและสิ่งแวดล้อม">กลุ่มโรคจากการประกอบอาชีพและสิ่งแวดล้อม</option>
-            <option value="กลุ่มโรคติดต่อนำโดยแมลง">กลุ่มโรคติดต่อนำโดยแมลง</option>
-          </optgroup>
-        </select>
       </div>
 
       <div class="space-y-2">
@@ -567,6 +532,21 @@
       return Boolean(currentAuthUser && currentAuthUser.emp_code);
     }
 
+    function getCurrentSessionUser() {
+      if (currentAuthUser && currentAuthUser.emp_code) {
+        return {
+          emp_code: String(currentAuthUser.emp_code || '').trim(),
+          emp_name: String(currentAuthUser.emp_name || '').trim(),
+          department: String(currentAuthUser.department || '').trim()
+        };
+      }
+      return {
+        emp_code: (localStorage.getItem(STORAGE_CODE_KEY) || '').trim(),
+        emp_name: (localStorage.getItem(STORAGE_NAME_KEY) || '').trim(),
+        department: (localStorage.getItem(STORAGE_DEPT_KEY) || '').trim()
+      };
+    }
+
     function getRegisteredUsers() {
       try {
         const raw = localStorage.getItem(STORAGE_USERS_DB_KEY);
@@ -612,18 +592,16 @@
     }
 
     function refreshDrawerUserSummary() {
-      const code = (document.getElementById('attEmpCode').value || (currentAuthUser && currentAuthUser.emp_code) || '').trim();
-      const name = (document.getElementById('attEmpName').value || (currentAuthUser && currentAuthUser.emp_name) || '').trim();
-      const dept = (document.getElementById('attDept').value || (currentAuthUser && currentAuthUser.department) || '').trim();
+      const sessionUser = getCurrentSessionUser();
       const el = document.getElementById('drawerUserSummary');
       const deptEl = document.getElementById('drawerDeptSummary');
 
-      if (!code && !name) {
+      if (!sessionUser.emp_code && !sessionUser.emp_name) {
         el.textContent = 'ยังไม่ได้เข้าสู่ระบบ';
       } else {
-        el.textContent = `${name || 'ไม่ระบุชื่อ'} (${code || '-'})`;
+        el.textContent = `${sessionUser.emp_name || 'ไม่ระบุชื่อ'} (${sessionUser.emp_code || '-'})`;
       }
-      deptEl.textContent = `กลุ่มงาน: ${dept || '-'}`;
+      deptEl.textContent = `กลุ่มงาน: ${sessionUser.department || '-'}`;
     }
 
     function clearFormInputsForNextEntry() {
@@ -1188,15 +1166,17 @@
     document.getElementById('attSubmitBtn').addEventListener('click', async () => {
       checkAndSyncDailyState();
 
-      const emp_code = document.getElementById('attEmpCode').value.trim();
-      const emp_name = document.getElementById('attEmpName').value.trim();
-      const department = document.getElementById('attDept').value.trim();
+      const sessionUser = getCurrentSessionUser();
+      const emp_code = sessionUser.emp_code;
+      const emp_name = sessionUser.emp_name;
+      const department = sessionUser.department;
       const record_type = document.getElementById('attType').value;
       const box = document.getElementById('attResult');
       const btn = document.getElementById('attSubmitBtn');
 
       if (!emp_code || !emp_name) {
-        showMessage(box, false, 'กรุณากรอกรหัสและชื่อพนักงานให้ครบถ้วน');
+        showMessage(box, false, 'ไม่พบข้อมูลบัญชีที่เข้าสู่ระบบ กรุณาเข้าสู่ระบบใหม่อีกครั้ง');
+        switchView('auth');
         return;
       }
 
@@ -1213,9 +1193,6 @@
       }
 
       localStorage.setItem(STORAGE_DAY_KEY, getTodayKey());
-      localStorage.setItem(STORAGE_CODE_KEY, emp_code);
-      localStorage.setItem(STORAGE_NAME_KEY, emp_name);
-      localStorage.setItem(STORAGE_DEPT_KEY, department);
       refreshDrawerUserSummary();
 
       btn.disabled = true;
@@ -1326,9 +1303,10 @@
     });
 
     async function loadMyProfile() {
-      const codeInput = (document.getElementById('profileEmpCode').value || '').trim();
-      const nameInput = (document.getElementById('attEmpName').value || '').trim();
-      const deptInput = (document.getElementById('attDept').value || '').trim();
+      const sessionUser = getCurrentSessionUser();
+      const codeInput = (document.getElementById('profileEmpCode').value || sessionUser.emp_code || '').trim();
+      const nameInput = sessionUser.emp_name || '';
+      const deptInput = sessionUser.department || '';
       const badgeEl = document.getElementById('profileStatusBadge');
 
       if (!codeInput) {
