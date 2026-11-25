@@ -14,7 +14,7 @@
 <body class="bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 min-h-screen text-slate-800">
 
   <header class="sticky top-0 z-30 bg-white/90 backdrop-blur-md border-b border-indigo-100 shadow-sm">
-    <div class="max-w-3xl mx-auto px-4 py-3 flex items-center justify-between gap-3">
+    <div class="max-w-5xl mx-auto px-4 py-3 flex items-center justify-between gap-3">
       <div class="min-w-0">
         <h1 id="pageTitle" class="text-lg sm:text-xl font-semibold text-slate-800 truncate">สมัครสมาชิก / เข้าสู่ระบบ</h1>
         <p id="clock" class="text-xs text-indigo-600 font-medium truncate tabular-clock"></p>
@@ -99,9 +99,9 @@
     </div>
   </aside>
 
-  <main class="max-w-3xl mx-auto px-4 py-6 space-y-4">
+  <main class="max-w-5xl mx-auto px-4 py-6 space-y-4">
 
-    <div id="activeUserBar" class="hidden max-w-xl mx-auto bg-gradient-to-r from-indigo-600 to-violet-600 text-white rounded-3xl p-4 shadow-md shadow-indigo-200/70 flex flex-wrap items-center justify-between gap-3">
+    <div id="activeUserBar" class="hidden max-w-4xl mx-auto bg-gradient-to-r from-indigo-600 to-violet-600 text-white rounded-3xl p-4 shadow-md shadow-indigo-200/70 flex flex-wrap items-center justify-between gap-3">
       <div class="flex items-center gap-3 min-w-0">
         <div class="w-11 h-11 rounded-2xl bg-white/20 backdrop-blur-xs flex items-center justify-center text-xl shrink-0">
           👤
@@ -237,7 +237,6 @@
       <div id="authResult" class="hidden p-3 rounded-xl text-sm text-center font-medium"></div>
     </section>
 
-    <!-- หน้า 1: ลงเวลาเข้า-ออกงาน (เหลือเฉพาะตัวลงเวลา) -->
     <section id="view-attendance" class="page-view hidden bg-white/95 backdrop-blur-md rounded-3xl shadow-lg border border-white p-6 space-y-5 max-w-xl mx-auto">
       <div class="border-b border-slate-100 pb-3.5 flex items-center justify-between gap-2">
         <div>
@@ -304,108 +303,163 @@
       <div id="attResult" class="hidden p-3 rounded-xl text-sm text-center font-medium"></div>
     </section>
 
-    <section id="view-leave" class="page-view hidden bg-white/95 backdrop-blur-md rounded-2xl shadow-lg border border-white p-6 space-y-4 max-w-xl mx-auto">
-      <div class="border-b border-slate-100 pb-3">
-        <h2 class="text-lg font-semibold text-slate-800">แบบฟอร์มแจ้งลางาน</h2>
-        <p class="text-xs text-slate-500 mt-0.5">ส่งคำขอลางานเพื่อรอผู้ดูแลระบบตรวจสอบและอนุมัติ</p>
-      </div>
+    <!-- หน้า 2: แจ้งลางาน (ซ้าย: ฟอร์มแจ้งลางาน / ขวา: กฎการลาตามระเบียบการลา) -->
+    <section id="view-leave" class="page-view hidden max-w-4xl mx-auto">
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
 
-      <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-        <div>
-          <label class="block text-sm font-medium text-slate-700 mb-1">รหัสพนักงาน</label>
-          <input id="lvEmpCode" type="text" placeholder="เช่น EMP001"
-            class="emp-code-sync w-full border border-slate-200 rounded-xl px-3.5 py-2.5 focus:outline-none focus:ring-2 focus:ring-indigo-400" />
-        </div>
-        <div>
-          <label class="block text-sm font-medium text-slate-700 mb-1">ชื่อ - นามสกุล</label>
-          <input id="lvEmpName" type="text" placeholder="กรอกชื่อ-นามสกุล"
-            class="emp-name-sync w-full border border-slate-200 rounded-xl px-3.5 py-2.5 focus:outline-none focus:ring-2 focus:ring-indigo-400" />
-        </div>
-      </div>
+        <!-- ฝั่งซ้าย: แบบฟอร์มแจ้งลางาน -->
+        <div class="lg:col-span-7 bg-white/95 backdrop-blur-md rounded-2xl shadow-lg border border-white p-6 space-y-4">
+          <div class="border-b border-slate-100 pb-3">
+            <h2 class="text-lg font-semibold text-slate-800">แบบฟอร์มแจ้งลางาน</h2>
+            <p class="text-xs text-slate-500 mt-0.5">ส่งคำขอลางานเพื่อรอผู้ดูแลระบบตรวจสอบและอนุมัติ</p>
+          </div>
 
-      <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-        <div>
-          <label class="block text-sm font-medium text-slate-700 mb-1">กลุ่มงาน</label>
-          <select id="lvDept"
-            class="dept-sync w-full border border-slate-200 rounded-xl px-3.5 py-2.5 bg-white focus:outline-none focus:ring-2 focus:ring-indigo-400">
-            <option value="">-- เลือกกลุ่มงาน --</option>
-            <optgroup label="กลุ่มงานสนับสนุนและบริหาร">
-              <option value="กลุ่มบริหารทั่วไป">กลุ่มบริหารทั่วไป</option>
-              <option value="กลุ่มพัฒนาองค์กร">กลุ่มพัฒนาองค์กร</option>
-              <option value="กลุ่มยุทธศาสตร์และแผนงาน">กลุ่มยุทธศาสตร์และแผนงาน</option>
-              <option value="กลุ่มพัฒนานวัตกรรมและวิจัย">กลุ่มพัฒนานวัตกรรมและวิจัย</option>
-              <option value="กลุ่มสื่อสารความเสี่ยงโรคและภัยสุขภาพ">กลุ่มสื่อสารความเสี่ยงโรคและภัยสุขภาพ</option>
-            </optgroup>
-            <optgroup label="กลุ่มงานวิชาการและการควบคุมโรค">
-              <option value="กลุ่มห้องปฏิบัติการทางการแพทย์ด้านควบคุมโรค">กลุ่มห้องปฏิบัติการทางการแพทย์ด้านควบคุมโรค</option>
-              <option value="กลุ่มระบาดวิทยาและตอบโต้ภาวะฉุกเฉินทางสาธารณสุข">กลุ่มระบาดวิทยาและตอบโต้ภาวะฉุกเฉินทางสาธารณสุข</option>
-              <option value="กลุ่มโรคติดต่อ">กลุ่มโรคติดต่อ</option>
-              <option value="กลุ่มโรคติดต่อเรื้อรัง">กลุ่มโรคติดต่อเรื้อรัง</option>
-              <option value="กลุ่มโรคไม่ติดต่อ">กลุ่มโรคไม่ติดต่อ</option>
-              <option value="กลุ่มโรคจากการประกอบอาชีพและสิ่งแวดล้อม">กลุ่มโรคจากการประกอบอาชีพและสิ่งแวดล้อม</option>
-              <option value="กลุ่มโรคติดต่อนำโดยแมลง">กลุ่มโรคติดต่อนำโดยแมลง</option>
-            </optgroup>
-          </select>
-        </div>
-
-        <div>
-          <label class="block text-sm font-medium text-slate-700 mb-1">ประเภทการลา</label>
-          <select id="leaveType"
-            class="w-full border border-slate-200 rounded-xl px-3.5 py-2.5 bg-white focus:outline-none focus:ring-2 focus:ring-indigo-400">
-            <option value="ลาป่วย">ลาป่วย</option>
-            <option value="ลากิจ">ลากิจ</option>
-            <option value="ลาพักร้อน">ลาพักร้อน</option>
-          </select>
-        </div>
-      </div>
-
-      <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-        <div>
-          <label class="block text-sm font-medium text-slate-700 mb-1">ตั้งแต่วันที่</label>
-          <input id="startDate" type="date"
-            class="w-full border border-slate-200 rounded-xl px-3.5 py-2.5 bg-white focus:outline-none focus:ring-2 focus:ring-indigo-400" />
-        </div>
-        <div>
-          <label class="block text-sm font-medium text-slate-700 mb-1">ถึงวันที่</label>
-          <input id="endDate" type="date"
-            class="w-full border border-slate-200 rounded-xl px-3.5 py-2.5 bg-white focus:outline-none focus:ring-2 focus:ring-indigo-400" />
-        </div>
-      </div>
-
-      <div>
-        <label class="block text-sm font-medium text-slate-700 mb-1">เหตุผลการลา</label>
-        <textarea id="leaveReason" rows="3" placeholder="ระบุเหตุผลในการลางานให้ชัดเจน..."
-          class="w-full border border-slate-200 rounded-xl px-3.5 py-2.5 focus:outline-none focus:ring-2 focus:ring-indigo-400"></textarea>
-      </div>
-
-      <div>
-        <label class="block text-sm font-medium text-slate-700 mb-1">แนบภาพหลักฐาน (ถ้ามี เช่น ใบรับรองแพทย์)</label>
-        <input id="leaveEvidenceInput" type="file" accept="image/*"
-          class="block w-full text-xs sm:text-sm text-slate-600 file:mr-3 file:py-2 file:px-3.5 file:rounded-xl file:border-0 file:text-xs sm:file:text-sm file:font-medium file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100 border border-slate-200 rounded-xl p-1.5 bg-white cursor-pointer" />
-        <p class="text-[11px] text-slate-400 mt-1">รองรับไฟล์รูปภาพ (JPG, PNG, WEBP) ขนาดไม่เกิน 3 MB</p>
-
-        <div id="leaveEvidencePreviewBox" class="hidden mt-2.5 bg-slate-50 border border-slate-200 rounded-xl p-2.5 flex items-center justify-between gap-3">
-          <div class="flex items-center gap-3 min-w-0">
-            <img id="leaveEvidencePreviewImg" src="" alt="ตัวอย่างภาพหลักฐาน"
-              class="w-14 h-14 object-cover rounded-lg border border-slate-200 shrink-0" />
-            <div class="min-w-0">
-              <p id="leaveEvidenceFileName" class="text-xs font-medium text-slate-700 truncate"></p>
-              <p class="text-[11px] text-emerald-600">พร้อมแนบไปกับคำขอลางาน</p>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div>
+              <label class="block text-sm font-medium text-slate-700 mb-1">รหัสพนักงาน</label>
+              <input id="lvEmpCode" type="text" placeholder="เช่น EMP001"
+                class="emp-code-sync w-full border border-slate-200 rounded-xl px-3.5 py-2.5 focus:outline-none focus:ring-2 focus:ring-indigo-400" />
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-slate-700 mb-1">ชื่อ - นามสกุล</label>
+              <input id="lvEmpName" type="text" placeholder="กรอกชื่อ-นามสกุล"
+                class="emp-name-sync w-full border border-slate-200 rounded-xl px-3.5 py-2.5 focus:outline-none focus:ring-2 focus:ring-indigo-400" />
             </div>
           </div>
-          <button id="clearLeaveEvidenceBtn" type="button"
-            class="shrink-0 text-xs text-rose-600 hover:text-rose-800 font-medium px-2.5 py-1 rounded-lg hover:bg-rose-50 transition cursor-pointer">
-            ลบรูป
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div>
+              <label class="block text-sm font-medium text-slate-700 mb-1">กลุ่มงาน</label>
+              <select id="lvDept"
+                class="dept-sync w-full border border-slate-200 rounded-xl px-3.5 py-2.5 bg-white focus:outline-none focus:ring-2 focus:ring-indigo-400">
+                <option value="">-- เลือกกลุ่มงาน --</option>
+                <optgroup label="กลุ่มงานสนับสนุนและบริหาร">
+                  <option value="กลุ่มบริหารทั่วไป">กลุ่มบริหารทั่วไป</option>
+                  <option value="กลุ่มพัฒนาองค์กร">กลุ่มพัฒนาองค์กร</option>
+                  <option value="กลุ่มยุทธศาสตร์และแผนงาน">กลุ่มยุทธศาสตร์และแผนงาน</option>
+                  <option value="กลุ่มพัฒนานวัตกรรมและวิจัย">กลุ่มพัฒนานวัตกรรมและวิจัย</option>
+                  <option value="กลุ่มสื่อสารความเสี่ยงโรคและภัยสุขภาพ">กลุ่มสื่อสารความเสี่ยงโรคและภัยสุขภาพ</option>
+                </optgroup>
+                <optgroup label="กลุ่มงานวิชาการและการควบคุมโรค">
+                  <option value="กลุ่มห้องปฏิบัติการทางการแพทย์ด้านควบคุมโรค">กลุ่มห้องปฏิบัติการทางการแพทย์ด้านควบคุมโรค</option>
+                  <option value="กลุ่มระบาดวิทยาและตอบโต้ภาวะฉุกเฉินทางสาธารณสุข">กลุ่มระบาดวิทยาและตอบโต้ภาวะฉุกเฉินทางสาธารณสุข</option>
+                  <option value="กลุ่มโรคติดต่อ">กลุ่มโรคติดต่อ</option>
+                  <option value="กลุ่มโรคติดต่อเรื้อรัง">กลุ่มโรคติดต่อเรื้อรัง</option>
+                  <option value="กลุ่มโรคไม่ติดต่อ">กลุ่มโรคไม่ติดต่อ</option>
+                  <option value="กลุ่มโรคจากการประกอบอาชีพและสิ่งแวดล้อม">กลุ่มโรคจากการประกอบอาชีพและสิ่งแวดล้อม</option>
+                  <option value="กลุ่มโรคติดต่อนำโดยแมลง">กลุ่มโรคติดต่อนำโดยแมลง</option>
+                </optgroup>
+              </select>
+            </div>
+
+            <div>
+              <label class="block text-sm font-medium text-slate-700 mb-1">ประเภทการลา</label>
+              <select id="leaveType"
+                class="w-full border border-slate-200 rounded-xl px-3.5 py-2.5 bg-white focus:outline-none focus:ring-2 focus:ring-indigo-400">
+                <option value="ลาป่วย">ลาป่วย</option>
+                <option value="ลากิจ">ลากิจ</option>
+                <option value="ลาพักร้อน">ลาพักร้อน</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div>
+              <label class="block text-sm font-medium text-slate-700 mb-1">ตั้งแต่วันที่</label>
+              <input id="startDate" type="date"
+                class="w-full border border-slate-200 rounded-xl px-3.5 py-2.5 bg-white focus:outline-none focus:ring-2 focus:ring-indigo-400" />
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-slate-700 mb-1">ถึงวันที่</label>
+              <input id="endDate" type="date"
+                class="w-full border border-slate-200 rounded-xl px-3.5 py-2.5 bg-white focus:outline-none focus:ring-2 focus:ring-indigo-400" />
+            </div>
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium text-slate-700 mb-1">เหตุผลการลา</label>
+            <textarea id="leaveReason" rows="3" placeholder="ระบุเหตุผลในการลางานให้ชัดเจน..."
+              class="w-full border border-slate-200 rounded-xl px-3.5 py-2.5 focus:outline-none focus:ring-2 focus:ring-indigo-400"></textarea>
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium text-slate-700 mb-1">แนบภาพหลักฐาน (ถ้ามี เช่น ใบรับรองแพทย์)</label>
+            <input id="leaveEvidenceInput" type="file" accept="image/*"
+              class="block w-full text-xs sm:text-sm text-slate-600 file:mr-3 file:py-2 file:px-3.5 file:rounded-xl file:border-0 file:text-xs sm:file:text-sm file:font-medium file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100 border border-slate-200 rounded-xl p-1.5 bg-white cursor-pointer" />
+            <p class="text-[11px] text-slate-400 mt-1">รองรับไฟล์รูปภาพ (JPG, PNG, WEBP) ขนาดไม่เกิน 3 MB</p>
+
+            <div id="leaveEvidencePreviewBox" class="hidden mt-2.5 bg-slate-50 border border-slate-200 rounded-xl p-2.5 flex items-center justify-between gap-3">
+              <div class="flex items-center gap-3 min-w-0">
+                <img id="leaveEvidencePreviewImg" src="" alt="ตัวอย่างภาพหลักฐาน"
+                  class="w-14 h-14 object-cover rounded-lg border border-slate-200 shrink-0" />
+                <div class="min-w-0">
+                  <p id="leaveEvidenceFileName" class="text-xs font-medium text-slate-700 truncate"></p>
+                  <p class="text-[11px] text-emerald-600">พร้อมแนบไปกับคำขอลางาน</p>
+                </div>
+              </div>
+              <button id="clearLeaveEvidenceBtn" type="button"
+                class="shrink-0 text-xs text-rose-600 hover:text-rose-800 font-medium px-2.5 py-1 rounded-lg hover:bg-rose-50 transition cursor-pointer">
+                ลบรูป
+              </button>
+            </div>
+          </div>
+
+          <button id="lvSubmitBtn" type="button"
+            class="w-full bg-indigo-600 hover:bg-indigo-700 disabled:bg-slate-400 text-white font-medium py-3 rounded-xl shadow-md transition cursor-pointer">
+            ส่งคำขอลางาน
           </button>
+
+          <div id="lvResult" class="hidden p-3 rounded-xl text-sm text-center font-medium space-y-2"></div>
         </div>
+
+        <!-- ฝั่งขวา: กฎการลาตามแนวทางระเบียบการลาราชการ -->
+        <aside class="lg:col-span-5 bg-white/95 backdrop-blur-md rounded-2xl shadow-lg border border-indigo-100 p-6 space-y-4 lg:sticky lg:top-20">
+          <div class="border-b border-slate-100 pb-3 flex items-start justify-between gap-2">
+            <div>
+              <h3 class="text-base font-semibold text-slate-800">กฎการลาตามแนวทางการลาราชการ</h3>
+              <p class="text-xs text-slate-500 mt-0.5">หลักปฏิบัติเบื้องต้นก่อนยื่นใบลา (อ้างอิงระเบียบสำนักนายกรัฐมนตรีว่าด้วยการลาของข้าราชการ พ.ศ. 2555)</p>
+            </div>
+            <span class="text-xs bg-indigo-50 text-indigo-700 border border-indigo-100 px-2.5 py-0.5 rounded-full shrink-0 font-medium">
+              ระเบียบการลา
+            </span>
+          </div>
+
+          <div class="space-y-3 text-xs sm:text-sm text-slate-700">
+            <div class="rounded-xl bg-emerald-50/70 border border-emerald-100 p-3.5 space-y-1">
+              <p class="font-semibold text-emerald-800">1. การลาป่วย</p>
+              <ul class="list-disc pl-4 space-y-1 text-xs text-slate-700">
+                <li>ลาได้เท่าที่เจ็บป่วยจริง โดยเสนอใบลาต่อผู้บังคับบัญชาตามลำดับชั้น</li>
+                <li>หากลาป่วยตั้งแต่ <strong>3 วันทำการขึ้นไป</strong> ให้แนบใบรับรองแพทย์ซึ่งสถานพยาบาลของรัฐหรือเอกชนตามกฎหมายออกให้ (หรือตามที่ผู้มีอำนาจอนุญาตกำหนด)</li>
+                <li>กรณีจำเป็นเร่งด่วนให้แจ้งหัวหน้างาน/ผู้บังคับบัญชาทราบทันที และยื่นใบลาในวันแรกที่มาปฏิบัติงาน</li>
+              </ul>
+            </div>
+
+            <div class="rounded-xl bg-amber-50/70 border border-amber-100 p-3.5 space-y-1">
+              <p class="font-semibold text-amber-800">2. การลากิจส่วนตัว</p>
+              <ul class="list-disc pl-4 space-y-1 text-xs text-slate-700">
+                <li>ต้องเสนอใบลาต่อผู้บังคับบัญชาและได้รับอนุญาตก่อนจึงจะหยุดงานได้ (ยกเว้นมีเหตุฉุกเฉินให้ชี้แจงเหตุผลทันที)</li>
+                <li>ระบุวันที่เริ่มต้น วันที่สิ้นสุด และเหตุผลให้ชัดเจน เพื่อประกอบการพิจารณา</li>
+                <li>การลาติดต่อวันหยุดราชการให้คำนึงถึงความเหมาะสมและผลกระทบต่องานในกลุ่มงาน</li>
+              </ul>
+            </div>
+
+            <div class="rounded-xl bg-indigo-50/70 border border-indigo-100 p-3.5 space-y-1">
+              <p class="font-semibold text-indigo-800">3. การลาพักผ่อน</p>
+              <ul class="list-disc pl-4 space-y-1 text-xs text-slate-700">
+                <li>ต้องยื่นใบลาล่วงหน้าและได้รับอนุญาตก่อนลาพักผ่อน</li>
+                <li>การอนุญาตขึ้นอยู่กับดุลยพินิจของผู้มีอำนาจ โดยคำนึงถึงความสะดวกของทางราชการและภารกิจของหน่วยงาน</li>
+                <li>หากจำเป็นต้องเรียกตัวกลับเข้าปฏิบัติงานก่อนครบกำหนด สามารถแจ้งให้กลับมาปฏิบัติงานได้</li>
+              </ul>
+            </div>
+
+            <div class="rounded-xl bg-slate-50 border border-slate-200 p-3 space-y-1 text-xs text-slate-600">
+              <p class="font-semibold text-slate-800">ข้อควรระวังเพิ่มเติม</p>
+              <p>การยื่นคำขอในระบบเป็นการส่งเรื่องให้ตรวจสอบและอนุมัติ ควรติดตามสถานะใบลาที่หน้า <strong>"ข้อมูลของฉัน"</strong> และปฏิบัติตามเงื่อนไขของหน่วยงานต้นสังกัดอย่างเคร่งครัด</p>
+            </div>
+          </div>
+        </aside>
+
       </div>
-
-      <button id="lvSubmitBtn" type="button"
-        class="w-full bg-indigo-600 hover:bg-indigo-700 disabled:bg-slate-400 text-white font-medium py-3 rounded-xl shadow-md transition cursor-pointer">
-        ส่งคำขอลางาน
-      </button>
-
-      <div id="lvResult" class="hidden p-3 rounded-xl text-sm text-center font-medium space-y-2"></div>
     </section>
 
     <section id="view-profile" class="page-view hidden space-y-5">
