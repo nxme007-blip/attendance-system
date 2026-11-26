@@ -3,238 +3,163 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <link rel="icon" href="data:," />
-  <title>แดชบอร์ดผู้ดูแลระบบ (Admin)</title>
+  <title>หลังบ้านผู้ดูแลระบบ - ระบบบันทึกเวลาและลางาน</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600&display=swap" rel="stylesheet">
   <style>
     body { font-family: 'Kanit', sans-serif; }
-    .tabular-nums { font-variant-numeric: tabular-nums; }
-    #adminDrawer.is-open { transform: translateX(0) !important; }
   </style>
 </head>
-<body class="bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 min-h-screen text-slate-800">
+<body class="bg-gradient-to-br from-slate-100 via-indigo-50/60 to-blue-50 min-h-screen text-slate-800">
 
-  <!-- แถบด้านบน -->
-  <header class="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-indigo-100 shadow-sm">
-    <div class="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between gap-3">
+  <header class="sticky top-0 z-30 bg-white/95 backdrop-blur-md border-b border-indigo-100 shadow-xs">
+    <div class="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between gap-3">
       <div class="min-w-0">
-        <h1 id="adminPageTitle" class="text-lg sm:text-xl font-semibold text-slate-800 truncate">แดชบอร์ดผู้ดูแลระบบ (Admin)</h1>
-        <p id="adminPageSub" class="text-xs text-slate-500 truncate">สรุปภาพรวมการเข้างาน มาสาย และคำขอลางานของพนักงานทั้งหมด</p>
+        <h1 id="adminPageTitle" class="text-lg sm:text-xl font-semibold text-slate-800 truncate">แดชบอร์ดภาพรวม</h1>
+        <p id="adminPageSubtitle" class="text-xs text-slate-500 truncate">ระบบบริหารจัดการการเข้า-ออกงานและการลางานของพนักงาน</p>
       </div>
 
       <div class="flex items-center gap-2 shrink-0">
-        <button id="refreshBtn" type="button" onclick="loadDashboardData()"
-          class="bg-indigo-600 hover:bg-indigo-700 text-white text-xs sm:text-sm font-medium px-3.5 py-2 rounded-xl shadow-xs transition cursor-pointer">
+        <button id="refreshAllBtn" type="button"
+          class="px-3.5 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs sm:text-sm font-medium shadow-xs transition cursor-pointer">
           รีเฟรชข้อมูล
         </button>
-
-        <button id="adminMenuBtn" type="button" aria-label="เปิดเมนูผู้ดูแลระบบ" onclick="openAdminMenu()"
-          class="relative z-50 px-3.5 py-2 rounded-xl bg-indigo-50 hover:bg-indigo-100 active:scale-95 text-indigo-700 border border-indigo-200/80 transition flex items-center gap-2 shadow-xs cursor-pointer">
-          <svg class="w-5 h-5 pointer-events-none" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16" />
-          </svg>
-          <span class="text-sm font-medium pointer-events-none">เมนู</span>
+        <button id="adminMenuBtn" type="button" aria-label="เปิดเมนูผู้ดูแลระบบ"
+          class="px-3.5 py-2 rounded-xl bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200/80 text-xs sm:text-sm font-medium flex items-center gap-2 transition cursor-pointer">
+          <span>☰</span>
+          <span>เมนู</span>
         </button>
       </div>
     </div>
   </header>
 
-  <!-- ฉากหลังมืดเวลาเปิดเมนู -->
-  <div id="adminMenuBackdrop" onclick="closeAdminMenu()"
-    class="fixed inset-0 bg-slate-900/40 backdrop-blur-[1px] z-[60] hidden"></div>
+  <div id="adminBackdrop" class="fixed inset-0 bg-slate-900/35 z-40 hidden"></div>
 
-  <!-- ลิ้นชักเมนูแฮมเบอร์เกอร์ -->
   <aside id="adminDrawer"
-    class="fixed top-0 right-0 h-full w-72 max-w-[85vw] bg-white z-[70] shadow-2xl border-l border-slate-100 translate-x-full transition-transform duration-200 flex flex-col justify-between p-5">
+    class="fixed top-0 right-0 h-full w-80 max-w-[88vw] bg-white z-50 shadow-2xl border-l border-slate-100 transform translate-x-full transition-transform duration-200 flex flex-col justify-between p-5">
     <div class="space-y-4">
       <div class="flex items-center justify-between border-b border-slate-100 pb-3">
         <div>
           <p class="text-sm font-semibold text-slate-800">เมนูผู้ดูแลระบบ</p>
           <p class="text-xs text-slate-400">เลือกหัวข้อที่ต้องการดู</p>
         </div>
-        <button id="closeAdminMenuBtn" type="button" aria-label="ปิดเมนู" onclick="closeAdminMenu()"
-          class="w-8 h-8 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-600 flex items-center justify-center transition cursor-pointer">
+        <button id="closeAdminMenuBtn" type="button"
+          class="w-8 h-8 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-600 flex items-center justify-center cursor-pointer">
           ✕
         </button>
       </div>
 
-      <nav class="space-y-1.5">
-        <button type="button" data-admin-view="overview" onclick="switchAdminView('overview')"
-          class="admin-nav-btn w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium text-left bg-indigo-600 text-white transition cursor-pointer">
-          <span>📊</span>
-          <span>แดชบอร์ดภาพรวม</span>
+      <nav class="space-y-1.5 text-sm">
+        <button type="button" data-admin-nav="overview"
+          class="admin-nav-btn w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl font-medium bg-indigo-600 text-white transition cursor-pointer">
+          <span class="flex items-center gap-2.5"><span>📊</span><span>แดชบอร์ดภาพรวม</span></span>
         </button>
 
-        <button type="button" data-admin-view="deptreport" onclick="switchAdminView('deptreport')"
-          class="admin-nav-btn w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium text-left text-slate-700 hover:bg-indigo-50 transition cursor-pointer">
-          <span>📑</span>
-          <span>รายงานรายกลุ่มงาน</span>
+        <button type="button" data-admin-nav="departments"
+          class="admin-nav-btn w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl font-medium text-slate-700 hover:bg-indigo-50 transition cursor-pointer">
+          <span class="flex items-center gap-2.5"><span>🏢</span><span>รายงานรายกลุ่มงาน</span></span>
         </button>
 
-        <button type="button" data-admin-view="approvals" onclick="switchAdminView('approvals')"
-          class="admin-nav-btn w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-sm font-medium text-left text-slate-700 hover:bg-indigo-50 transition cursor-pointer">
-          <span class="flex items-center gap-3">
-            <span>✅</span>
-            <span>อนุมัติการลา</span>
-          </span>
-          <span id="drawerPendingBadge" class="text-xs px-2 py-0.5 rounded-full bg-rose-100 text-rose-700 font-semibold tabular-nums">0</span>
+        <button type="button" data-admin-nav="approvals"
+          class="admin-nav-btn w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl font-medium text-slate-700 hover:bg-indigo-50 transition cursor-pointer">
+          <span class="flex items-center gap-2.5"><span>✅</span><span>อนุมัติการลา</span></span>
+          <span id="pendingBadge" class="text-xs bg-rose-100 text-rose-700 px-2 py-0.5 rounded-full font-semibold">0</span>
         </button>
 
-        <button type="button" data-admin-view="attendance" onclick="switchAdminView('attendance')"
-          class="admin-nav-btn w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium text-left text-slate-700 hover:bg-indigo-50 transition cursor-pointer">
-          <span>🕒</span>
-          <span>ประวัติการลงเวลา</span>
+        <button type="button" data-admin-nav="attendance"
+          class="admin-nav-btn w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl font-medium text-slate-700 hover:bg-indigo-50 transition cursor-pointer">
+          <span class="flex items-center gap-2.5"><span>🕒</span><span>ประวัติการลงเวลา</span></span>
         </button>
 
-        <button type="button" data-admin-view="directory" onclick="switchAdminView('directory')"
-          class="admin-nav-btn w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium text-left text-slate-700 hover:bg-indigo-50 transition cursor-pointer">
-          <span>🗂️</span>
-          <span>สมุดรายชื่อพนักงาน</span>
+        <button type="button" data-admin-nav="directory"
+          class="admin-nav-btn w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl font-medium text-slate-700 hover:bg-indigo-50 transition cursor-pointer">
+          <span class="flex items-center gap-2.5"><span>📒</span><span>สมุดรายชื่อพนักงาน</span></span>
         </button>
 
-        <button type="button" data-admin-view="binder" onclick="switchAdminView('binder')"
-          class="admin-nav-btn w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium text-left text-slate-700 hover:bg-indigo-50 transition cursor-pointer">
-          <span>📁</span>
-          <span>แฟ้มส่วนตัวรายบุคคล</span>
+        <button type="button" data-admin-nav="folder"
+          class="admin-nav-btn w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl font-medium text-slate-700 hover:bg-indigo-50 transition cursor-pointer">
+          <span class="flex items-center gap-2.5"><span>🗂️</span><span>แฟ้มส่วนตัวรายบุคคล</span></span>
         </button>
 
         <div class="pt-3 mt-3 border-t border-slate-100">
           <a href="index.html"
-            class="w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-sm font-medium text-slate-700 hover:bg-slate-100 transition">
-            <span class="flex items-center gap-3">
-              <span>🏠</span>
-              <span>หน้าพนักงาน</span>
-            </span>
+            class="w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl font-medium text-slate-700 hover:bg-slate-100 transition">
+            <span class="flex items-center gap-2.5"><span>🏠</span><span>หน้าพนักงาน</span></span>
             <span class="text-xs text-slate-400">→</span>
           </a>
         </div>
       </nav>
     </div>
 
-    <div class="bg-indigo-50/80 border border-indigo-100 rounded-xl p-3 text-xs text-indigo-800 space-y-1">
-      <p class="font-medium">สถานะการเชื่อมต่อ</p>
-      <p id="syncStatusText" class="text-indigo-700 truncate">พร้อมใช้งาน</p>
-      <p id="drawerSelectedEmp" class="text-[11px] text-indigo-500 truncate">แฟ้ม: ยังไม่ได้เลือก</p>
+    <div class="bg-slate-50 border border-slate-200/80 rounded-xl p-3 text-xs text-slate-600 space-y-1">
+      <p class="font-medium text-slate-800">สถานะการเชื่อมต่อ</p>
+      <p id="connStatusText" class="text-emerald-600 font-medium">พร้อมซิงก์ข้อมูล</p>
     </div>
   </aside>
 
-  <main class="max-w-6xl mx-auto px-4 py-6">
+  <main class="max-w-7xl mx-auto px-4 py-6 space-y-6">
 
-    <!-- แดชบอร์ดภาพรวม -->
-    <section id="view-overview" class="admin-view space-y-6">
-      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div class="bg-white/95 backdrop-blur-md rounded-2xl p-5 shadow-sm border border-white">
-          <p class="text-xs sm:text-sm text-slate-500">เข้างานตรงเวลา (รวม)</p>
-          <p id="ovOnTime" class="text-3xl font-semibold text-emerald-600 mt-2 tabular-nums">0</p>
-          <span class="inline-block w-5 h-1 bg-emerald-500 rounded-full mt-3"></span>
+    <!-- 1. แดชบอร์ดภาพรวม -->
+    <section id="sec-overview" class="admin-section space-y-5">
+      <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        <div class="bg-white rounded-2xl p-5 shadow-xs border border-slate-100">
+          <p class="text-xs text-slate-500">รายการลงเวลาทั้งหมด</p>
+          <p id="statTotalAtt" class="text-3xl font-semibold text-slate-800 mt-1">0</p>
         </div>
-
-        <div class="bg-white/95 backdrop-blur-md rounded-2xl p-5 shadow-sm border border-white">
-          <p class="text-xs sm:text-sm text-slate-500">มาสาย (รวม)</p>
-          <p id="ovLate" class="text-3xl font-semibold text-amber-500 mt-2 tabular-nums">0</p>
-          <span class="inline-block w-5 h-1 bg-amber-500 rounded-full mt-3"></span>
+        <div class="bg-white rounded-2xl p-5 shadow-xs border border-emerald-100">
+          <p class="text-xs text-emerald-700">เข้าตรงเวลา</p>
+          <p id="statOnTime" class="text-3xl font-semibold text-emerald-600 mt-1">0</p>
         </div>
-
-        <div class="bg-white/95 backdrop-blur-md rounded-2xl p-5 shadow-sm border border-white">
-          <p class="text-xs sm:text-sm text-slate-500">ใบลารออนุมัติ</p>
-          <p id="ovPendingLeave" class="text-3xl font-semibold text-rose-600 mt-2 tabular-nums">0</p>
-          <span class="inline-block w-5 h-1 bg-rose-500 rounded-full mt-3"></span>
+        <div class="bg-white rounded-2xl p-5 shadow-xs border border-amber-100">
+          <p class="text-xs text-amber-700">มาสาย</p>
+          <p id="statLate" class="text-3xl font-semibold text-amber-600 mt-1">0</p>
         </div>
-
-        <div class="bg-white/95 backdrop-blur-md rounded-2xl p-5 shadow-sm border border-white">
-          <p class="text-xs sm:text-sm text-slate-500">รายการบันทึกทั้งหมด</p>
-          <p id="ovTotalRecords" class="text-3xl font-semibold text-indigo-600 mt-2 tabular-nums">0</p>
-          <span class="inline-block w-5 h-1 bg-indigo-500 rounded-full mt-3"></span>
+        <div class="bg-white rounded-2xl p-5 shadow-xs border border-indigo-100">
+          <p class="text-xs text-indigo-700">คำขอลางานทั้งหมด</p>
+          <p id="statLeaves" class="text-3xl font-semibold text-indigo-600 mt-1">0</p>
         </div>
       </div>
 
-      <div class="bg-white/95 backdrop-blur-md rounded-2xl p-5 shadow-sm border border-white space-y-5">
-        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-4">
-          <div>
-            <h2 class="text-base sm:text-lg font-semibold text-slate-800">กราฟสรุปการเข้างานและคำขอลางาน</h2>
-            <p id="monthFilterLabel" class="text-xs text-slate-500">กำลังแสดงข้อมูล: ทุกเดือน (ทั้งหมด)</p>
-          </div>
-
-          <div class="flex items-center gap-2">
-            <label for="monthSelect" class="text-xs sm:text-sm text-slate-600 font-medium">ดูย้อนหลัง:</label>
-            <select id="monthSelect"
-              class="border border-slate-200 rounded-xl px-3.5 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-indigo-400">
-              <option value="ALL">ทุกเดือน (ทั้งหมด)</option>
-            </select>
-          </div>
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-5">
+        <div class="bg-white rounded-2xl p-5 shadow-xs border border-slate-100">
+          <h2 class="text-base font-semibold text-slate-800 mb-3">สัดส่วนสถานะการเข้างาน</h2>
+          <canvas id="statusChart" height="180"></canvas>
         </div>
-
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-5 items-center">
-          <div class="lg:col-span-2 bg-slate-50/70 border border-slate-100 rounded-2xl p-4">
-            <div class="flex items-center justify-between mb-2">
-              <p class="text-sm font-medium text-slate-700">สถิติเปรียบเทียบแต่ละเดือน</p>
-              <span class="text-xs text-slate-400">ตรงเวลา / มาสาย / ใบลา</span>
-            </div>
-            <div class="relative h-60">
-              <canvas id="monthlyBarChart"></canvas>
-            </div>
-          </div>
-
-          <div class="bg-slate-50/70 border border-slate-100 rounded-2xl p-4 flex flex-col justify-between h-full">
-            <div class="mb-2">
-              <p class="text-sm font-medium text-slate-700">สัดส่วนการบันทึก</p>
-              <p class="text-xs text-slate-400">ภาพรวมตามช่วงเวลาที่เลือก</p>
-            </div>
-            <div class="relative h-44 flex items-center justify-center">
-              <canvas id="ratioDoughnutChart"></canvas>
-            </div>
-            <div class="grid grid-cols-3 gap-1.5 text-center pt-3 border-t border-slate-200/70 text-xs tabular-nums">
-              <div>
-                <p class="text-slate-400">ตรงเวลา</p>
-                <p id="chartSumOnTime" class="font-semibold text-emerald-600">0</p>
-              </div>
-              <div>
-                <p class="text-slate-400">มาสาย</p>
-                <p id="chartSumLate" class="font-semibold text-amber-500">0</p>
-              </div>
-              <div>
-                <p class="text-slate-400">ใบลา</p>
-                <p id="chartSumLeave" class="font-semibold text-indigo-600">0</p>
-              </div>
-            </div>
-          </div>
+        <div class="bg-white rounded-2xl p-5 shadow-xs border border-slate-100">
+          <h2 class="text-base font-semibold text-slate-800 mb-3">จำนวนรายการลงเวลาแยกตามกลุ่มงาน</h2>
+          <canvas id="deptChart" height="180"></canvas>
         </div>
       </div>
     </section>
 
-    <!-- รายงานรายกลุ่มงาน -->
-    <section id="view-deptreport" class="admin-view hidden space-y-6">
-      <div class="bg-white/95 backdrop-blur-md rounded-2xl p-5 shadow-sm border border-white space-y-4">
-        <div class="flex flex-wrap items-center justify-between gap-2">
+    <!-- 2. รายงานรายกลุ่มงาน -->
+    <section id="sec-departments" class="admin-section hidden space-y-5">
+      <div class="bg-white rounded-2xl p-5 shadow-xs border border-slate-100 space-y-4">
+        <div class="flex flex-wrap items-center justify-between gap-3">
           <div class="flex flex-wrap gap-2">
-            <button type="button" data-report-cat="support"
-              class="report-cat-btn px-3.5 py-2 rounded-xl text-xs sm:text-sm font-medium bg-slate-100 text-slate-700 hover:bg-indigo-50 transition cursor-pointer">
+            <button type="button" data-cat="all" class="cat-filter-btn px-3.5 py-2 rounded-xl text-xs sm:text-sm font-medium bg-indigo-600 text-white cursor-pointer">
+              ดูทั้งหมวด (12)
+            </button>
+            <button type="button" data-cat="support" class="cat-filter-btn px-3.5 py-2 rounded-xl text-xs sm:text-sm font-medium bg-slate-100 text-slate-700 hover:bg-slate-200 cursor-pointer">
               สนับสนุนและบริหาร (5)
             </button>
-            <button type="button" data-report-cat="academic"
-              class="report-cat-btn px-3.5 py-2 rounded-xl text-xs sm:text-sm font-medium bg-slate-100 text-slate-700 hover:bg-indigo-50 transition cursor-pointer">
+            <button type="button" data-cat="academic" class="cat-filter-btn px-3.5 py-2 rounded-xl text-xs sm:text-sm font-medium bg-slate-100 text-slate-700 hover:bg-slate-200 cursor-pointer">
               วิชาการและการควบคุมโรค (7)
-            </button>
-            <button type="button" data-report-cat="ALL"
-              class="report-cat-btn px-3.5 py-2 rounded-xl text-xs sm:text-sm font-medium bg-slate-100 text-slate-700 hover:bg-indigo-50 transition cursor-pointer">
-              ดูทั้งหมวด (12)
             </button>
           </div>
 
-          <button id="exportDeptCsvBtn" type="button"
-            class="px-3.5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs sm:text-sm font-medium transition cursor-pointer">
-            📥 ส่งออก CSV
+          <button id="exportCsvBtn" type="button"
+            class="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs sm:text-sm font-medium cursor-pointer">
+            ส่งออก CSV
           </button>
         </div>
 
-        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-1">
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 items-end">
           <div>
-            <label for="reportSingleDeptSelect" class="block text-xs font-medium text-slate-600 mb-1">เลือกกลุ่มงานที่ต้องการดู</label>
-            <select id="reportSingleDeptSelect"
-              class="w-full border border-slate-200 rounded-xl px-3.5 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-indigo-400">
-              <option value="">-- เลือกกลุ่มงาน --</option>
+            <label class="block text-xs font-medium text-slate-600 mb-1">เลือกกลุ่มงานที่ต้องการดู</label>
+            <select id="deptSelect" class="w-full border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm bg-white">
+              <option value="">-- ทุกกลุ่มงาน --</option>
               <optgroup label="กลุ่มงานสนับสนุนและบริหาร">
                 <option value="กลุ่มบริหารทั่วไป">กลุ่มบริหารทั่วไป</option>
                 <option value="กลุ่มพัฒนาองค์กร">กลุ่มพัฒนาองค์กร</option>
@@ -255,1289 +180,534 @@
           </div>
 
           <div>
-            <label for="reportMonthSelect" class="block text-xs font-medium text-slate-600 mb-1">ช่วงเดือน</label>
-            <select id="reportMonthSelect"
-              class="w-full border border-slate-200 rounded-xl px-3.5 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-indigo-400">
-              <option value="ALL">ทุกเดือน (ทั้งหมด)</option>
-            </select>
+            <label class="block text-xs font-medium text-slate-600 mb-1">ช่วงเดือน</label>
+            <input id="deptMonthInput" type="month" class="w-full border border-slate-200 rounded-xl px-3.5 py-2 text-sm bg-white" />
           </div>
 
-          <div class="flex items-end">
-            <button id="resetReportFilterBtn" type="button"
-              class="w-full px-3.5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs sm:text-sm font-medium transition cursor-pointer">
+          <div>
+            <button id="clearDeptFilterBtn" type="button"
+              class="w-full px-4 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-sm font-medium cursor-pointer">
               ล้างการเลือก
             </button>
           </div>
         </div>
       </div>
 
-      <div id="deptReportContentBox" class="hidden space-y-6">
-        <div id="deptReportCardsContainer" class="space-y-6"></div>
-
-        <div class="bg-white/95 backdrop-blur-md rounded-2xl p-5 shadow-sm border border-white space-y-3">
-          <div class="flex flex-wrap items-center justify-between gap-2">
-            <div>
-              <h3 class="text-base sm:text-lg font-semibold text-slate-800">ตารางสรุปรายกลุ่มงาน</h3>
-              <p class="text-xs text-slate-500">คลิกที่ชื่อกลุ่มงานเพื่อเปิดดูประวัติการลงเวลาของกลุ่มนั้น</p>
-            </div>
-            <span id="reportDeptCountBadge" class="text-xs bg-indigo-50 text-indigo-700 px-3 py-1 rounded-full font-medium">0 กลุ่มงาน</span>
-          </div>
-
-          <div class="overflow-x-auto">
-            <table class="w-full text-xs sm:text-sm text-left border-collapse">
-              <thead>
-                <tr class="border-b border-slate-200 text-slate-600 bg-slate-50">
-                  <th class="py-2.5 px-3">กลุ่มงาน</th>
-                  <th class="py-2.5 px-3">หมวด</th>
-                  <th class="py-2.5 px-3 text-center">ครั้งที่บันทึก</th>
-                  <th class="py-2.5 px-3 text-center">ตรงเวลา</th>
-                  <th class="py-2.5 px-3 text-center">มาสาย</th>
-                  <th class="py-2.5 px-3 text-center">ใบลา</th>
-                </tr>
-              </thead>
-              <tbody id="deptReportTableBody" class="divide-y divide-slate-100 tabular-nums"></tbody>
-            </table>
-          </div>
-        </div>
-      </div>
-
-      <div id="deptReportEmptyPrompt" class="bg-white/95 backdrop-blur-md rounded-2xl p-8 shadow-sm border border-white text-center space-y-2">
-        <p class="text-base font-semibold text-slate-700">เลือกกลุ่มงานที่ต้องการดูรายงาน</p>
-        <p class="text-xs sm:text-sm text-slate-500">เลือกกลุ่มงานจากช่องด้านบน หรือกดปุ่มหมวดเพื่อแสดงข้อมูลเฉพาะส่วนที่ต้องการ</p>
-      </div>
-    </section>
-
-    <!-- อนุมัติการลา -->
-    <section id="view-approvals" class="admin-view hidden space-y-5">
-      <div class="bg-white/95 backdrop-blur-md rounded-2xl p-5 shadow-sm border border-white space-y-4">
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+      <!-- แสดงเมื่อเลือกกลุ่มงาน: เปลี่ยนเป็นรายชื่อพนักงานของกลุ่มนั้น ๆ -->
+      <div id="selectedDeptRosterCard" class="hidden bg-white rounded-2xl p-5 shadow-xs border border-indigo-100 space-y-4">
+        <div class="flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 pb-3">
           <div>
-            <label class="block text-xs font-medium text-slate-600 mb-1">ค้นหารหัส ชื่อ หรือเหตุผล</label>
-            <input id="approvalSearch" type="text" placeholder="พิมพ์คำค้นหา..."
-              class="w-full border border-slate-200 rounded-xl px-3.5 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400" />
+            <h2 id="rosterDeptHeading" class="text-base font-semibold text-slate-800">รายชื่อพนักงานในกลุ่มงาน</h2>
+            <p id="rosterDeptSub" class="text-xs text-slate-500 mt-0.5">สรุปยอดการเข้างานและใบลาของพนักงานในกลุ่มที่เลือก</p>
           </div>
-
-          <div>
-            <label class="block text-xs font-medium text-slate-600 mb-1">กรองตามกลุ่มงาน</label>
-            <select id="approvalDeptFilter"
-              class="dept-filter-sync w-full border border-slate-200 rounded-xl px-3.5 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-indigo-400">
-              <option value="">ทุกกลุ่มงาน</option>
-              <optgroup label="กลุ่มงานสนับสนุนและบริหาร">
-                <option value="กลุ่มบริหารทั่วไป">กลุ่มบริหารทั่วไป</option>
-                <option value="กลุ่มพัฒนาองค์กร">กลุ่มพัฒนาองค์กร</option>
-                <option value="กลุ่มยุทธศาสตร์และแผนงาน">กลุ่มยุทธศาสตร์และแผนงาน</option>
-                <option value="กลุ่มพัฒนานวัตกรรมและวิจัย">กลุ่มพัฒนานวัตกรรมและวิจัย</option>
-                <option value="กลุ่มสื่อสารความเสี่ยงโรคและภัยสุขภาพ">กลุ่มสื่อสารความเสี่ยงโรคและภัยสุขภาพ</option>
-              </optgroup>
-              <optgroup label="กลุ่มงานวิชาการและการควบคุมโรค">
-                <option value="กลุ่มห้องปฏิบัติการทางการแพทย์ด้านควบคุมโรค">กลุ่มห้องปฏิบัติการทางการแพทย์ด้านควบคุมโรค</option>
-                <option value="กลุ่มระบาดวิทยาและตอบโต้ภาวะฉุกเฉินทางสาธารณสุข">กลุ่มระบาดวิทยาและตอบโต้ภาวะฉุกเฉินทางสาธารณสุข</option>
-                <option value="กลุ่มโรคติดต่อ">กลุ่มโรคติดต่อ</option>
-                <option value="กลุ่มโรคติดต่อเรื้อรัง">กลุ่มโรคติดต่อเรื้อรัง</option>
-                <option value="กลุ่มโรคไม่ติดต่อ">กลุ่มโรคไม่ติดต่อ</option>
-                <option value="กลุ่มโรคจากการประกอบอาชีพและสิ่งแวดล้อม">กลุ่มโรคจากการประกอบอาชีพและสิ่งแวดล้อม</option>
-                <option value="กลุ่มโรคติดต่อนำโดยแมลง">กลุ่มโรคติดต่อนำโดยแมลง</option>
-              </optgroup>
-            </select>
-          </div>
-
-          <div>
-            <label class="block text-xs font-medium text-slate-600 mb-1">กรองสถานะใบลา</label>
-            <select id="approvalStatusSelect"
-              class="w-full border border-slate-200 rounded-xl px-3.5 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-indigo-400">
-              <option value="ALL">ทุกสถานะ</option>
-              <option value="รออนุมัติ">รออนุมัติ</option>
-              <option value="อนุมัติ">อนุมัติแล้ว</option>
-              <option value="ไม่อนุมัติ">ไม่อนุมัติ</option>
-            </select>
-          </div>
-        </div>
-
-        <div class="flex flex-wrap gap-2">
-          <button type="button" data-leave-filter="ALL"
-            class="leave-filter-btn px-3.5 py-1.5 rounded-xl text-xs sm:text-sm font-medium bg-indigo-600 text-white transition cursor-pointer">
-            ทั้งหมด (<span id="countLeaveAll">0</span>)
-          </button>
-          <button type="button" data-leave-filter="รออนุมัติ"
-            class="leave-filter-btn px-3.5 py-1.5 rounded-xl text-xs sm:text-sm font-medium bg-amber-50 text-amber-800 hover:bg-amber-100 border border-amber-200/70 transition cursor-pointer">
-            รออนุมัติ (<span id="countLeavePending">0</span>)
-          </button>
-          <button type="button" data-leave-filter="อนุมัติ"
-            class="leave-filter-btn px-3.5 py-1.5 rounded-xl text-xs sm:text-sm font-medium bg-emerald-50 text-emerald-800 hover:bg-emerald-100 border border-emerald-200/70 transition cursor-pointer">
-            อนุมัติแล้ว (<span id="countLeaveApproved">0</span>)
-          </button>
-          <button type="button" data-leave-filter="ไม่อนุมัติ"
-            class="leave-filter-btn px-3.5 py-1.5 rounded-xl text-xs sm:text-sm font-medium bg-rose-50 text-rose-800 hover:bg-rose-100 border border-rose-200/70 transition cursor-pointer">
-            ไม่อนุมัติ (<span id="countLeaveRejected">0</span>)
-          </button>
-        </div>
-      </div>
-
-      <div class="bg-white/95 backdrop-blur-md rounded-2xl p-5 shadow-sm border border-white space-y-3">
-        <div class="flex items-center justify-between gap-2">
-          <h3 id="approvalListTitle" class="text-base font-semibold text-slate-800">รายการคำขอลางานทั้งหมด</h3>
-          <span id="approvalResultCount" class="text-xs text-slate-500">0 รายการ</span>
+          <span id="rosterCountBadge" class="text-xs bg-indigo-50 text-indigo-700 border border-indigo-100 px-3 py-1 rounded-full font-semibold">
+            0 คน
+          </span>
         </div>
 
         <div class="overflow-x-auto">
           <table class="w-full text-xs sm:text-sm text-left border-collapse">
             <thead>
               <tr class="border-b border-slate-200 text-slate-600 bg-slate-50">
-                <th class="py-2.5 px-3">พนักงาน</th>
-                <th class="py-2.5 px-3">กลุ่มงาน</th>
-                <th class="py-2.5 px-3">ประเภท</th>
-                <th class="py-2.5 px-3">ช่วงวันที่ลา</th>
-                <th class="py-2.5 px-3">เหตุผล</th>
-                <th class="py-2.5 px-3">หลักฐาน</th>
-                <th class="py-2.5 px-3">สถานะ</th>
-                <th class="py-2.5 px-3 text-right">จัดการ</th>
-              </tr>
-            </thead>
-            <tbody id="approvalsTableBody" class="divide-y divide-slate-100">
-              <tr><td colspan="8" class="py-6 text-center text-slate-400">กำลังโหลดข้อมูล...</td></tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
-    </section>
-
-    <!-- ประวัติการลงเวลา -->
-    <section id="view-attendance" class="admin-view hidden space-y-5">
-      <div class="bg-white/95 backdrop-blur-md rounded-2xl p-5 shadow-sm border border-white grid grid-cols-1 sm:grid-cols-2 gap-3">
-        <div>
-          <label class="block text-xs font-medium text-slate-600 mb-1">ค้นหารหัสหรือชื่อพนักงาน</label>
-          <input id="attSearch" type="text" placeholder="พิมพ์รหัส หรือชื่อ..."
-            class="w-full border border-slate-200 rounded-xl px-3.5 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400" />
-        </div>
-
-        <div>
-          <label class="block text-xs font-medium text-slate-600 mb-1">กรองตามกลุ่มงาน</label>
-          <select id="attDeptFilter"
-            class="dept-filter-sync w-full border border-slate-200 rounded-xl px-3.5 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-indigo-400">
-            <option value="">ทุกกลุ่มงาน</option>
-            <optgroup label="กลุ่มงานสนับสนุนและบริหาร">
-              <option value="กลุ่มบริหารทั่วไป">กลุ่มบริหารทั่วไป</option>
-              <option value="กลุ่มพัฒนาองค์กร">กลุ่มพัฒนาองค์กร</option>
-              <option value="กลุ่มยุทธศาสตร์และแผนงาน">กลุ่มยุทธศาสตร์และแผนงาน</option>
-              <option value="กลุ่มพัฒนานวัตกรรมและวิจัย">กลุ่มพัฒนานวัตกรรมและวิจัย</option>
-              <option value="กลุ่มสื่อสารความเสี่ยงโรคและภัยสุขภาพ">กลุ่มสื่อสารความเสี่ยงโรคและภัยสุขภาพ</option>
-            </optgroup>
-            <optgroup label="กลุ่มงานวิชาการและการควบคุมโรค">
-              <option value="กลุ่มห้องปฏิบัติการทางการแพทย์ด้านควบคุมโรค">กลุ่มห้องปฏิบัติการทางการแพทย์ด้านควบคุมโรค</option>
-              <option value="กลุ่มระบาดวิทยาและตอบโต้ภาวะฉุกเฉินทางสาธารณสุข">กลุ่มระบาดวิทยาและตอบโต้ภาวะฉุกเฉินทางสาธารณสุข</option>
-              <option value="กลุ่มโรคติดต่อ">กลุ่มโรคติดต่อ</option>
-              <option value="กลุ่มโรคติดต่อเรื้อรัง">กลุ่มโรคติดต่อเรื้อรัง</option>
-              <option value="กลุ่มโรคไม่ติดต่อ">กลุ่มโรคไม่ติดต่อ</option>
-              <option value="กลุ่มโรคจากการประกอบอาชีพและสิ่งแวดล้อม">กลุ่มโรคจากการประกอบอาชีพและสิ่งแวดล้อม</option>
-              <option value="กลุ่มโรคติดต่อนำโดยแมลง">กลุ่มโรคติดต่อนำโดยแมลง</option>
-            </optgroup>
-          </select>
-        </div>
-      </div>
-
-      <div class="bg-white/95 backdrop-blur-md rounded-2xl p-5 shadow-sm border border-white space-y-3">
-        <div class="flex items-center justify-between gap-2">
-          <h3 class="text-base font-semibold text-slate-800">ประวัติการลงเวลาเข้า-ออกงาน</h3>
-          <span id="attResultCount" class="text-xs text-slate-500">0 รายการ</span>
-        </div>
-
-        <div class="overflow-x-auto">
-          <table class="w-full text-xs sm:text-sm text-left border-collapse">
-            <thead>
-              <tr class="border-b border-slate-200 text-slate-600 bg-slate-50">
-                <th class="py-2.5 px-3">วันที่</th>
-                <th class="py-2.5 px-3">รหัส</th>
+                <th class="py-2.5 px-3">รหัสพนักงาน</th>
                 <th class="py-2.5 px-3">ชื่อ - นามสกุล</th>
+                <th class="py-2.5 px-3 text-center">ครั้งที่บันทึก</th>
+                <th class="py-2.5 px-3 text-center">ตรงเวลา</th>
+                <th class="py-2.5 px-3 text-center">มาสาย</th>
+                <th class="py-2.5 px-3 text-center">ใบลา</th>
+              </tr>
+            </thead>
+            <tbody id="rosterEmployeesBody" class="divide-y divide-slate-100">
+              <tr><td colspan="6" class="py-5 text-center text-slate-400">กรุณาเลือกกลุ่มงาน</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- แสดงเมื่อไม่ได้เลือกกลุ่มงาน: สรุปภาพรวมรายกลุ่มงานเหมือนเดิม -->
+      <div id="allDeptsSummaryCard" class="bg-white rounded-2xl p-5 shadow-xs border border-slate-100 space-y-3">
+        <div class="flex items-center justify-between">
+          <h2 class="text-base font-semibold text-slate-800">ตารางสรุปรายกลุ่มงาน</h2>
+          <span id="deptSummaryCount" class="text-xs bg-slate-100 text-slate-600 px-3 py-1 rounded-full">12 กลุ่มงาน</span>
+        </div>
+        <div class="overflow-x-auto">
+          <table class="w-full text-xs sm:text-sm text-left border-collapse">
+            <thead>
+              <tr class="border-b border-slate-200 text-slate-600 bg-slate-50">
                 <th class="py-2.5 px-3">กลุ่มงาน</th>
-                <th class="py-2.5 px-3">เข้างาน</th>
-                <th class="py-2.5 px-3">ออกงาน</th>
-                <th class="py-2.5 px-3">สถานะ</th>
+                <th class="py-2.5 px-3">หมวด</th>
+                <th class="py-2.5 px-3 text-center">ครั้งที่บันทึก</th>
+                <th class="py-2.5 px-3 text-center">ตรงเวลา</th>
+                <th class="py-2.5 px-3 text-center">มาสาย</th>
+                <th class="py-2.5 px-3 text-center">ใบลา</th>
               </tr>
             </thead>
-            <tbody id="attTableBody" class="divide-y divide-slate-100">
-              <tr><td colspan="7" class="py-6 text-center text-slate-400">กำลังโหลดข้อมูล...</td></tr>
-            </tbody>
+            <tbody id="deptSummaryBody" class="divide-y divide-slate-100"></tbody>
           </table>
         </div>
       </div>
     </section>
 
-    <!-- สมุดรายชื่อพนักงาน -->
-    <section id="view-directory" class="admin-view hidden space-y-5">
-      <div class="bg-white/95 backdrop-blur-md rounded-2xl p-5 shadow-sm border border-white flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+    <!-- 3. อนุมัติการลา -->
+    <section id="sec-approvals" class="admin-section hidden bg-white rounded-2xl p-5 shadow-xs border border-slate-100 space-y-4">
+      <h2 class="text-base font-semibold text-slate-800">รายการคำขอลางาน</h2>
+      <div class="overflow-x-auto">
+        <table class="w-full text-xs sm:text-sm text-left border-collapse">
+          <thead>
+            <tr class="border-b border-slate-200 text-slate-600 bg-slate-50">
+              <th class="py-2.5 px-3">พนักงาน</th>
+              <th class="py-2.5 px-3">กลุ่มงาน</th>
+              <th class="py-2.5 px-3">ประเภท</th>
+              <th class="py-2.5 px-3">ช่วงวันที่</th>
+              <th class="py-2.5 px-3">เหตุผล</th>
+              <th class="py-2.5 px-3">สถานะ</th>
+              <th class="py-2.5 px-3 text-center">จัดการ</th>
+            </tr>
+          </thead>
+          <tbody id="leavesAdminBody" class="divide-y divide-slate-100">
+            <tr><td colspan="7" class="py-5 text-center text-slate-400">กำลังโหลดข้อมูล...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- 4. ประวัติการลงเวลา -->
+    <section id="sec-attendance" class="admin-section hidden bg-white rounded-2xl p-5 shadow-xs border border-slate-100 space-y-4">
+      <div class="flex flex-wrap items-center justify-between gap-2">
+        <h2 class="text-base font-semibold text-slate-800">ประวัติการลงเวลาทั้งหมด</h2>
+        <input id="attSearchInput" type="text" placeholder="ค้นหารหัส / ชื่อ / กลุ่มงาน..."
+          class="border border-slate-200 rounded-xl px-3.5 py-2 text-sm w-full sm:w-64" />
+      </div>
+      <div class="overflow-x-auto">
+        <table class="w-full text-xs sm:text-sm text-left border-collapse">
+          <thead>
+            <tr class="border-b border-slate-200 text-slate-600 bg-slate-50">
+              <th class="py-2.5 px-3">วันที่</th>
+              <th class="py-2.5 px-3">รหัส</th>
+              <th class="py-2.5 px-3">ชื่อ - นามสกุล</th>
+              <th class="py-2.5 px-3">กลุ่มงาน</th>
+              <th class="py-2.5 px-3">เข้างาน</th>
+              <th class="py-2.5 px-3">ออกงาน</th>
+              <th class="py-2.5 px-3">สถานะ</th>
+            </tr>
+          </thead>
+          <tbody id="attAdminBody" class="divide-y divide-slate-100">
+            <tr><td colspan="7" class="py-5 text-center text-slate-400">กำลังโหลดข้อมูล...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- 5. สมุดรายชื่อพนักงาน -->
+    <section id="sec-directory" class="admin-section hidden bg-white rounded-2xl p-5 shadow-xs border border-slate-100 space-y-4">
+      <h2 class="text-base font-semibold text-slate-800">สมุดรายชื่อพนักงาน</h2>
+      <div class="overflow-x-auto">
+        <table class="w-full text-xs sm:text-sm text-left border-collapse">
+          <thead>
+            <tr class="border-b border-slate-200 text-slate-600 bg-slate-50">
+              <th class="py-2.5 px-3">รหัสพนักงาน</th>
+              <th class="py-2.5 px-3">ชื่อ - นามสกุล</th>
+              <th class="py-2.5 px-3">กลุ่มงาน</th>
+              <th class="py-2.5 px-3 text-center">ครั้งที่บันทึก</th>
+              <th class="py-2.5 px-3 text-center">ดูแฟ้ม</th>
+            </tr>
+          </thead>
+          <tbody id="directoryBody" class="divide-y divide-slate-100"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- 6. แฟ้มส่วนตัวรายบุคคล -->
+    <section id="sec-folder" class="admin-section hidden bg-white rounded-2xl p-5 shadow-xs border border-slate-100 space-y-4">
+      <div class="flex flex-wrap items-end gap-2">
         <div>
-          <h2 class="text-base sm:text-lg font-semibold text-slate-800">สมุดรายชื่อพนักงาน</h2>
-          <p class="text-xs text-slate-500">เลือกพนักงานแต่ละคนเพื่อเปิดดูแฟ้มส่วนตัวแยกเฉพาะบุคคล</p>
+          <label class="block text-xs font-medium text-slate-600 mb-1">รหัสพนักงาน</label>
+          <input id="folderEmpCodeInput" type="text" placeholder="เช่น EMP001 หรือ f6699"
+            class="border border-slate-200 rounded-xl px-3.5 py-2 text-sm w-52" />
         </div>
-
-        <input id="directorySearch" type="text" placeholder="ค้นหารหัสหรือชื่อพนักงาน..."
-          class="border border-slate-200 rounded-xl px-3.5 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400 w-full sm:w-64" />
+        <button id="openFolderBtn" type="button"
+          class="px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium cursor-pointer">
+          เปิดแฟ้ม
+        </button>
       </div>
-
-      <div id="employeeCardsGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-        <div class="col-span-full bg-white/90 rounded-2xl p-8 text-center text-slate-400 text-sm">
-          กำลังโหลดรายชื่อพนักงาน...
-        </div>
-      </div>
-    </section>
-
-    <!-- แฟ้มส่วนตัวรายบุคคล -->
-    <section id="view-binder" class="admin-view hidden space-y-5">
-      <div class="bg-white/95 backdrop-blur-md rounded-2xl p-5 shadow-sm border border-white space-y-4">
-        <div class="flex flex-col md:flex-row md:items-center justify-between gap-3 border-b border-slate-100 pb-4">
-          <div>
-            <span class="inline-block text-xs font-medium bg-emerald-100 text-emerald-800 px-3 py-1 rounded-full">
-              แฟ้มส่วนตัวรายบุคคล
-            </span>
-            <h2 id="binderTitle" class="text-lg sm:text-xl font-semibold text-slate-800 mt-1.5">ยังไม่ได้เลือกพนักงาน</h2>
-            <p id="binderSub" class="text-xs text-slate-500">เลือกพนักงานเพื่อดูสถิติ ประวัติการลา และประวัติการลงเวลาแยกเฉพาะคน</p>
-          </div>
-
-          <div class="flex flex-wrap items-center gap-2">
-            <select id="binderSelect"
-              class="border border-slate-200 rounded-xl px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-indigo-400 min-w-[210px]">
-              <option value="">-- เลือกพนักงาน --</option>
-            </select>
-            <button type="button" onclick="switchAdminView('directory')"
-              class="bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs sm:text-sm font-medium px-3.5 py-2 rounded-xl transition cursor-pointer">
-              สมุดรายชื่อ
-            </button>
-          </div>
-        </div>
-
-        <div class="grid grid-cols-2 lg:grid-cols-4 gap-3.5 tabular-nums">
-          <div class="bg-emerald-50/70 border border-emerald-100 rounded-2xl p-4">
-            <p class="text-xs text-emerald-700">เข้าตรงเวลา</p>
-            <p id="empOnTime" class="text-2xl font-semibold text-emerald-600 mt-1">0</p>
-          </div>
-          <div class="bg-amber-50/70 border border-amber-100 rounded-2xl p-4">
-            <p class="text-xs text-amber-700">มาสาย</p>
-            <p id="empLate" class="text-2xl font-semibold text-amber-600 mt-1">0</p>
-          </div>
-          <div class="bg-rose-50/70 border border-rose-100 rounded-2xl p-4">
-            <p class="text-xs text-rose-700">ใบลารออนุมัติ</p>
-            <p id="empPendingLeave" class="text-2xl font-semibold text-rose-600 mt-1">0</p>
-          </div>
-          <div class="bg-indigo-50/70 border border-indigo-100 rounded-2xl p-4">
-            <p class="text-xs text-indigo-700">รายการบันทึกของคนนี้</p>
-            <p id="empTotalRecords" class="text-2xl font-semibold text-indigo-600 mt-1">0</p>
-          </div>
-        </div>
-      </div>
-
-      <div class="bg-white/95 backdrop-blur-md rounded-2xl p-5 shadow-sm border border-white space-y-3">
-        <h3 class="text-base font-semibold text-slate-800">ประวัติคำขอลางาน (เฉพาะบุคคล)</h3>
-        <div class="overflow-x-auto">
-          <table class="w-full text-xs sm:text-sm text-left border-collapse">
-            <thead>
-              <tr class="border-b border-slate-200 text-slate-600 bg-slate-50">
-                <th class="py-2.5 px-3">ประเภท</th>
-                <th class="py-2.5 px-3">ช่วงวันที่ลา</th>
-                <th class="py-2.5 px-3">เหตุผล</th>
-                <th class="py-2.5 px-3">หลักฐาน</th>
-                <th class="py-2.5 px-3">สถานะ</th>
-                <th class="py-2.5 px-3 text-right">จัดการ</th>
-              </tr>
-            </thead>
-            <tbody id="empLeavesBody" class="divide-y divide-slate-100">
-              <tr><td colspan="6" class="py-6 text-center text-slate-400">กรุณาเลือกพนักงานเพื่อดูข้อมูล</td></tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
-
-      <div class="bg-white/95 backdrop-blur-md rounded-2xl p-5 shadow-sm border border-white space-y-3">
-        <h3 class="text-base font-semibold text-slate-800">ประวัติการลงเวลาเข้า-ออกงาน (เฉพาะบุคคล)</h3>
-        <div class="overflow-x-auto">
-          <table class="w-full text-xs sm:text-sm text-left border-collapse">
-            <thead>
-              <tr class="border-b border-slate-200 text-slate-600 bg-slate-50">
-                <th class="py-2.5 px-3">วันที่</th>
-                <th class="py-2.5 px-3">เข้างาน</th>
-                <th class="py-2.5 px-3">ออกงาน</th>
-                <th class="py-2.5 px-3">สถานะ</th>
-              </tr>
-            </thead>
-            <tbody id="empAttBody" class="divide-y divide-slate-100">
-              <tr><td colspan="4" class="py-6 text-center text-slate-400">กรุณาเลือกพนักงานเพื่อดูข้อมูล</td></tr>
-            </tbody>
-          </table>
-        </div>
+      <div id="folderDetailBox" class="bg-slate-50 rounded-xl p-4 text-sm text-slate-600">
+        กรุณาระบุรหัสพนักงานหรือกด "ดูแฟ้ม" จากสมุดรายชื่อพนักงาน
       </div>
     </section>
 
   </main>
 
-  <!-- โมดอลดูภาพหลักฐาน -->
-  <div id="evidenceModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-[80] hidden items-center justify-center p-4">
-    <div class="bg-white rounded-2xl max-w-lg w-full p-4 space-y-3 shadow-2xl">
-      <div class="flex items-center justify-between border-b border-slate-100 pb-2.5">
-        <h3 id="evidenceModalTitle" class="text-sm font-semibold text-slate-800 truncate">หลักฐานการลา</h3>
-        <button id="closeEvidenceModalBtn" type="button" onclick="closeEvidenceModal()"
-          class="w-8 h-8 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-600 flex items-center justify-center cursor-pointer">
-          ✕
-        </button>
-      </div>
-      <div class="bg-slate-50 rounded-xl p-2 flex items-center justify-center max-h-[65vh] overflow-auto">
-        <img id="evidenceModalImg" src="" alt="ภาพหลักฐาน" class="max-h-[58vh] rounded-lg object-contain" />
-      </div>
-      <div class="flex justify-end gap-2">
-        <a id="evidenceModalOpenLink" href="#" target="_blank" rel="noopener noreferrer"
-          class="px-3.5 py-2 rounded-xl bg-indigo-50 hover:bg-indigo-100 text-indigo-700 text-xs font-medium">
-          เปิดรูปในแท็บใหม่ ↗
-        </a>
-        <button id="doneEvidenceModalBtn" type="button" onclick="closeEvidenceModal()"
-          class="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-900 text-white text-xs font-medium cursor-pointer">
-          ปิดหน้าต่าง
-        </button>
-      </div>
-    </div>
-  </div>
-
   <script>
     const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbw3ovdTdqhw7KuqvA_MJ7lyyCQNur-LRCg1hJul1K3733YxNkwfYtuJ-XYry965vPskHw/exec";
 
-    const DEPT_GROUPS = [
-      {
-        category: "support",
-        categoryLabel: "กลุ่มงานสนับสนุนและบริหาร",
-        shortCat: "สนับสนุนและบริหาร",
-        items: [
-          "กลุ่มบริหารทั่วไป",
-          "กลุ่มพัฒนาองค์กร",
-          "กลุ่มยุทธศาสตร์และแผนงาน",
-          "กลุ่มพัฒนานวัตกรรมและวิจัย",
-          "กลุ่มสื่อสารความเสี่ยงโรคและภัยสุขภาพ"
-        ]
-      },
-      {
-        category: "academic",
-        categoryLabel: "กลุ่มงานวิชาการและการควบคุมโรค",
-        shortCat: "วิชาการและการควบคุมโรค",
-        items: [
-          "กลุ่มห้องปฏิบัติการทางการแพทย์ด้านควบคุมโรค",
-          "กลุ่มระบาดวิทยาและตอบโต้ภาวะฉุกเฉินทางสาธารณสุข",
-          "กลุ่มโรคติดต่อ",
-          "กลุ่มโรคติดต่อเรื้อรัง",
-          "กลุ่มโรคไม่ติดต่อ",
-          "กลุ่มโรคจากการประกอบอาชีพและสิ่งแวดล้อม",
-          "กลุ่มโรคติดต่อนำโดยแมลง"
-        ]
-      }
+    const DEPTS = [
+      { name: "กลุ่มบริหารทั่วไป", cat: "support", label: "สนับสนุนและบริหาร" },
+      { name: "กลุ่มพัฒนาองค์กร", cat: "support", label: "สนับสนุนและบริหาร" },
+      { name: "กลุ่มยุทธศาสตร์และแผนงาน", cat: "support", label: "สนับสนุนและบริหาร" },
+      { name: "กลุ่มพัฒนานวัตกรรมและวิจัย", cat: "support", label: "สนับสนุนและบริหาร" },
+      { name: "กลุ่มสื่อสารความเสี่ยงโรคและภัยสุขภาพ", cat: "support", label: "สนับสนุนและบริหาร" },
+      { name: "กลุ่มห้องปฏิบัติการทางการแพทย์ด้านควบคุมโรค", cat: "academic", label: "วิชาการและการควบคุมโรค" },
+      { name: "กลุ่มระบาดวิทยาและตอบโต้ภาวะฉุกเฉินทางสาธารณสุข", cat: "academic", label: "วิชาการและการควบคุมโรค" },
+      { name: "กลุ่มโรคติดต่อ", cat: "academic", label: "วิชาการและการควบคุมโรค" },
+      { name: "กลุ่มโรคติดต่อเรื้อรัง", cat: "academic", label: "วิชาการและการควบคุมโรค" },
+      { name: "กลุ่มโรคไม่ติดต่อ", cat: "academic", label: "วิชาการและการควบคุมโรค" },
+      { name: "กลุ่มโรคจากการประกอบอาชีพและสิ่งแวดล้อม", cat: "academic", label: "วิชาการและการควบคุมโรค" },
+      { name: "กลุ่มโรคติดต่อนำโดยแมลง", cat: "academic", label: "วิชาการและการควบคุมโรค" }
     ];
 
-    let allAttendance = [];
-    let allLeaves = [];
-    let activeView = "overview";
-    let selectedEmpKey = "";
-    let leaveStatusFilter = "ALL";
-    let selectedDept = "";
-    let selectedMonth = "ALL";
-    let reportMonth = "ALL";
-    let reportCategory = "";
-    let reportSingleDept = "";
-
-    let barChartInstance = null;
-    let doughnutChartInstance = null;
-
-    const viewMeta = {
-      overview: {
-        title: "แดชบอร์ดผู้ดูแลระบบ (Admin)",
-        sub: "สรุปภาพรวมการเข้างาน มาสาย และคำขอลางานของพนักงานทั้งหมด"
-      },
-      deptreport: {
-        title: "รายงานรายกลุ่มงาน",
-        sub: "เลือกกลุ่มงานหรือหมวดที่ต้องการดูรายงาน"
-      },
-      approvals: {
-        title: "อนุมัติการลา",
-        sub: "ตรวจสอบหลักฐาน และอนุมัติหรือไม่อนุมัติคำขอลางานของพนักงาน"
-      },
-      attendance: {
-        title: "ประวัติการลงเวลา",
-        sub: "ตรวจสอบเวลาเข้า-ออกงาน แยกตามกลุ่มงานและรายชื่อพนักงาน"
-      },
-      directory: {
-        title: "สมุดรายชื่อพนักงาน",
-        sub: "เลือกพนักงานแต่ละคนเพื่อเปิดดูแฟ้มส่วนตัวแยกเฉพาะบุคคล"
-      },
-      binder: {
-        title: "แฟ้มส่วนตัวรายบุคคล",
-        sub: "ดูสถิติ ประวัติการลา และประวัติการลงเวลาแยกเฉพาะพนักงานที่เลือก"
-      }
+    let state = {
+      attendance: [],
+      leaves: [],
+      catFilter: "all",
+      selectedDept: "",
+      selectedMonth: ""
     };
 
-    function openAdminMenu() {
-      const drawer = document.getElementById("adminDrawer");
-      const backdrop = document.getElementById("adminMenuBackdrop");
-      if (drawer) {
-        drawer.classList.remove("translate-x-full");
-        drawer.classList.add("is-open");
-      }
-      if (backdrop) {
-        backdrop.classList.remove("hidden");
-      }
-    }
+    let statusChartInst = null;
+    let deptChartInst = null;
 
-    function closeAdminMenu() {
-      const drawer = document.getElementById("adminDrawer");
-      const backdrop = document.getElementById("adminMenuBackdrop");
-      if (drawer) {
-        drawer.classList.add("translate-x-full");
-        drawer.classList.remove("is-open");
-      }
-      if (backdrop) {
-        backdrop.classList.add("hidden");
-      }
-    }
+    const drawer = document.getElementById("adminDrawer");
+    const backdrop = document.getElementById("adminBackdrop");
+    const openDrawer = () => { drawer.classList.remove("translate-x-full"); backdrop.classList.remove("hidden"); };
+    const closeDrawer = () => { drawer.classList.add("translate-x-full"); backdrop.classList.add("hidden"); };
 
-    function normalizeKey(row) {
-      const code = String(row.emp_code || "").trim().toLowerCase();
-      const name = String(row.emp_name || "").trim().toLowerCase();
-      return code || name;
-    }
+    document.getElementById("adminMenuBtn").addEventListener("click", openDrawer);
+    document.getElementById("closeAdminMenuBtn").addEventListener("click", closeDrawer);
+    backdrop.addEventListener("click", closeDrawer);
 
-    function getEmployeesList() {
-      const map = new Map();
+    const sectionMeta = {
+      overview: ["แดชบอร์ดภาพรวม", "สรุปยอดการลงเวลาและสถานะการลาทั้งหมด"],
+      departments: ["รายงานรายกลุ่มงาน", "ดูรายชื่อพนักงานตามกลุ่มงานที่เลือกหรือสรุปภาพรวม"],
+      approvals: ["อนุมัติการลา", "ตรวจสอบและอนุมัติคำขอลางานของพนักงาน"],
+      attendance: ["ประวัติการลงเวลา", "รายการเข้า-ออกงานทั้งหมดในระบบ"],
+      directory: ["สมุดรายชื่อพนักงาน", "รายชื่อพนักงานที่พบในระบบและทางลัดเปิดแฟ้ม"],
+      folder: ["แฟ้มส่วนตัวรายบุคคล", "รายละเอียดประวัติการเข้างานและการลาของพนักงาน"]
+    };
 
-      allAttendance.forEach((r) => {
-        const key = normalizeKey(r);
-        if (!key) return;
-        if (!map.has(key)) {
-          map.set(key, {
-            key,
-            code: String(r.emp_code || "-").trim() || "-",
-            name: String(r.emp_name || "ไม่ระบุชื่อ").trim() || "ไม่ระบุชื่อ",
-            onTime: 0,
-            late: 0,
-            pendingLeaves: 0,
-            leaveCount: 0
-          });
-        }
-        const item = map.get(key);
-        if (r.status === "ตรงเวลา") item.onTime += 1;
-        if (r.status === "มาสาย") item.late += 1;
-      });
-
-      allLeaves.forEach((l) => {
-        const key = normalizeKey(l);
-        if (!key) return;
-        if (!map.has(key)) {
-          map.set(key, {
-            key,
-            code: String(l.emp_code || "-").trim() || "-",
-            name: String(l.emp_name || "ไม่ระบุชื่อ").trim() || "ไม่ระบุชื่อ",
-            onTime: 0,
-            late: 0,
-            pendingLeaves: 0,
-            leaveCount: 0
-          });
-        }
-        const item = map.get(key);
-        item.leaveCount += 1;
-        if ((l.approval_status || "รออนุมัติ") === "รออนุมัติ") item.pendingLeaves += 1;
-      });
-
-      return [...map.values()].sort((a, b) => a.code.localeCompare(b.code, "th"));
-    }
-
-    function switchAdminView(viewName) {
-      if (!viewName) return;
-      if (viewName === "binder" && !selectedEmpKey) {
-        const firstEmp = getEmployeesList()[0];
-        if (firstEmp) selectedEmpKey = firstEmp.key;
-      }
-
-      activeView = viewName;
-      document.querySelectorAll(".admin-view").forEach((sec) => sec.classList.add("hidden"));
-      const target = document.getElementById("view-" + viewName);
+    function switchAdminSection(name) {
+      document.querySelectorAll(".admin-section").forEach((s) => s.classList.add("hidden"));
+      const target = document.getElementById("sec-" + name);
       if (target) target.classList.remove("hidden");
 
-      const meta = viewMeta[viewName] || viewMeta.overview;
-      const titleEl = document.getElementById("adminPageTitle");
-      const subEl = document.getElementById("adminPageSub");
-      if (titleEl) titleEl.textContent = meta.title;
-      if (subEl) subEl.textContent = meta.sub;
+      const meta = sectionMeta[name] || ["หลังบ้านผู้ดูแลระบบ", ""];
+      document.getElementById("adminPageTitle").textContent = meta[0];
+      document.getElementById("adminPageSubtitle").textContent = meta[1];
 
-      document.querySelectorAll(".admin-nav-btn").forEach((btn) => {
-        const isCurrent = btn.dataset.adminView === viewName;
-        btn.className = isCurrent
-          ? "admin-nav-btn w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-sm font-medium text-left bg-indigo-600 text-white transition cursor-pointer"
-          : "admin-nav-btn w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-sm font-medium text-left text-slate-700 hover:bg-indigo-50 transition cursor-pointer";
+      document.querySelectorAll(".admin-nav-btn").forEach((b) => {
+        const active = b.dataset.adminNav === name;
+        b.className = active
+          ? "admin-nav-btn w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl font-medium bg-indigo-600 text-white transition cursor-pointer"
+          : "admin-nav-btn w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl font-medium text-slate-700 hover:bg-indigo-50 transition cursor-pointer";
       });
-
-      closeAdminMenu();
-      window.scrollTo({ top: 0, behavior: "smooth" });
-
-      try {
-        if (viewName === "overview") renderOverview();
-        if (viewName === "deptreport") renderDeptReport();
-        if (viewName === "approvals") renderApprovals();
-        if (viewName === "attendance") renderAttendanceTab();
-        if (viewName === "directory") renderDirectory();
-        if (viewName === "binder") renderBinder();
-      } catch (e) {
-        console.error(e);
-      }
+      closeDrawer();
     }
 
-    document.addEventListener("keydown", (e) => {
-      if (e.key === "Escape") {
-        closeAdminMenu();
-        closeEvidenceModal();
-      }
+    document.querySelectorAll("[data-admin-nav]").forEach((btn) => {
+      btn.addEventListener("click", () => switchAdminSection(btn.dataset.adminNav));
     });
 
-    function openEvidenceModal(url, titleText) {
-      if (!url) return;
-      document.getElementById("evidenceModalTitle").textContent = titleText || "หลักฐานการลา";
-      document.getElementById("evidenceModalImg").src = url;
-      document.getElementById("evidenceModalOpenLink").href = url;
-      const modal = document.getElementById("evidenceModal");
-      modal.classList.remove("hidden");
-      modal.classList.add("flex");
-    }
-
-    function closeEvidenceModal() {
-      const modal = document.getElementById("evidenceModal");
-      modal.classList.add("hidden");
-      modal.classList.remove("flex");
-      document.getElementById("evidenceModalImg").src = "";
-    }
-
-    document.getElementById("evidenceModal").addEventListener("click", (e) => {
-      if (e.target.id === "evidenceModal") closeEvidenceModal();
-    });
-
-    function getEvidenceUrl(lv) {
-      return lv.attachment_url || lv.evidence_url || lv.file_url || lv.attachment || "";
-    }
-
-    function bindEvidenceButtons() {
-      document.querySelectorAll(".view-ev-btn").forEach((btn) => {
-        btn.addEventListener("click", () => {
-          openEvidenceModal(
-            decodeURIComponent(btn.dataset.evUrl || ""),
-            `หลักฐานการลา - ${decodeURIComponent(btn.dataset.evName || "")}`
-          );
-        });
-      });
-    }
-
-    function syncDeptSelects(val) {
-      selectedDept = val || "";
-      document.querySelectorAll(".dept-filter-sync").forEach((sel) => {
-        sel.value = selectedDept;
-      });
-    }
-
-    document.querySelectorAll(".dept-filter-sync").forEach((sel) => {
-      sel.addEventListener("change", (e) => {
-        syncDeptSelects(e.target.value);
-        if (activeView === "approvals") renderApprovals();
-        if (activeView === "attendance") renderAttendanceTab();
-      });
-    });
-
-    function extractMonthKey(dateStr) {
-      const s = String(dateStr || "").trim();
-      const isoMatch = s.match(/^(\d{4})[-/](\d{1,2})/);
-      if (isoMatch) return `${isoMatch[1]}-${String(isoMatch[2]).padStart(2, "0")}`;
-      const dmyMatch = s.match(/^(\d{1,2})[-/](\d{1,2})[-/](\d{4})/);
-      if (dmyMatch) return `${dmyMatch[3]}-${String(dmyMatch[2]).padStart(2, "0")}`;
-      return "";
-    }
-
-    function formatMonthThai(ym) {
+    function matchMonth(rawDate, ym) {
+      if (!ym) return true;
+      const s = String(rawDate || "");
       const [y, m] = ym.split("-");
-      const months = [
-        "ม.ค.", "ก.พ.", "มี.ค.", "เม.ย.", "พ.ค.", "มิ.ย.",
-        "ก.ค.", "ส.ค.", "ก.ย.", "ต.ค.", "พ.ย.", "ธ.ค."
-      ];
-      return `${months[Number(m) - 1] || m} ${y}`;
-    }
-
-    function syncMonthOptions() {
-      const monthSet = new Set();
-      allAttendance.forEach((r) => {
-        const mk = extractMonthKey(r.date);
-        if (mk) monthSet.add(mk);
-      });
-      allLeaves.forEach((l) => {
-        const mk = extractMonthKey(l.start_date || l.date);
-        if (mk) monthSet.add(mk);
-      });
-
-      const sortedMonths = [...monthSet].sort();
-
-      const ovSelect = document.getElementById("monthSelect");
-      const prevOv = selectedMonth;
-      ovSelect.innerHTML = `<option value="ALL">ทุกเดือน (ทั้งหมด)</option>`;
-      sortedMonths.forEach((ym) => {
-        const opt = document.createElement("option");
-        opt.value = ym;
-        opt.textContent = formatMonthThai(ym);
-        ovSelect.appendChild(opt);
-      });
-      selectedMonth = (prevOv !== "ALL" && monthSet.has(prevOv)) ? prevOv : "ALL";
-      ovSelect.value = selectedMonth;
-
-      const repSelect = document.getElementById("reportMonthSelect");
-      const prevRep = reportMonth;
-      repSelect.innerHTML = `<option value="ALL">ทุกเดือน (ทั้งหมด)</option>`;
-      sortedMonths.forEach((ym) => {
-        const opt = document.createElement("option");
-        opt.value = ym;
-        opt.textContent = formatMonthThai(ym);
-        repSelect.appendChild(opt);
-      });
-      reportMonth = (prevRep !== "ALL" && monthSet.has(prevRep)) ? prevRep : "ALL";
-      repSelect.value = reportMonth;
-    }
-
-    function buildMonthlySeries() {
-      const buckets = new Map();
-      const ensureBucket = (ym) => {
-        if (!buckets.has(ym)) {
-          buckets.set(ym, { ym, label: formatMonthThai(ym), onTime: 0, late: 0, leaves: 0 });
-        }
-        return buckets.get(ym);
-      };
-
-      allAttendance.forEach((r) => {
-        const ym = extractMonthKey(r.date);
-        if (!ym) return;
-        const b = ensureBucket(ym);
-        if (r.status === "ตรงเวลา") b.onTime += 1;
-        if (r.status === "มาสาย") b.late += 1;
-      });
-
-      allLeaves.forEach((l) => {
-        const ym = extractMonthKey(l.start_date || l.date);
-        if (!ym) return;
-        const b = ensureBucket(ym);
-        b.leaves += 1;
-      });
-
-      const list = [...buckets.values()].sort((a, b) => a.ym.localeCompare(b.ym));
-      return list.length ? list : [{ ym: "current", label: "เดือนปัจจุบัน", onTime: 0, late: 0, leaves: 0 }];
-    }
-
-    function renderCharts(onTime, late, leavesCount) {
-      if (typeof Chart === "undefined") return;
-      const series = buildMonthlySeries();
-      const barCtx = document.getElementById("monthlyBarChart").getContext("2d");
-      if (barChartInstance) barChartInstance.destroy();
-      barChartInstance = new Chart(barCtx, {
-        type: "bar",
-        data: {
-          labels: series.map((s) => s.label),
-          datasets: [
-            { label: "ตรงเวลา", data: series.map((s) => s.onTime), backgroundColor: "rgba(16, 185, 129, 0.8)", borderRadius: 8 },
-            { label: "มาสาย", data: series.map((s) => s.late), backgroundColor: "rgba(245, 158, 11, 0.8)", borderRadius: 8 },
-            { label: "ใบลา", data: series.map((s) => s.leaves), backgroundColor: "rgba(99, 102, 241, 0.8)", borderRadius: 8 }
-          ]
-        },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          plugins: { legend: { position: "bottom", labels: { boxWidth: 12, font: { family: "Kanit", size: 12 } } } },
-          scales: {
-            y: { beginAtZero: true, ticks: { precision: 0, font: { family: "Kanit" } } },
-            x: { ticks: { font: { family: "Kanit" } } }
-          }
-        }
-      });
-
-      const hasAny = (onTime + late + leavesCount) > 0;
-      const doughnutCtx = document.getElementById("ratioDoughnutChart").getContext("2d");
-      if (doughnutChartInstance) doughnutChartInstance.destroy();
-      doughnutChartInstance = new Chart(doughnutCtx, {
-        type: "doughnut",
-        data: {
-          labels: hasAny ? ["ตรงเวลา", "มาสาย", "ใบลา"] : ["ยังไม่มีข้อมูล"],
-          datasets: [{
-            data: hasAny ? [onTime, late, leavesCount] : [1],
-            backgroundColor: hasAny ? ["#10b981", "#f59e0b", "#6366f1"] : ["#e2e8f0"],
-            borderWidth: 0
-          }]
-        },
-        options: { responsive: true, maintainAspectRatio: false, cutout: "66%", plugins: { legend: { display: false } } }
-      });
-
-      document.getElementById("chartSumOnTime").textContent = onTime;
-      document.getElementById("chartSumLate").textContent = late;
-      document.getElementById("chartSumLeave").textContent = leavesCount;
+      const m2 = String(Number(m)).padStart(2, "0");
+      return s.includes(ym) || s.includes(`/${m2}/${y}`) || s.includes(`/${Number(m)}/${y}`) ||
+             s.includes(`/${m2}/${Number(y) + 543}`) || s.includes(`/${Number(m)}/${Number(y) + 543}`);
     }
 
     function renderOverview() {
-      updateLeaveBadges();
-      syncMonthOptions();
+      const att = state.attendance;
+      const lvs = state.leaves;
+      const onTime = att.filter((r) => r.status === "ตรงเวลา").length;
+      const late = att.filter((r) => r.status === "มาสาย").length;
+      const pending = lvs.filter((l) => l.approval_status === "รออนุมัติ").length;
 
-      const attFiltered = selectedMonth === "ALL"
-        ? allAttendance
-        : allAttendance.filter((r) => extractMonthKey(r.date) === selectedMonth);
+      document.getElementById("statTotalAtt").textContent = att.length;
+      document.getElementById("statOnTime").textContent = onTime;
+      document.getElementById("statLate").textContent = late;
+      document.getElementById("statLeaves").textContent = lvs.length;
+      document.getElementById("pendingBadge").textContent = pending;
 
-      const leavesFiltered = selectedMonth === "ALL"
-        ? allLeaves
-        : allLeaves.filter((l) => extractMonthKey(l.start_date || l.date) === selectedMonth);
+      if (statusChartInst) statusChartInst.destroy();
+      statusChartInst = new Chart(document.getElementById("statusChart"), {
+        type: "doughnut",
+        data: {
+          labels: ["ตรงเวลา", "มาสาย"],
+          datasets: [{ data: [onTime, late], backgroundColor: ["#10b981", "#f59e0b"] }]
+        }
+      });
 
-      const onTime = attFiltered.filter((r) => r.status === "ตรงเวลา").length;
-      const late = attFiltered.filter((r) => r.status === "มาสาย").length;
-      const pendingLeave = leavesFiltered.filter((l) => (l.approval_status || "รออนุมัติ") === "รออนุมัติ").length;
-      const total = attFiltered.length + leavesFiltered.length;
-
-      document.getElementById("ovOnTime").textContent = onTime;
-      document.getElementById("ovLate").textContent = late;
-      document.getElementById("ovPendingLeave").textContent = pendingLeave;
-      document.getElementById("ovTotalRecords").textContent = total;
-
-      document.getElementById("monthFilterLabel").textContent =
-        selectedMonth === "ALL"
-          ? "กำลังแสดงข้อมูล: ทุกเดือน (ทั้งหมด)"
-          : `กำลังแสดงข้อมูลย้อนหลัง: ${formatMonthThai(selectedMonth)}`;
-
-      renderCharts(onTime, late, leavesFiltered.length);
+      if (deptChartInst) deptChartInst.destroy();
+      const counts = DEPTS.map((d) => att.filter((r) => r.department === d.name).length);
+      deptChartInst = new Chart(document.getElementById("deptChart"), {
+        type: "bar",
+        data: {
+          labels: DEPTS.map((d) => d.name.replace(/^กลุ่ม/, "")),
+          datasets: [{ label: "จำนวนบันทึก", data: counts, backgroundColor: "#6366f1" }]
+        },
+        options: { plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true } } }
+      });
     }
 
-    function computeDeptReportRows() {
-      const attByMonth = reportMonth === "ALL"
-        ? allAttendance
-        : allAttendance.filter((r) => extractMonthKey(r.date) === reportMonth);
+    function renderDepartmentsTab() {
+      const rosterCard = document.getElementById("selectedDeptRosterCard");
+      const summaryCard = document.getElementById("allDeptsSummaryCard");
+      const selectedDept = (state.selectedDept || "").trim();
+      const ym = state.selectedMonth || "";
 
-      const leavesByMonth = reportMonth === "ALL"
-        ? allLeaves
-        : allLeaves.filter((l) => extractMonthKey(l.start_date || l.date) === reportMonth);
+      if (selectedDept) {
+        rosterCard.classList.remove("hidden");
+        summaryCard.classList.add("hidden");
 
-      const rows = [];
-      DEPT_GROUPS.forEach((grp) => {
-        if (reportSingleDept) {
-          if (!grp.items.includes(reportSingleDept)) return;
-        } else if (reportCategory !== "ALL" && reportCategory !== grp.category) {
-          return;
-        }
+        document.getElementById("rosterDeptHeading").textContent = `รายชื่อพนักงาน — ${selectedDept}`;
+        document.getElementById("rosterDeptSub").textContent = ym ? `ช่วงเดือน ${ym}` : "ข้อมูลทั้งหมดในกลุ่มงานที่เลือก";
 
-        grp.items.forEach((deptName) => {
-          if (reportSingleDept && reportSingleDept !== deptName) return;
+        const empMap = new Map();
+        const getEmp = (code, name) => {
+          const c = String(code || "").trim();
+          const n = String(name || "").trim();
+          const k = (c || n).toLowerCase();
+          if (!k) return null;
+          if (!empMap.has(k)) {
+            empMap.set(k, { code: c || "-", name: n || "ไม่ระบุชื่อ", count: 0, onTime: 0, late: 0, leave: 0 });
+          }
+          return empMap.get(k);
+        };
 
-          const deptAtt = attByMonth.filter((r) => String(r.department || "").trim() === deptName);
-          const deptLeaves = leavesByMonth.filter((l) => String(l.department || "").trim() === deptName);
-
-          rows.push({
-            category: grp.category,
-            categoryLabel: grp.categoryLabel,
-            shortCat: grp.shortCat,
-            deptName,
-            attTotal: deptAtt.length,
-            onTime: deptAtt.filter((r) => r.status === "ตรงเวลา").length,
-            late: deptAtt.filter((r) => r.status === "มาสาย").length,
-            leaveTotal: deptLeaves.length
-          });
+        state.attendance.forEach((r) => {
+          if (String(r.department || "").trim() !== selectedDept || !matchMonth(r.date, ym)) return;
+          const e = getEmp(r.emp_code, r.emp_name);
+          if (!e) return;
+          e.count++;
+          if (r.status === "ตรงเวลา") e.onTime++;
+          if (r.status === "มาสาย") e.late++;
         });
-      });
 
-      return rows;
-    }
+        state.leaves.forEach((l) => {
+          if (String(l.department || "").trim() !== selectedDept || !matchMonth(l.start_date || l.end_date, ym)) return;
+          const e = getEmp(l.emp_code, l.emp_name);
+          if (!e) return;
+          if (l.approval_status !== "ไม่อนุมัติ") e.leave++;
+        });
 
-    function setReportCategoryUI(cat) {
-      reportCategory = cat;
-      document.querySelectorAll("[data-report-cat]").forEach((btn) => {
-        const active = !reportSingleDept && btn.dataset.reportCat === reportCategory;
-        btn.className = active
-          ? "report-cat-btn px-3.5 py-2 rounded-xl text-xs sm:text-sm font-medium bg-indigo-600 text-white transition cursor-pointer"
-          : "report-cat-btn px-3.5 py-2 rounded-xl text-xs sm:text-sm font-medium bg-slate-100 text-slate-700 hover:bg-indigo-50 transition cursor-pointer";
-      });
-    }
+        const list = [...empMap.values()].sort((a, b) => a.code.localeCompare(b.code, "th", { numeric: true }));
+        document.getElementById("rosterCountBadge").textContent = `${list.length} คน`;
 
-    function openDeptInAttendance(encodedDept) {
-      syncDeptSelects(decodeURIComponent(encodedDept));
-      switchAdminView("attendance");
-    }
-
-    function renderDeptReport() {
-      syncMonthOptions();
-      setReportCategoryUI(reportCategory);
-      document.getElementById("reportSingleDeptSelect").value = reportSingleDept;
-
-      const hasSelection = Boolean(reportSingleDept || reportCategory);
-      const contentBox = document.getElementById("deptReportContentBox");
-      const emptyPrompt = document.getElementById("deptReportEmptyPrompt");
-
-      if (!hasSelection) {
-        contentBox.classList.add("hidden");
-        emptyPrompt.classList.remove("hidden");
+        document.getElementById("rosterEmployeesBody").innerHTML = list.length
+          ? list.map((e) => `
+              <tr>
+                <td class="py-2.5 px-3 font-medium text-indigo-700">${e.code}</td>
+                <td class="py-2.5 px-3">${e.name}</td>
+                <td class="py-2.5 px-3 text-center">${e.count}</td>
+                <td class="py-2.5 px-3 text-center text-emerald-600 font-medium">${e.onTime}</td>
+                <td class="py-2.5 px-3 text-center text-amber-600 font-medium">${e.late}</td>
+                <td class="py-2.5 px-3 text-center text-indigo-600 font-medium">${e.leave}</td>
+              </tr>`).join("")
+          : '<tr><td colspan="6" class="py-5 text-center text-slate-400">ยังไม่มีรายชื่อพนักงานในกลุ่มงานนี้</td></tr>';
         return;
       }
 
-      contentBox.classList.remove("hidden");
-      emptyPrompt.classList.add("hidden");
+      rosterCard.classList.add("hidden");
+      summaryCard.classList.remove("hidden");
 
-      const rows = computeDeptReportRows();
-      document.getElementById("reportDeptCountBadge").textContent = `${rows.length} กลุ่มงาน`;
+      const filteredDepts = DEPTS.filter((d) => state.catFilter === "all" || d.cat === state.catFilter);
+      document.getElementById("deptSummaryCount").textContent = `${filteredDepts.length} กลุ่มงาน`;
 
-      const cardsContainer = document.getElementById("deptReportCardsContainer");
-      const activeGroups = DEPT_GROUPS.filter((g) => {
-        if (reportSingleDept) return g.items.includes(reportSingleDept);
-        return reportCategory === "ALL" || reportCategory === g.category;
-      });
-
-      cardsContainer.innerHTML = activeGroups.map((grp) => {
-        const grpRows = rows.filter((r) => r.category === grp.category);
-        return `
-          <div class="space-y-3">
-            <div class="flex items-center justify-between">
-              <h2 class="text-base font-semibold text-slate-800">${grp.categoryLabel}</h2>
-              <span class="text-xs text-slate-500">${grpRows.length} กลุ่ม</span>
-            </div>
-            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5">
-              ${grpRows.map((d) => `
-                <button type="button" onclick="openDeptInAttendance('${encodeURIComponent(d.deptName)}')"
-                  class="bg-white/95 hover:bg-indigo-50/40 rounded-2xl p-4 shadow-sm border border-white hover:border-indigo-200 text-left transition space-y-3 cursor-pointer">
-                  <p class="text-sm font-semibold text-slate-800 leading-snug">${d.deptName}</p>
-                  <div class="grid grid-cols-3 gap-2 text-center bg-slate-50 rounded-xl py-2 px-1 text-xs tabular-nums">
-                    <div>
-                      <span class="text-slate-400">ตรงเวลา</span>
-                      <p class="font-semibold text-emerald-600 text-sm">${d.onTime}</p>
-                    </div>
-                    <div>
-                      <span class="text-slate-400">มาสาย</span>
-                      <p class="font-semibold text-amber-500 text-sm">${d.late}</p>
-                    </div>
-                    <div>
-                      <span class="text-slate-400">ใบลา</span>
-                      <p class="font-semibold text-indigo-600 text-sm">${d.leaveTotal}</p>
-                    </div>
-                  </div>
-                </button>
-              `).join("")}
-            </div>
-          </div>
-        `;
-      }).join("");
-
-      document.getElementById("deptReportTableBody").innerHTML = rows.map((d) => `
-        <tr>
-          <td class="py-2.5 px-3 font-medium">
-            <button type="button" onclick="openDeptInAttendance('${encodeURIComponent(d.deptName)}')"
-              class="text-indigo-700 hover:underline text-left cursor-pointer">${d.deptName}</button>
-          </td>
-          <td class="py-2.5 px-3 text-xs text-slate-500">${d.shortCat}</td>
-          <td class="py-2.5 px-3 text-center">${d.attTotal}</td>
-          <td class="py-2.5 px-3 text-center font-medium text-emerald-600">${d.onTime}</td>
-          <td class="py-2.5 px-3 text-center font-medium text-amber-500">${d.late}</td>
-          <td class="py-2.5 px-3 text-center font-medium text-indigo-600">${d.leaveTotal}</td>
-        </tr>
-      `).join("");
-    }
-
-    document.querySelectorAll("[data-report-cat]").forEach((btn) => {
-      btn.addEventListener("click", () => {
-        reportSingleDept = "";
-        setReportCategoryUI(btn.dataset.reportCat);
-        renderDeptReport();
-      });
-    });
-
-    document.getElementById("reportSingleDeptSelect").addEventListener("change", (e) => {
-      reportSingleDept = e.target.value;
-      if (reportSingleDept) reportCategory = "";
-      renderDeptReport();
-    });
-
-    document.getElementById("reportMonthSelect").addEventListener("change", (e) => {
-      reportMonth = e.target.value;
-      renderDeptReport();
-    });
-
-    document.getElementById("resetReportFilterBtn").addEventListener("click", () => {
-      reportCategory = "";
-      reportSingleDept = "";
-      reportMonth = "ALL";
-      renderDeptReport();
-    });
-
-    document.getElementById("exportDeptCsvBtn").addEventListener("click", () => {
-      const prevCat = reportCategory;
-      const prevSingle = reportSingleDept;
-      if (!prevCat && !prevSingle) reportCategory = "ALL";
-      const rows = computeDeptReportRows();
-      reportCategory = prevCat;
-      reportSingleDept = prevSingle;
-
-      const header = ["กลุ่มงาน", "หมวดกลุ่มงาน", "ครั้งที่บันทึก", "ตรงเวลา", "มาสาย", "ใบลา"];
-      const csvLines = [
-        header.join(","),
-        ...rows.map((r) => [`"${r.deptName}"`, `"${r.categoryLabel}"`, r.attTotal, r.onTime, r.late, r.leaveTotal].join(","))
-      ];
-      const blob = new Blob(["\uFEFF" + csvLines.join("\n")], { type: "text/csv;charset=utf-8;" });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = `รายงานรายกลุ่มงาน_${reportMonth}.csv`;
-      a.click();
-      URL.revokeObjectURL(url);
-    });
-
-    function renderLeaveRow(lv, includePersonAndDept = true) {
-      const st = lv.approval_status || "รออนุมัติ";
-      const badge =
-        st === "อนุมัติ" ? "bg-emerald-100 text-emerald-700" :
-        st === "ไม่อนุมัติ" ? "bg-rose-100 text-rose-700" :
-        "bg-amber-100 text-amber-700";
-
-      const evUrl = getEvidenceUrl(lv);
-      const evCell = evUrl
-        ? `<button type="button" data-ev-url="${encodeURIComponent(evUrl)}" data-ev-name="${encodeURIComponent(lv.emp_name || "หลักฐาน")}"
-             class="view-ev-btn text-xs font-medium text-indigo-600 hover:text-indigo-800 underline cursor-pointer">
-             ดูรูป
-           </button>`
-        : `<span class="text-xs text-slate-400">-</span>`;
-
-      const rowId = lv.id || lv.row_id || lv.leave_id || "";
-      const personCells = includePersonAndDept
-        ? `<td class="py-2.5 px-3 font-medium">${lv.emp_name || "-"} <span class="text-xs text-slate-400">(${lv.emp_code || "-"})</span></td>
-           <td class="py-2.5 px-3 text-xs text-slate-600">${lv.department || "-"}</td>`
-        : "";
-
-      return `
-        <tr>
-          ${personCells}
-          <td class="py-2.5 px-3">${lv.leave_type || "-"}</td>
-          <td class="py-2.5 px-3 text-xs whitespace-nowrap">${lv.start_date || "-"} ถึง ${lv.end_date || "-"}</td>
-          <td class="py-2.5 px-3">${lv.reason || "-"}</td>
-          <td class="py-2.5 px-3 whitespace-nowrap">${evCell}</td>
-          <td class="py-2.5 px-3 whitespace-nowrap"><span class="px-2.5 py-0.5 rounded-full text-xs font-medium ${badge}">${st}</span></td>
-          <td class="py-2.5 px-3 text-right space-x-1 whitespace-nowrap">
-            <button type="button" onclick="updateLeaveStatus('${encodeURIComponent(rowId)}', 'อนุมัติ')"
-              class="px-2.5 py-1 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-xs cursor-pointer">อนุมัติ</button>
-            <button type="button" onclick="updateLeaveStatus('${encodeURIComponent(rowId)}', 'ไม่อนุมัติ')"
-              class="px-2.5 py-1 rounded-lg bg-rose-600 hover:bg-rose-700 text-white text-xs cursor-pointer">ไม่อนุมัติ</button>
-          </td>
-        </tr>
-      `;
-    }
-
-    function updateLeaveBadges() {
-      const pendingCount = allLeaves.filter((l) => (l.approval_status || "รออนุมัติ") === "รออนุมัติ").length;
-      const approvedCount = allLeaves.filter((l) => l.approval_status === "อนุมัติ").length;
-      const rejectedCount = allLeaves.filter((l) => l.approval_status === "ไม่อนุมัติ").length;
-
-      document.getElementById("drawerPendingBadge").textContent = pendingCount;
-      document.getElementById("countLeaveAll").textContent = allLeaves.length;
-      document.getElementById("countLeavePending").textContent = pendingCount;
-      document.getElementById("countLeaveApproved").textContent = approvedCount;
-      document.getElementById("countLeaveRejected").textContent = rejectedCount;
-    }
-
-    function setLeaveFilterActive(val) {
-      leaveStatusFilter = val;
-      document.getElementById("approvalStatusSelect").value = val;
-      document.querySelectorAll("[data-leave-filter]").forEach((b) => {
-        const active = b.dataset.leaveFilter === leaveStatusFilter;
-        b.className = active
-          ? "leave-filter-btn px-3.5 py-1.5 rounded-xl text-xs sm:text-sm font-medium bg-indigo-600 text-white transition cursor-pointer"
-          : "leave-filter-btn px-3.5 py-1.5 rounded-xl text-xs sm:text-sm font-medium bg-slate-100 text-slate-700 hover:bg-slate-200 transition cursor-pointer";
-      });
-      renderApprovals();
-    }
-
-    function renderApprovals() {
-      updateLeaveBadges();
-      const searchText = String(document.getElementById("approvalSearch").value || "").trim().toLowerCase();
-
-      const filtered = allLeaves.filter((lv) => {
-        const st = lv.approval_status || "รออนุมัติ";
-        if (leaveStatusFilter !== "ALL" && st !== leaveStatusFilter) return false;
-        if (selectedDept && String(lv.department || "") !== selectedDept) return false;
-        if (searchText) {
-          const hay = `${lv.emp_code || ""} ${lv.emp_name || ""} ${lv.leave_type || ""} ${lv.reason || ""}`.toLowerCase();
-          if (!hay.includes(searchText)) return false;
-        }
-        return true;
-      });
-
-      document.getElementById("approvalListTitle").textContent =
-        leaveStatusFilter === "ALL" ? "รายการคำขอลางานทั้งหมด" : `รายการคำขอลางาน (${leaveStatusFilter})`;
-      document.getElementById("approvalResultCount").textContent = `${filtered.length} รายการ`;
-
-      const tbody = document.getElementById("approvalsTableBody");
-      if (!filtered.length) {
-        tbody.innerHTML = `<tr><td colspan="8" class="py-6 text-center text-slate-400">ไม่พบรายการคำขอลางานตามเงื่อนไขที่เลือก</td></tr>`;
-        return;
-      }
-      tbody.innerHTML = filtered.map((lv) => renderLeaveRow(lv, true)).join("");
-      bindEvidenceButtons();
-    }
-
-    document.querySelectorAll("[data-leave-filter]").forEach((btn) => {
-      btn.addEventListener("click", () => setLeaveFilterActive(btn.dataset.leaveFilter));
-    });
-    document.getElementById("approvalStatusSelect").addEventListener("change", (e) => {
-      setLeaveFilterActive(e.target.value);
-    });
-    document.getElementById("approvalSearch").addEventListener("input", renderApprovals);
-
-    function renderAttendanceTab() {
-      const kw = String(document.getElementById("attSearch").value || "").trim().toLowerCase();
-      const filtered = allAttendance.filter((r) => {
-        if (selectedDept && String(r.department || "") !== selectedDept) return false;
-        if (kw) {
-          const hay = `${r.emp_code || ""} ${r.emp_name || ""}`.toLowerCase();
-          if (!hay.includes(kw)) return false;
-        }
-        return true;
-      });
-
-      document.getElementById("attResultCount").textContent = `${filtered.length} รายการ`;
-      const tbody = document.getElementById("attTableBody");
-      if (!filtered.length) {
-        tbody.innerHTML = `<tr><td colspan="7" class="py-6 text-center text-slate-400">ไม่พบข้อมูลการลงเวลา</td></tr>`;
-        return;
-      }
-
-      tbody.innerHTML = filtered.map((r) => {
-        const st = r.status || "-";
-        const badge =
-          st === "ตรงเวลา" ? "bg-emerald-100 text-emerald-700" :
-          st === "มาสาย" ? "bg-amber-100 text-amber-700" :
-          "bg-slate-100 text-slate-700";
+      document.getElementById("deptSummaryBody").innerHTML = filteredDepts.map((d) => {
+        const rows = state.attendance.filter((r) => r.department === d.name && matchMonth(r.date, ym));
+        const lvs = state.leaves.filter((l) => l.department === d.name && matchMonth(l.start_date || l.end_date, ym));
+        const onTime = rows.filter((r) => r.status === "ตรงเวลา").length;
+        const late = rows.filter((r) => r.status === "มาสาย").length;
         return `
           <tr>
-            <td class="py-2.5 px-3 whitespace-nowrap">${r.date || "-"}</td>
-            <td class="py-2.5 px-3 font-medium text-indigo-700">${r.emp_code || "-"}</td>
-            <td class="py-2.5 px-3 font-medium">${r.emp_name || "-"}</td>
-            <td class="py-2.5 px-3 text-xs text-slate-600">${r.department || "-"}</td>
-            <td class="py-2.5 px-3 tabular-nums">${r.check_in || "-"}</td>
-            <td class="py-2.5 px-3 tabular-nums">${r.check_out || "-"}</td>
-            <td class="py-2.5 px-3 whitespace-nowrap"><span class="px-2.5 py-0.5 rounded-full text-xs font-medium ${badge}">${st}</span></td>
-          </tr>
-        `;
+            <td class="py-2.5 px-3 font-medium text-indigo-700 cursor-pointer hover:underline" onclick="selectDeptFromTable('${d.name.replace(/'/g, "\\'")}')">${d.name}</td>
+            <td class="py-2.5 px-3 text-slate-500">${d.label}</td>
+            <td class="py-2.5 px-3 text-center">${rows.length}</td>
+            <td class="py-2.5 px-3 text-center text-emerald-600 font-medium">${onTime}</td>
+            <td class="py-2.5 px-3 text-center text-amber-600 font-medium">${late}</td>
+            <td class="py-2.5 px-3 text-center text-indigo-600 font-medium">${lvs.length}</td>
+          </tr>`;
       }).join("");
     }
 
-    document.getElementById("attSearch").addEventListener("input", renderAttendanceTab);
+    window.selectDeptFromTable = function (deptName) {
+      state.selectedDept = deptName;
+      document.getElementById("deptSelect").value = deptName;
+      renderDepartmentsTab();
+    };
 
-    function syncEmployeeSelectors(employees) {
-      const selectEl = document.getElementById("binderSelect");
-      const drawerEmpEl = document.getElementById("drawerSelectedEmp");
-
-      selectEl.innerHTML = `<option value="">-- เลือกพนักงาน --</option>`;
-      employees.forEach((emp) => {
-        const opt = document.createElement("option");
-        opt.value = emp.key;
-        opt.textContent = `${emp.code} — ${emp.name}`;
-        selectEl.appendChild(opt);
+    document.querySelectorAll(".cat-filter-btn").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        state.catFilter = btn.dataset.cat;
+        document.querySelectorAll(".cat-filter-btn").forEach((b) => {
+          b.className = b === btn
+            ? "cat-filter-btn px-3.5 py-2 rounded-xl text-xs sm:text-sm font-medium bg-indigo-600 text-white cursor-pointer"
+            : "cat-filter-btn px-3.5 py-2 rounded-xl text-xs sm:text-sm font-medium bg-slate-100 text-slate-700 hover:bg-slate-200 cursor-pointer";
+        });
+        renderDepartmentsTab();
       });
+    });
 
-      if (selectedEmpKey && employees.some((e) => e.key === selectedEmpKey)) {
-        selectEl.value = selectedEmpKey;
-        const found = employees.find((e) => e.key === selectedEmpKey);
-        drawerEmpEl.textContent = `แฟ้ม: ${found.name} (${found.code})`;
-      } else {
-        drawerEmpEl.textContent = "แฟ้ม: ยังไม่ได้เลือก";
-      }
-    }
+    document.getElementById("deptSelect").addEventListener("change", (e) => {
+      state.selectedDept = e.target.value;
+      renderDepartmentsTab();
+    });
 
-    function renderDirectory() {
-      const employees = getEmployeesList();
-      syncEmployeeSelectors(employees);
+    document.getElementById("deptMonthInput").addEventListener("change", (e) => {
+      state.selectedMonth = e.target.value;
+      renderDepartmentsTab();
+    });
 
-      const query = String(document.getElementById("directorySearch").value || "").trim().toLowerCase();
-      const filtered = employees.filter((emp) => {
-        if (!query) return true;
-        return `${emp.code} ${emp.name}`.toLowerCase().includes(query);
-      });
+    document.getElementById("clearDeptFilterBtn").addEventListener("click", () => {
+      state.catFilter = "all";
+      state.selectedDept = "";
+      state.selectedMonth = "";
+      document.getElementById("deptSelect").value = "";
+      document.getElementById("deptMonthInput").value = "";
+      renderDepartmentsTab();
+    });
 
-      const grid = document.getElementById("employeeCardsGrid");
-      if (!filtered.length) {
-        grid.innerHTML = `<div class="col-span-full bg-white/90 rounded-2xl p-8 text-center text-slate-400 text-sm">ไม่พบรายชื่อพนักงานที่ค้นหา</div>`;
+    document.getElementById("exportCsvBtn").addEventListener("click", () => {
+      const headers = ["วันที่", "รหัสพนักงาน", "ชื่อ-นามสกุล", "กลุ่มงาน", "เข้างาน", "ออกงาน", "สถานะ"];
+      const lines = [headers.join(",")].concat(
+        state.attendance.map((r) =>
+          [r.date, r.emp_code, r.emp_name, r.department, r.check_in, r.check_out, r.status]
+            .map((v) => `"${String(v || "").replace(/"/g, '""')}"`)
+            .join(",")
+        )
+      );
+      const blob = new Blob(["\uFEFF" + lines.join("\n")], { type: "text/csv;charset=utf-8;" });
+      const a = document.createElement("a");
+      a.href = URL.createObjectURL(blob);
+      a.download = "attendance-report.csv";
+      a.click();
+    });
+
+    function renderApprovals() {
+      const body = document.getElementById("leavesAdminBody");
+      if (!state.leaves.length) {
+        body.innerHTML = '<tr><td colspan="7" class="py-5 text-center text-slate-400">ไม่มีคำขอลางาน</td></tr>';
         return;
       }
-
-      grid.innerHTML = filtered.map((emp) => {
-        const isSelected = emp.key === selectedEmpKey;
-        return `
-          <div class="bg-white/95 rounded-2xl p-5 shadow-sm border ${isSelected ? "border-indigo-400 ring-2 ring-indigo-100" : "border-white"} flex flex-col justify-between gap-4">
-            <div class="space-y-1">
-              <div class="flex items-center justify-between gap-2">
-                <span class="text-xs font-medium bg-indigo-50 text-indigo-700 px-2.5 py-0.5 rounded-full">${emp.code}</span>
-                ${emp.pendingLeaves > 0
-                  ? `<span class="text-xs font-medium bg-rose-100 text-rose-700 px-2.5 py-0.5 rounded-full">รออนุมัติลา ${emp.pendingLeaves}</span>`
-                  : `<span class="text-xs text-slate-400">ไม่มีใบลาค้าง</span>`}
-              </div>
-              <h3 class="text-base font-semibold text-slate-800 pt-1">${emp.name}</h3>
-            </div>
-
-            <div class="grid grid-cols-3 gap-2 text-center bg-slate-50/90 rounded-xl p-2.5 text-xs tabular-nums">
-              <div>
-                <p class="text-slate-400">ตรงเวลา</p>
-                <p class="font-semibold text-emerald-600 text-sm">${emp.onTime}</p>
-              </div>
-              <div>
-                <p class="text-slate-400">มาสาย</p>
-                <p class="font-semibold text-amber-500 text-sm">${emp.late}</p>
-              </div>
-              <div>
-                <p class="text-slate-400">ใบลา</p>
-                <p class="font-semibold text-indigo-600 text-sm">${emp.leaveCount}</p>
-              </div>
-            </div>
-
-            <button type="button" onclick="openEmployeeBinder('${emp.key}')"
-              class="w-full bg-indigo-600 hover:bg-indigo-700 text-white text-xs sm:text-sm font-medium py-2.5 rounded-xl transition cursor-pointer">
-              เปิดแฟ้มส่วนตัว →
-            </button>
-          </div>
-        `;
-      }).join("");
+      body.innerHTML = state.leaves.map((lv, idx) => `
+        <tr>
+          <td class="py-2.5 px-3 font-medium">${lv.emp_name || "-"} (${lv.emp_code || "-"})</td>
+          <td class="py-2.5 px-3">${lv.department || "-"}</td>
+          <td class="py-2.5 px-3">${lv.leave_type || "-"}</td>
+          <td class="py-2.5 px-3 text-xs">${lv.start_date || "-"} ถึง ${lv.end_date || "-"}</td>
+          <td class="py-2.5 px-3">${lv.reason || "-"}</td>
+          <td class="py-2.5 px-3 font-medium">${lv.approval_status || "รออนุมัติ"}</td>
+          <td class="py-2.5 px-3 text-center space-x-1">
+            <button type="button" onclick="updateLeaveStatus(${idx}, 'อนุมัติ')" class="px-2.5 py-1 rounded-lg bg-emerald-600 text-white text-xs cursor-pointer">อนุมัติ</button>
+            <button type="button" onclick="updateLeaveStatus(${idx}, 'ไม่อนุมัติ')" class="px-2.5 py-1 rounded-lg bg-rose-600 text-white text-xs cursor-pointer">ไม่อนุมัติ</button>
+          </td>
+        </tr>`).join("");
     }
 
-    function openEmployeeBinder(empKey) {
-      selectedEmpKey = empKey;
-      syncEmployeeSelectors(getEmployeesList());
-      switchAdminView("binder");
-    }
+    window.updateLeaveStatus = async function (idx, status) {
+      const lv = state.leaves[idx];
+      if (!lv) return;
+      lv.approval_status = status;
+      renderApprovals();
+      renderOverview();
+      try {
+        await fetch(SCRIPT_URL, {
+          method: "POST",
+          body: JSON.stringify({ action: "update_leave", id: lv.id, emp_code: lv.emp_code, start_date: lv.start_date, approval_status: status })
+        });
+      } catch (e) {}
+    };
 
-    function renderBinder() {
-      const employees = getEmployeesList();
-      syncEmployeeSelectors(employees);
-
-      const emp = employees.find((e) => e.key === selectedEmpKey);
-      const titleEl = document.getElementById("binderTitle");
-      const subEl = document.getElementById("binderSub");
-
-      if (!emp) {
-        titleEl.textContent = "ยังไม่ได้เลือกพนักงาน";
-        subEl.textContent = "กรุณาเลือกพนักงานเพื่อแสดงแฟ้มข้อมูลรายบุคคล";
-        document.getElementById("empOnTime").textContent = "0";
-        document.getElementById("empLate").textContent = "0";
-        document.getElementById("empPendingLeave").textContent = "0";
-        document.getElementById("empTotalRecords").textContent = "0";
-        document.getElementById("empLeavesBody").innerHTML = `<tr><td colspan="6" class="py-6 text-center text-slate-400">กรุณาเลือกพนักงาน</td></tr>`;
-        document.getElementById("empAttBody").innerHTML = `<tr><td colspan="4" class="py-6 text-center text-slate-400">กรุณาเลือกพนักงาน</td></tr>`;
-        return;
-      }
-
-      titleEl.textContent = `${emp.name} (${emp.code})`;
-      subEl.textContent = "แสดงข้อมูลเฉพาะพนักงานคนนี้เท่านั้น";
-
-      const myAtt = allAttendance.filter((r) => normalizeKey(r) === emp.key);
-      const myLeaves = allLeaves.filter((l) => normalizeKey(l) === emp.key);
-
-      document.getElementById("empOnTime").textContent = myAtt.filter((r) => r.status === "ตรงเวลา").length;
-      document.getElementById("empLate").textContent = myAtt.filter((r) => r.status === "มาสาย").length;
-      document.getElementById("empPendingLeave").textContent = myLeaves.filter((l) => (l.approval_status || "รออนุมัติ") === "รออนุมัติ").length;
-      document.getElementById("empTotalRecords").textContent = myAtt.length + myLeaves.length;
-
-      const leavesBody = document.getElementById("empLeavesBody");
-      if (!myLeaves.length) {
-        leavesBody.innerHTML = `<tr><td colspan="6" class="py-6 text-center text-slate-400">ไม่พบประวัติการลาของพนักงานคนนี้</td></tr>`;
-      } else {
-        leavesBody.innerHTML = myLeaves.map((lv) => renderLeaveRow(lv, false)).join("");
-        bindEvidenceButtons();
-      }
-
-      const attBody = document.getElementById("empAttBody");
-      if (!myAtt.length) {
-        attBody.innerHTML = `<tr><td colspan="4" class="py-6 text-center text-slate-400">ไม่พบประวัติการลงเวลาของพนักงานคนนี้</td></tr>`;
-      } else {
-        attBody.innerHTML = myAtt.map((r) => {
-          const st = r.status || "-";
-          const badge =
-            st === "ตรงเวลา" ? "bg-emerald-100 text-emerald-700" :
-            st === "มาสาย" ? "bg-amber-100 text-amber-700" :
-            "bg-slate-100 text-slate-700";
-          return `
+    function renderAttendanceTable() {
+      const q = (document.getElementById("attSearchInput").value || "").trim().toLowerCase();
+      const rows = state.attendance.filter((r) =>
+        !q || [r.date, r.emp_code, r.emp_name, r.department, r.status].some((v) => String(v || "").toLowerCase().includes(q))
+      );
+      const body = document.getElementById("attAdminBody");
+      body.innerHTML = rows.length
+        ? rows.map((r) => `
             <tr>
               <td class="py-2.5 px-3">${r.date || "-"}</td>
+              <td class="py-2.5 px-3 font-medium text-indigo-700">${r.emp_code || "-"}</td>
+              <td class="py-2.5 px-3">${r.emp_name || "-"}</td>
+              <td class="py-2.5 px-3">${r.department || "-"}</td>
               <td class="py-2.5 px-3">${r.check_in || "-"}</td>
               <td class="py-2.5 px-3">${r.check_out || "-"}</td>
-              <td class="py-2.5 px-3"><span class="px-2.5 py-0.5 rounded-full text-xs font-medium ${badge}">${st}</span></td>
-            </tr>
-          `;
-        }).join("");
-      }
+              <td class="py-2.5 px-3">${r.status || "-"}</td>
+            </tr>`).join("")
+        : '<tr><td colspan="7" class="py-5 text-center text-slate-400">ไม่พบข้อมูล</td></tr>';
     }
 
-    async function loadDashboardData() {
-      const btn = document.getElementById("refreshBtn");
-      const syncEl = document.getElementById("syncStatusText");
-      if (btn) {
-        btn.disabled = true;
-        btn.textContent = "กำลังโหลด...";
-      }
-      if (syncEl) syncEl.textContent = "กำลังดึงข้อมูล...";
+    document.getElementById("attSearchInput").addEventListener("input", renderAttendanceTable);
 
-      if (!SCRIPT_URL || SCRIPT_URL.includes("วาง_WEB_APP_URL_ตรงนี้")) {
-        if (syncEl) syncEl.textContent = "ยังไม่ได้ตั้งค่า SCRIPT_URL";
-        if (btn) {
-          btn.disabled = false;
-          btn.textContent = "รีเฟรชข้อมูล";
-        }
-        return;
-      }
+    function renderDirectory() {
+      const map = new Map();
+      state.attendance.forEach((r) => {
+        const k = String(r.emp_code || r.emp_name || "").trim().toLowerCase();
+        if (!k) return;
+        if (!map.has(k)) map.set(k, { code: r.emp_code || "-", name: r.emp_name || "-", dept: r.department || "-", count: 0 });
+        map.get(k).count++;
+      });
+      const list = [...map.values()];
+      document.getElementById("directoryBody").innerHTML = list.length
+        ? list.map((e) => `
+            <tr>
+              <td class="py-2.5 px-3 font-medium text-indigo-700">${e.code}</td>
+              <td class="py-2.5 px-3">${e.name}</td>
+              <td class="py-2.5 px-3">${e.dept}</td>
+              <td class="py-2.5 px-3 text-center">${e.count}</td>
+              <td class="py-2.5 px-3 text-center">
+                <button type="button" onclick="openEmployeeFolder('${String(e.code).replace(/'/g, "\\'")}')" class="px-3 py-1 rounded-lg bg-indigo-50 text-indigo-700 text-xs font-medium hover:bg-indigo-100 cursor-pointer">
+                  ดูแฟ้ม
+                </button>
+              </td>
+            </tr>`).join("")
+        : '<tr><td colspan="5" class="py-5 text-center text-slate-400">ยังไม่มีข้อมูลพนักงาน</td></tr>';
+    }
 
+    window.openEmployeeFolder = function (code) {
+      document.getElementById("folderEmpCodeInput").value = code;
+      switchAdminSection("folder");
+      const target = String(code || "").trim().toLowerCase();
+      const rows = state.attendance.filter((r) => String(r.emp_code || "").trim().toLowerCase() === target);
+      const lvs = state.leaves.filter((l) => String(l.emp_code || "").trim().toLowerCase() === target);
+      const name = (rows[0] && rows[0].emp_name) || (lvs[0] && lvs[0].emp_name) || "-";
+      const dept = (rows[0] && rows[0].department) || (lvs[0] && lvs[0].department) || "-";
+
+      document.getElementById("folderDetailBox").innerHTML = `
+        <div class="space-y-2 text-slate-800">
+          <p class="font-semibold text-base">${name} (รหัส: ${code})</p>
+          <p class="text-xs text-slate-500">กลุ่มงาน: ${dept} • ลงเวลาแล้ว ${rows.length} ครั้ง • คำขอลา ${lvs.length} รายการ</p>
+        </div>`;
+    };
+
+    document.getElementById("openFolderBtn").addEventListener("click", () => {
+      openEmployeeFolder(document.getElementById("folderEmpCodeInput").value.trim());
+    });
+
+    async function loadAdminData() {
+      const connEl = document.getElementById("connStatusText");
+      connEl.textContent = "กำลังซิงก์ข้อมูล...";
       try {
         const res = await fetch(`${SCRIPT_URL}?action=dashboard`);
         const data = await res.json();
         if (data && data.ok) {
-          allAttendance = Array.isArray(data.attendance) ? data.attendance : [];
-          allLeaves = Array.isArray(data.leaves) ? data.leaves : [];
-          syncEmployeeSelectors(getEmployeesList());
-          renderOverview();
-          if (activeView === "deptreport") renderDeptReport();
-          if (activeView === "approvals") renderApprovals();
-          if (activeView === "attendance") renderAttendanceTab();
-          if (activeView === "directory") renderDirectory();
-          if (activeView === "binder") renderBinder();
-          if (syncEl) syncEl.textContent = "อัปเดตล่าสุดแล้ว";
-        } else if (syncEl) {
-          syncEl.textContent = "ดึงข้อมูลไม่สำเร็จ";
+          state.attendance = data.attendance || [];
+          state.leaves = data.leaves || [];
+          connEl.textContent = "อัปเดตล่าสุดแล้ว";
         }
-      } catch (err) {
-        console.error(err);
-        if (syncEl) syncEl.textContent = "เชื่อมต่อไม่ได้";
-      } finally {
-        if (btn) {
-          btn.disabled = false;
-          btn.textContent = "รีเฟรชข้อมูล";
-        }
+      } catch (e) {
+        connEl.textContent = "เชื่อมต่อไม่สำเร็จ";
       }
-    }
-
-    async function updateLeaveStatus(encodedId, approval_status) {
-      const id = decodeURIComponent(encodedId);
-      if (!id) return;
-      try {
-        const res = await fetch(SCRIPT_URL, {
-          method: "POST",
-          body: JSON.stringify({ action: "update_leave", id, row_id: id, leave_id: id, approval_status })
-        });
-        const data = await res.json();
-        if (data && data.ok) {
-          await loadDashboardData();
-        }
-      } catch (err) {
-        console.error(err);
-      }
-    }
-
-    document.getElementById("monthSelect").addEventListener("change", (e) => {
-      selectedMonth = e.target.value;
       renderOverview();
-    });
-    document.getElementById("directorySearch").addEventListener("input", renderDirectory);
-    document.getElementById("binderSelect").addEventListener("change", (e) => {
-      selectedEmpKey = e.target.value;
-      renderBinder();
-    });
-
-    try {
-      renderCharts(0, 0, 0);
-    } catch (e) {
-      console.error(e);
+      renderDepartmentsTab();
+      renderApprovals();
+      renderAttendanceTable();
+      renderDirectory();
     }
-    loadDashboardData();
+
+    document.getElementById("refreshAllBtn").addEventListener("click", loadAdminData);
+    loadAdminData();
   </script>
 </body>
 </html>
