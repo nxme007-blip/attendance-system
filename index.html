@@ -588,6 +588,55 @@
       return `${now.getFullYear()}-${pad2(now.getMonth() + 1)}-${pad2(now.getDate())}`;
     }
 
+    function normalizeTimeDisplay(rawTime) {
+      if (!rawTime) return "";
+      const str = String(rawTime).trim();
+      if (!str || str === "-") return "";
+
+      const hmsMatch = str.match(/(\d{1,2}):(\d{2})(?::(\d{2}))?/);
+      if (hmsMatch) {
+        const hh = pad2(Number(hmsMatch[1]));
+        const mm = pad2(Number(hmsMatch[2]));
+        const ss = pad2(Number(hmsMatch[3] || 0));
+        return `${hh}:${mm}:${ss}`;
+      }
+
+      const parsed = new Date(str);
+      if (!Number.isNaN(parsed.getTime())) {
+        return `${pad2(parsed.getHours())}:${pad2(parsed.getMinutes())}:${pad2(parsed.getSeconds())}`;
+      }
+
+      return str.replace(/\s*น\.?$/, '').trim();
+    }
+
+    function isSameDayRecord(rawDate) {
+      if (!rawDate) return false;
+      const str = String(rawDate).trim();
+      const todayIso = getTodayKey();
+      if (str.includes(todayIso)) return true;
+
+      const now = new Date();
+      const thaiDateShort = `${now.getDate()}/${now.getMonth() + 1}/${now.getFullYear() + 543}`;
+      const thaiDatePadded = `${pad2(now.getDate())}/${pad2(now.getMonth() + 1)}/${now.getFullYear() + 543}`;
+      const ceDateShort = `${now.getDate()}/${now.getMonth() + 1}/${now.getFullYear()}`;
+      const ceDatePadded = `${pad2(now.getDate())}/${pad2(now.getMonth() + 1)}/${now.getFullYear()}`;
+
+      if ([thaiDateShort, thaiDatePadded, ceDateShort, ceDatePadded].some((d) => str.includes(d))) {
+        return true;
+      }
+
+      const parsed = new Date(str);
+      if (!Number.isNaN(parsed.getTime())) {
+        return (
+          parsed.getFullYear() === now.getFullYear() &&
+          parsed.getMonth() === now.getMonth() &&
+          parsed.getDate() === now.getDate()
+        );
+      }
+
+      return false;
+    }
+
     function isLoggedIn() {
       return Boolean(currentAuthUser && currentAuthUser.emp_code);
     }
@@ -794,6 +843,41 @@
       }
     }
 
+    async function syncTodayAttendanceFromServer() {
+      const sessionUser = getCurrentSessionUser();
+      const empCode = String(sessionUser.emp_code || '').trim().toLowerCase();
+      if (!empCode) return;
+
+      try {
+        const res = await fetch(`${SCRIPT_URL}?action=dashboard`);
+        const data = await res.json();
+        if (!data || !data.ok || !Array.isArray(data.attendance)) return;
+
+        const todayRecord = data.attendance.find(
+          (r) => String(r.emp_code || '').trim().toLowerCase() === empCode && isSameDayRecord(r.date)
+        );
+        if (!todayRecord) return;
+
+        const serverInTime = normalizeTimeDisplay(todayRecord.check_in);
+        const serverOutTime = normalizeTimeDisplay(todayRecord.check_out);
+
+        if (serverInTime) {
+          checkedInToday = true;
+          checkedInTimeToday = serverInTime;
+        }
+        if (serverOutTime) {
+          checkedOutToday = true;
+          checkedOutTimeToday = serverOutTime;
+        }
+
+        saveTodayAttendanceState();
+        applyAttendanceLockState(checkedInToday && !checkedOutToday ? 'ออกงาน' : 'เข้างาน');
+        updateClock();
+      } catch (err) {
+        console.warn('Sync attendance time skipped:', err);
+      }
+    }
+
     function syncAttendanceChoiceUI(value) {
       if (value === 'เข้างาน' && checkedInToday) return;
       if (value === 'ออกงาน' && checkedOutToday) return;
@@ -915,6 +999,7 @@
 
       fillUserFields(currentAuthUser.emp_code, currentAuthUser.emp_name, currentAuthUser.department);
       updateActiveUserUI();
+      syncTodayAttendanceFromServer();
     }
 
     function logoutSession() {
@@ -1068,8 +1153,8 @@
     const savedDept = localStorage.getItem(STORAGE_DEPT_KEY) || (currentAuthUser && currentAuthUser.department) || '';
     checkedInToday = localStorage.getItem(STORAGE_CHECKED_IN_KEY) === '1';
     checkedOutToday = localStorage.getItem(STORAGE_CHECKED_OUT_KEY) === '1';
-    checkedInTimeToday = localStorage.getItem(STORAGE_CHECKED_IN_TIME_KEY) || '';
-    checkedOutTimeToday = localStorage.getItem(STORAGE_CHECKED_OUT_TIME_KEY) || '';
+    checkedInTimeToday = normalizeTimeDisplay(localStorage.getItem(STORAGE_CHECKED_IN_TIME_KEY) || '');
+    checkedOutTimeToday = normalizeTimeDisplay(localStorage.getItem(STORAGE_CHECKED_OUT_TIME_KEY) || '');
 
     if (savedCode) {
       document.querySelectorAll('.emp-code-sync').forEach((el) => { el.value = savedCode; });
@@ -1083,6 +1168,7 @@
     refreshDrawerUserSummary();
     updateActiveUserUI();
     applyAttendanceLockState(checkedInToday && !checkedOutToday ? 'ออกงาน' : 'เข้างาน');
+    syncTodayAttendanceFromServer();
 
     setInterval(updateClock, 1000);
     updateClock();
@@ -1177,7 +1263,9 @@
       closeMenu();
       window.scrollTo({ top: 0, behavior: 'smooth' });
 
-      if (viewName === 'profile') {
+      if (viewName === 'attendance') {
+        syncTodayAttendanceFromServer();
+      } else if (viewName === 'profile') {
         loadMyProfile();
       }
     }
@@ -1303,20 +1391,24 @@
         const isSuccess = Boolean(data && data.ok);
 
         if (isSuccess) {
+          const serverTime = normalizeTimeDisplay(data.check_in || data.check_out || data.time || '');
+          const finalTime = serverTime || clickedTime;
+
           if (record_type === 'เข้างาน') {
             checkedInToday = true;
-            checkedInTimeToday = clickedTime;
+            checkedInTimeToday = finalTime;
             saveTodayAttendanceState();
             clearFormInputsForNextEntry();
             applyAttendanceLockState('ออกงาน');
           } else if (record_type === 'ออกงาน') {
             checkedOutToday = true;
-            checkedOutTimeToday = clickedTime;
+            checkedOutTimeToday = finalTime;
             saveTodayAttendanceState();
             clearFormInputsForNextEntry();
             applyAttendanceLockState('ออกงาน');
           }
           updateClock();
+          syncTodayAttendanceFromServer();
         } else {
           applyAttendanceLockState(record_type);
         }
