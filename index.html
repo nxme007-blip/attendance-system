@@ -263,7 +263,7 @@
             <div class="min-w-0">
               <p class="text-sm font-semibold leading-tight">ลงเวลาเข้างาน</p>
               <p class="text-[11px] text-emerald-700/80 mt-0.5 tabular-clock">
-                เช็กอิน • <span class="live-time-slot">00:00:00</span> น.
+                <span id="checkInStatusPrefix">เช็กอิน</span> • <span id="checkInTimeSlot">00:00:00</span> น.
               </p>
             </div>
           </button>
@@ -274,7 +274,7 @@
             <div class="min-w-0">
               <p class="text-sm font-semibold leading-tight">ลงเวลาออกงาน</p>
               <p class="text-[11px] text-slate-400 mt-0.5 tabular-clock">
-                เช็กเอาต์ • <span class="live-time-slot">00:00:00</span> น.
+                <span id="checkOutStatusPrefix">เช็กเอาต์</span> • <span id="checkOutTimeSlot">00:00:00</span> น.
               </p>
             </div>
           </button>
@@ -303,11 +303,9 @@
       <div id="attResult" class="hidden p-3 rounded-xl text-sm text-center font-medium"></div>
     </section>
 
-    <!-- หน้า 2: แจ้งลางาน (ซ้าย: ฟอร์มแจ้งลางาน / ขวา: กฎการลาตามระเบียบการลา) -->
     <section id="view-leave" class="page-view hidden max-w-4xl mx-auto">
       <div class="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
 
-        <!-- ฝั่งซ้าย: แบบฟอร์มแจ้งลางาน -->
         <div class="lg:col-span-7 bg-white/95 backdrop-blur-md rounded-2xl shadow-lg border border-white p-6 space-y-4">
           <div class="border-b border-slate-100 pb-3">
             <h2 class="text-lg font-semibold text-slate-800">แบบฟอร์มแจ้งลางาน</h2>
@@ -412,7 +410,6 @@
           <div id="lvResult" class="hidden p-3 rounded-xl text-sm text-center font-medium space-y-2"></div>
         </div>
 
-        <!-- ฝั่งขวา: กฎการลาตามแนวทางระเบียบการลาราชการ -->
         <aside class="lg:col-span-5 bg-white/95 backdrop-blur-md rounded-2xl shadow-lg border border-indigo-100 p-6 space-y-4 lg:sticky lg:top-20">
           <div class="border-b border-slate-100 pb-3 flex items-start justify-between gap-2">
             <div>
@@ -559,6 +556,8 @@
     const STORAGE_DAY_KEY = "attendance_session_day";
     const STORAGE_CHECKED_IN_KEY = "attendance_checked_in_today";
     const STORAGE_CHECKED_OUT_KEY = "attendance_checked_out_today";
+    const STORAGE_CHECKED_IN_TIME_KEY = "attendance_checked_in_time_today";
+    const STORAGE_CHECKED_OUT_TIME_KEY = "attendance_checked_out_time_today";
     const STORAGE_AUTH_USER_KEY = "attendance_auth_user";
     const STORAGE_USERS_DB_KEY = "attendance_registered_users";
 
@@ -571,10 +570,17 @@
 
     let checkedInToday = false;
     let checkedOutToday = false;
+    let checkedInTimeToday = "";
+    let checkedOutTimeToday = "";
     let currentAuthUser = null;
 
     function pad2(n) {
       return String(n).padStart(2, '0');
+    }
+
+    function formatNowTime() {
+      const now = new Date();
+      return `${pad2(now.getHours())}:${pad2(now.getMinutes())}:${pad2(now.getSeconds())}`;
     }
 
     function getTodayKey() {
@@ -677,6 +683,8 @@
       localStorage.setItem(STORAGE_DAY_KEY, getTodayKey());
       localStorage.setItem(STORAGE_CHECKED_IN_KEY, checkedInToday ? '1' : '0');
       localStorage.setItem(STORAGE_CHECKED_OUT_KEY, checkedOutToday ? '1' : '0');
+      localStorage.setItem(STORAGE_CHECKED_IN_TIME_KEY, checkedInTimeToday || '');
+      localStorage.setItem(STORAGE_CHECKED_OUT_TIME_KEY, checkedOutTimeToday || '');
     }
 
     function applyAttendanceLockState(preferredChoice) {
@@ -687,9 +695,26 @@
       const banner = document.getElementById('attModeBanner');
       const modeText = document.getElementById('attModeText');
       const bannerTime = document.getElementById('attBannerTime');
+      const checkInPrefixEl = document.getElementById('checkInStatusPrefix');
+      const checkOutPrefixEl = document.getElementById('checkOutStatusPrefix');
+      const checkInTimeEl = document.getElementById('checkInTimeSlot');
+      const checkOutTimeEl = document.getElementById('checkOutTimeSlot');
 
       checkInBtn.disabled = checkedInToday;
       checkOutBtn.disabled = checkedOutToday;
+
+      if (checkInPrefixEl) {
+        checkInPrefixEl.textContent = checkedInToday ? 'เข้างานแล้ว' : 'เช็กอิน';
+      }
+      if (checkOutPrefixEl) {
+        checkOutPrefixEl.textContent = checkedOutToday ? 'ออกงานแล้ว' : 'เช็กเอาต์';
+      }
+      if (checkedInToday && checkedInTimeToday && checkInTimeEl) {
+        checkInTimeEl.textContent = checkedInTimeToday;
+      }
+      if (checkedOutToday && checkedOutTimeToday && checkOutTimeEl) {
+        checkOutTimeEl.textContent = checkedOutTimeToday;
+      }
 
       let chosen = preferredChoice || (selectEl ? selectEl.value : 'เข้างาน');
       if (chosen === 'เข้างาน' && checkedInToday && !checkedOutToday) {
@@ -701,13 +726,13 @@
       if (selectEl) selectEl.value = chosen;
 
       if (checkedInToday && checkedOutToday) {
-        checkInBtn.className = 'att-choice-btn rounded-2xl border border-slate-200 bg-slate-100/90 text-slate-400 opacity-50 p-3.5 text-left transition flex items-center gap-3 cursor-not-allowed';
-        checkInBtn.querySelector('span').className = 'w-9 h-9 rounded-xl bg-slate-200 text-slate-400 flex items-center justify-center text-base shrink-0';
-        checkInBtn.querySelectorAll('p')[1].className = 'text-[11px] text-slate-400 mt-0.5 tabular-clock';
+        checkInBtn.className = 'att-choice-btn rounded-2xl border border-emerald-200 bg-emerald-50/60 text-emerald-800/80 p-3.5 text-left transition flex items-center gap-3 cursor-not-allowed';
+        checkInBtn.querySelector('span').className = 'w-9 h-9 rounded-xl bg-emerald-500/80 text-white flex items-center justify-center text-base shrink-0';
+        checkInBtn.querySelectorAll('p')[1].className = 'text-[11px] text-emerald-700 font-medium mt-0.5 tabular-clock';
 
-        checkOutBtn.className = 'att-choice-btn rounded-2xl border border-slate-200 bg-slate-100/90 text-slate-400 opacity-50 p-3.5 text-left transition flex items-center gap-3 cursor-not-allowed';
-        checkOutBtn.querySelector('span').className = 'w-9 h-9 rounded-xl bg-slate-200 text-slate-400 flex items-center justify-center text-base shrink-0';
-        checkOutBtn.querySelectorAll('p')[1].className = 'text-[11px] text-slate-400 mt-0.5 tabular-clock';
+        checkOutBtn.className = 'att-choice-btn rounded-2xl border border-amber-200 bg-amber-50/60 text-amber-800/80 p-3.5 text-left transition flex items-center gap-3 cursor-not-allowed';
+        checkOutBtn.querySelector('span').className = 'w-9 h-9 rounded-xl bg-amber-500/80 text-white flex items-center justify-center text-base shrink-0';
+        checkOutBtn.querySelectorAll('p')[1].className = 'text-[11px] text-amber-700 font-medium mt-0.5 tabular-clock';
 
         banner.className = 'bg-slate-100 border border-slate-200 rounded-xl px-3.5 py-2.5 flex items-center justify-between gap-2 text-xs';
         modeText.className = 'font-semibold text-slate-600';
@@ -723,9 +748,9 @@
       submitBtn.textContent = 'ยืนยันการลงเวลา';
 
       if (checkedInToday && !checkedOutToday) {
-        checkInBtn.className = 'att-choice-btn rounded-2xl border border-slate-200 bg-slate-100/80 text-slate-400 opacity-50 p-3.5 text-left transition flex items-center gap-3 cursor-not-allowed';
-        checkInBtn.querySelector('span').className = 'w-9 h-9 rounded-xl bg-slate-200 text-slate-400 flex items-center justify-center text-base shrink-0';
-        checkInBtn.querySelectorAll('p')[1].className = 'text-[11px] text-slate-400 mt-0.5 tabular-clock';
+        checkInBtn.className = 'att-choice-btn rounded-2xl border border-emerald-200 bg-emerald-50/70 text-emerald-800 p-3.5 text-left transition flex items-center gap-3 cursor-not-allowed';
+        checkInBtn.querySelector('span').className = 'w-9 h-9 rounded-xl bg-emerald-500 text-white flex items-center justify-center text-base shrink-0';
+        checkInBtn.querySelectorAll('p')[1].className = 'text-[11px] text-emerald-700 font-semibold mt-0.5 tabular-clock';
 
         checkOutBtn.className = 'att-choice-btn rounded-2xl border-2 border-amber-500 bg-amber-50 text-amber-900 p-3.5 text-left transition flex items-center gap-3 shadow-sm ring-2 ring-amber-200/80 cursor-pointer';
         checkOutBtn.querySelector('span').className = 'w-9 h-9 rounded-xl bg-amber-500 text-white flex items-center justify-center text-base shrink-0';
@@ -733,7 +758,9 @@
 
         banner.className = 'bg-amber-50 border border-amber-200 rounded-xl px-3.5 py-2.5 flex items-center justify-between gap-2 text-xs';
         modeText.className = 'font-semibold text-amber-800';
-        modeText.textContent = 'ลงเวลาออกงาน (เข้างานแล้ว)';
+        modeText.textContent = checkedInTimeToday
+          ? `ลงเวลาออกงาน (เข้างาน ${checkedInTimeToday} น.)`
+          : 'ลงเวลาออกงาน (เข้างานแล้ว)';
         bannerTime.className = 'font-semibold text-amber-800';
         return;
       }
@@ -776,10 +803,14 @@
     function resetForNewDay() {
       checkedInToday = false;
       checkedOutToday = false;
+      checkedInTimeToday = "";
+      checkedOutTimeToday = "";
 
       localStorage.setItem(STORAGE_DAY_KEY, getTodayKey());
       localStorage.setItem(STORAGE_CHECKED_IN_KEY, '0');
       localStorage.setItem(STORAGE_CHECKED_OUT_KEY, '0');
+      localStorage.removeItem(STORAGE_CHECKED_IN_TIME_KEY);
+      localStorage.removeItem(STORAGE_CHECKED_OUT_TIME_KEY);
       clearFormInputsForNextEntry();
 
       const resultBox = document.getElementById('attResult');
@@ -831,9 +862,15 @@
       const bannerTimeEl = document.getElementById('attBannerTime');
       if (bannerTimeEl) bannerTimeEl.textContent = `${timeStr} น.`;
 
-      document.querySelectorAll('.live-time-slot').forEach((el) => {
-        el.textContent = timeStr;
-      });
+      const checkInTimeEl = document.getElementById('checkInTimeSlot');
+      if (checkInTimeEl) {
+        checkInTimeEl.textContent = (checkedInToday && checkedInTimeToday) ? checkedInTimeToday : timeStr;
+      }
+
+      const checkOutTimeEl = document.getElementById('checkOutTimeSlot');
+      if (checkOutTimeEl) {
+        checkOutTimeEl.textContent = (checkedOutToday && checkedOutTimeToday) ? checkedOutTimeToday : timeStr;
+      }
     }
 
     function setAuthTab(mode) {
@@ -1031,6 +1068,8 @@
     const savedDept = localStorage.getItem(STORAGE_DEPT_KEY) || (currentAuthUser && currentAuthUser.department) || '';
     checkedInToday = localStorage.getItem(STORAGE_CHECKED_IN_KEY) === '1';
     checkedOutToday = localStorage.getItem(STORAGE_CHECKED_OUT_KEY) === '1';
+    checkedInTimeToday = localStorage.getItem(STORAGE_CHECKED_IN_TIME_KEY) || '';
+    checkedOutTimeToday = localStorage.getItem(STORAGE_CHECKED_OUT_TIME_KEY) || '';
 
     if (savedCode) {
       document.querySelectorAll('.emp-code-sync').forEach((el) => { el.value = savedCode; });
@@ -1253,6 +1292,8 @@
       btn.textContent = 'กำลังบันทึก...';
       box.classList.add('hidden');
 
+      const clickedTime = formatNowTime();
+
       try {
         const res = await fetch(SCRIPT_URL, {
           method: 'POST',
@@ -1264,15 +1305,18 @@
         if (isSuccess) {
           if (record_type === 'เข้างาน') {
             checkedInToday = true;
+            checkedInTimeToday = clickedTime;
             saveTodayAttendanceState();
             clearFormInputsForNextEntry();
             applyAttendanceLockState('ออกงาน');
           } else if (record_type === 'ออกงาน') {
             checkedOutToday = true;
+            checkedOutTimeToday = clickedTime;
             saveTodayAttendanceState();
             clearFormInputsForNextEntry();
             applyAttendanceLockState('ออกงาน');
           }
+          updateClock();
         } else {
           applyAttendanceLockState(record_type);
         }
