@@ -241,18 +241,24 @@
       <div class="border-b border-slate-100 pb-3.5 flex items-center justify-between gap-2">
         <div>
           <h2 class="text-lg font-semibold text-slate-800">บันทึกเวลาเข้า-ออกงาน</h2>
-          <p class="text-xs text-slate-500 mt-0.5">เลือกรายการและกดยืนยันเวลาสำหรับบัญชีที่กำลังใช้งาน</p>
+          <p class="text-xs text-slate-500 mt-0.5">เลือกรายการและกดยืนยันเวลา (เวลาประเทศไทย UTC+7)</p>
         </div>
-        <span class="text-xs font-medium bg-indigo-50 text-indigo-700 border border-indigo-100 px-3 py-1 rounded-full shrink-0">
-          เรียลไทม์
-        </span>
+        <div class="flex items-center gap-2 shrink-0">
+          <button id="resetTodayStatusBtn" type="button"
+            class="text-[11px] font-medium bg-slate-100 hover:bg-slate-200 text-slate-600 px-2.5 py-1 rounded-full transition cursor-pointer">
+            รีเซ็ตสถานะวันนี้
+          </button>
+          <span class="text-xs font-medium bg-indigo-50 text-indigo-700 border border-indigo-100 px-3 py-1 rounded-full">
+            เวลาไทย
+          </span>
+        </div>
       </div>
 
       <div class="space-y-2">
         <div class="flex items-center justify-between gap-2">
           <label class="block text-sm font-medium text-slate-700">เลือกรายการลงเวลา</label>
           <span class="text-xs font-medium text-indigo-700 bg-indigo-50 border border-indigo-100 px-2.5 py-0.5 rounded-full tabular-clock">
-            เวลา <span id="choiceHeaderClock">00:00:00</span> น.
+            เวลาไทย <span id="choiceHeaderClock">00:00:00</span> น.
           </span>
         </div>
 
@@ -550,16 +556,14 @@
 
   <script>
     const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbw3ovdTdqhw7KuqvA_MJ7lyyCQNur-LRCg1hJul1K3733YxNkwfYtuJ-XYry965vPskHw/exec";
+    const THAI_TIMEZONE = "Asia/Bangkok";
+
     const STORAGE_CODE_KEY = "attendance_emp_code";
     const STORAGE_NAME_KEY = "attendance_emp_name";
     const STORAGE_DEPT_KEY = "attendance_emp_dept";
-    const STORAGE_DAY_KEY = "attendance_session_day";
-    const STORAGE_CHECKED_IN_KEY = "attendance_checked_in_today";
-    const STORAGE_CHECKED_OUT_KEY = "attendance_checked_out_today";
-    const STORAGE_CHECKED_IN_TIME_KEY = "attendance_checked_in_time_today";
-    const STORAGE_CHECKED_OUT_TIME_KEY = "attendance_checked_out_time_today";
     const STORAGE_AUTH_USER_KEY = "attendance_auth_user";
     const STORAGE_USERS_DB_KEY = "attendance_registered_users";
+    const STORAGE_USER_ATT_MAP_KEY = "attendance_daily_user_map_th_v2";
 
     let leaveEvidenceData = {
       name: "",
@@ -575,66 +579,111 @@
     let currentAuthUser = null;
 
     function pad2(n) {
-      return String(n).padStart(2, '0');
+      return String(n).padStart(2, "0");
     }
 
-    function formatNowTime() {
-      const now = new Date();
-      return `${pad2(now.getHours())}:${pad2(now.getMinutes())}:${pad2(now.getSeconds())}`;
+    function getThaiParts(dateInput = new Date()) {
+      const d = dateInput instanceof Date ? dateInput : new Date(dateInput);
+      const formatter = new Intl.DateTimeFormat("en-CA", {
+        timeZone: THAI_TIMEZONE,
+        year: "numeric",
+        month: "2-digit",
+        day: "2-digit",
+        hour: "2-digit",
+        minute: "2-digit",
+        second: "2-digit",
+        hour12: false
+      });
+      const map = {};
+      formatter.formatToParts(d).forEach((part) => {
+        if (part.type !== "literal") map[part.type] = part.value;
+      });
+      return {
+        year: map.year,
+        month: map.month,
+        day: map.day,
+        hour: map.hour,
+        minute: map.minute,
+        second: map.second
+      };
     }
 
-    function getTodayKey() {
-      const now = new Date();
-      return `${now.getFullYear()}-${pad2(now.getMonth() + 1)}-${pad2(now.getDate())}`;
+    function formatNowThaiTime() {
+      const p = getThaiParts(new Date());
+      return `${p.hour}:${p.minute}:${p.second}`;
     }
 
-    function normalizeTimeDisplay(rawTime) {
+    function formatFullThaiDateTime() {
+      return new Date().toLocaleString("th-TH", {
+        timeZone: THAI_TIMEZONE,
+        dateStyle: "full",
+        timeStyle: "medium"
+      });
+    }
+
+    function getTodayThaiKey() {
+      const p = getThaiParts(new Date());
+      return `${p.year}-${p.month}-${p.day}`;
+    }
+
+    function normalizeExplicitClockTime(rawTime) {
       if (!rawTime) return "";
       const str = String(rawTime).trim();
       if (!str || str === "-") return "";
 
-      const hmsMatch = str.match(/(\d{1,2}):(\d{2})(?::(\d{2}))?/);
-      if (hmsMatch) {
-        const hh = pad2(Number(hmsMatch[1]));
-        const mm = pad2(Number(hmsMatch[2]));
-        const ss = pad2(Number(hmsMatch[3] || 0));
-        return `${hh}:${mm}:${ss}`;
-      }
+      const match = str.match(/(?:^|\s)(\d{1,2}):(\d{2})(?::(\d{2}))?(?:\s*น\.?)?$/);
+      if (!match) return "";
 
-      const parsed = new Date(str);
-      if (!Number.isNaN(parsed.getTime())) {
-        return `${pad2(parsed.getHours())}:${pad2(parsed.getMinutes())}:${pad2(parsed.getSeconds())}`;
-      }
-
-      return str.replace(/\s*น\.?$/, '').trim();
+      const hh = Number(match[1]);
+      const mm = Number(match[2]);
+      const ss = Number(match[3] || 0);
+      if (hh > 23 || mm > 59 || ss > 59) return "";
+      return `${pad2(hh)}:${pad2(mm)}:${pad2(ss)}`;
     }
 
-    function isSameDayRecord(rawDate) {
-      if (!rawDate) return false;
-      const str = String(rawDate).trim();
-      const todayIso = getTodayKey();
-      if (str.includes(todayIso)) return true;
+    function getUserDailyKey(empCode) {
+      const code = String(empCode || "guest").trim().toLowerCase() || "guest";
+      return `${getTodayThaiKey()}__${code}`;
+    }
 
-      const now = new Date();
-      const thaiDateShort = `${now.getDate()}/${now.getMonth() + 1}/${now.getFullYear() + 543}`;
-      const thaiDatePadded = `${pad2(now.getDate())}/${pad2(now.getMonth() + 1)}/${now.getFullYear() + 543}`;
-      const ceDateShort = `${now.getDate()}/${now.getMonth() + 1}/${now.getFullYear()}`;
-      const ceDatePadded = `${pad2(now.getDate())}/${pad2(now.getMonth() + 1)}/${now.getFullYear()}`;
+    function loadUserDailyStateFromStorage(empCode) {
+      try {
+        const raw = localStorage.getItem(STORAGE_USER_ATT_MAP_KEY);
+        const map = raw ? JSON.parse(raw) : {};
+        const entry = map[getUserDailyKey(empCode)];
+        if (entry && typeof entry === "object") {
+          checkedInToday = Boolean(entry.checkedInToday);
+          checkedOutToday = Boolean(entry.checkedOutToday);
+          checkedInTimeToday = normalizeExplicitClockTime(entry.checkedInTimeToday || "");
+          checkedOutTimeToday = normalizeExplicitClockTime(entry.checkedOutTimeToday || "");
+          return;
+        }
+      } catch (e) {}
 
-      if ([thaiDateShort, thaiDatePadded, ceDateShort, ceDatePadded].some((d) => str.includes(d))) {
-        return true;
-      }
+      checkedInToday = false;
+      checkedOutToday = false;
+      checkedInTimeToday = "";
+      checkedOutTimeToday = "";
+    }
 
-      const parsed = new Date(str);
-      if (!Number.isNaN(parsed.getTime())) {
-        return (
-          parsed.getFullYear() === now.getFullYear() &&
-          parsed.getMonth() === now.getMonth() &&
-          parsed.getDate() === now.getDate()
-        );
-      }
-
-      return false;
+    function saveUserDailyStateToStorage(empCode) {
+      try {
+        const raw = localStorage.getItem(STORAGE_USER_ATT_MAP_KEY);
+        const map = raw ? JSON.parse(raw) : {};
+        const todayPrefix = `${getTodayThaiKey()}__`;
+        Object.keys(map).forEach((k) => {
+          if (!k.startsWith(todayPrefix)) {
+            delete map[k];
+          }
+        });
+        map[getUserDailyKey(empCode)] = {
+          checkedInToday,
+          checkedOutToday,
+          checkedInTimeToday,
+          checkedOutTimeToday
+        };
+        localStorage.setItem(STORAGE_USER_ATT_MAP_KEY, JSON.stringify(map));
+      } catch (e) {}
     }
 
     function isLoggedIn() {
@@ -644,15 +693,15 @@
     function getCurrentSessionUser() {
       if (currentAuthUser && currentAuthUser.emp_code) {
         return {
-          emp_code: String(currentAuthUser.emp_code || '').trim(),
-          emp_name: String(currentAuthUser.emp_name || '').trim(),
-          department: String(currentAuthUser.department || '').trim()
+          emp_code: String(currentAuthUser.emp_code || "").trim(),
+          emp_name: String(currentAuthUser.emp_name || "").trim(),
+          department: String(currentAuthUser.department || "").trim()
         };
       }
       return {
-        emp_code: (localStorage.getItem(STORAGE_CODE_KEY) || '').trim(),
-        emp_name: (localStorage.getItem(STORAGE_NAME_KEY) || '').trim(),
-        department: (localStorage.getItem(STORAGE_DEPT_KEY) || '').trim()
+        emp_code: (localStorage.getItem(STORAGE_CODE_KEY) || "").trim(),
+        emp_name: (localStorage.getItem(STORAGE_NAME_KEY) || "").trim(),
+        department: (localStorage.getItem(STORAGE_DEPT_KEY) || "").trim()
       };
     }
 
@@ -671,389 +720,344 @@
     }
 
     function fillUserFields(code, name, dept) {
-      document.querySelectorAll('.emp-code-sync').forEach((el) => { el.value = code || ''; });
-      document.querySelectorAll('.emp-name-sync').forEach((el) => { el.value = name || ''; });
-      document.querySelectorAll('.dept-sync').forEach((el) => { el.value = dept || ''; });
+      document.querySelectorAll(".emp-code-sync").forEach((el) => { el.value = code || ""; });
+      document.querySelectorAll(".emp-name-sync").forEach((el) => { el.value = name || ""; });
+      document.querySelectorAll(".dept-sync").forEach((el) => { el.value = dept || ""; });
       refreshDrawerUserSummary();
       updateActiveUserUI();
     }
 
     function updateActiveUserUI() {
-      const barEl = document.getElementById('activeUserBar');
-      const labelEl = document.getElementById('activeUserLabel');
-      const subEl = document.getElementById('activeUserSubLabel');
+      const barEl = document.getElementById("activeUserBar");
+      const labelEl = document.getElementById("activeUserLabel");
+      const subEl = document.getElementById("activeUserSubLabel");
 
-      document.querySelectorAll('.auth-only-nav').forEach((el) => {
+      document.querySelectorAll(".auth-only-nav").forEach((el) => {
         if (isLoggedIn()) {
-          el.classList.remove('hidden');
+          el.classList.remove("hidden");
         } else {
-          el.classList.add('hidden');
+          el.classList.add("hidden");
         }
       });
 
       if (isLoggedIn()) {
-        barEl.classList.remove('hidden');
-        labelEl.textContent = `${currentAuthUser.emp_name || '-'} (รหัส: ${currentAuthUser.emp_code})`;
-        subEl.textContent = `กลุ่มงาน: ${currentAuthUser.department || '-'}`;
+        barEl.classList.remove("hidden");
+        labelEl.textContent = `${currentAuthUser.emp_name || "-"} (รหัส: ${currentAuthUser.emp_code})`;
+        subEl.textContent = `กลุ่มงาน: ${currentAuthUser.department || "-"}`;
       } else {
-        barEl.classList.add('hidden');
+        barEl.classList.add("hidden");
       }
     }
 
     function refreshDrawerUserSummary() {
       const sessionUser = getCurrentSessionUser();
-      const el = document.getElementById('drawerUserSummary');
-      const deptEl = document.getElementById('drawerDeptSummary');
+      const el = document.getElementById("drawerUserSummary");
+      const deptEl = document.getElementById("drawerDeptSummary");
 
       if (!sessionUser.emp_code && !sessionUser.emp_name) {
-        el.textContent = 'ยังไม่ได้เข้าสู่ระบบ';
+        el.textContent = "ยังไม่ได้เข้าสู่ระบบ";
       } else {
-        el.textContent = `${sessionUser.emp_name || 'ไม่ระบุชื่อ'} (${sessionUser.emp_code || '-'})`;
+        el.textContent = `${sessionUser.emp_name || "ไม่ระบุชื่อ"} (${sessionUser.emp_code || "-"})`;
       }
-      deptEl.textContent = `กลุ่มงาน: ${sessionUser.department || '-'}`;
+      deptEl.textContent = `กลุ่มงาน: ${sessionUser.department || "-"}`;
     }
 
     function clearFormInputsForNextEntry() {
-      localStorage.removeItem(STORAGE_CODE_KEY);
-      localStorage.removeItem(STORAGE_NAME_KEY);
-      localStorage.removeItem(STORAGE_DEPT_KEY);
-
       if (isLoggedIn()) {
         fillUserFields(currentAuthUser.emp_code, currentAuthUser.emp_name, currentAuthUser.department);
       } else {
-        document.querySelectorAll('.emp-code-sync').forEach((el) => { el.value = ''; });
-        document.querySelectorAll('.emp-name-sync').forEach((el) => { el.value = ''; });
-        document.querySelectorAll('.dept-sync').forEach((el) => { el.selectedIndex = 0; });
+        document.querySelectorAll(".emp-code-sync").forEach((el) => { el.value = ""; });
+        document.querySelectorAll(".emp-name-sync").forEach((el) => { el.value = ""; });
+        document.querySelectorAll(".dept-sync").forEach((el) => { el.selectedIndex = 0; });
         refreshDrawerUserSummary();
       }
     }
 
-    function saveTodayAttendanceState() {
-      localStorage.setItem(STORAGE_DAY_KEY, getTodayKey());
-      localStorage.setItem(STORAGE_CHECKED_IN_KEY, checkedInToday ? '1' : '0');
-      localStorage.setItem(STORAGE_CHECKED_OUT_KEY, checkedOutToday ? '1' : '0');
-      localStorage.setItem(STORAGE_CHECKED_IN_TIME_KEY, checkedInTimeToday || '');
-      localStorage.setItem(STORAGE_CHECKED_OUT_TIME_KEY, checkedOutTimeToday || '');
-    }
-
     function applyAttendanceLockState(preferredChoice) {
-      const selectEl = document.getElementById('attType');
-      const checkInBtn = document.getElementById('pickCheckInBtn');
-      const checkOutBtn = document.getElementById('pickCheckOutBtn');
-      const submitBtn = document.getElementById('attSubmitBtn');
-      const banner = document.getElementById('attModeBanner');
-      const modeText = document.getElementById('attModeText');
-      const bannerTime = document.getElementById('attBannerTime');
-      const checkInPrefixEl = document.getElementById('checkInStatusPrefix');
-      const checkOutPrefixEl = document.getElementById('checkOutStatusPrefix');
-      const checkInTimeEl = document.getElementById('checkInTimeSlot');
-      const checkOutTimeEl = document.getElementById('checkOutTimeSlot');
+      const selectEl = document.getElementById("attType");
+      const checkInBtn = document.getElementById("pickCheckInBtn");
+      const checkOutBtn = document.getElementById("pickCheckOutBtn");
+      const submitBtn = document.getElementById("attSubmitBtn");
+      const banner = document.getElementById("attModeBanner");
+      const modeText = document.getElementById("attModeText");
+      const bannerTime = document.getElementById("attBannerTime");
+      const checkInPrefixEl = document.getElementById("checkInStatusPrefix");
+      const checkOutPrefixEl = document.getElementById("checkOutStatusPrefix");
+      const checkInTimeEl = document.getElementById("checkInTimeSlot");
+      const checkOutTimeEl = document.getElementById("checkOutTimeSlot");
+      const nowThaiTime = formatNowThaiTime();
 
       checkInBtn.disabled = checkedInToday;
       checkOutBtn.disabled = checkedOutToday;
 
       if (checkInPrefixEl) {
-        checkInPrefixEl.textContent = checkedInToday ? 'เข้างานแล้ว' : 'เช็กอิน';
+        checkInPrefixEl.textContent = checkedInToday ? "เข้างานแล้ว" : "เช็กอิน";
       }
       if (checkOutPrefixEl) {
-        checkOutPrefixEl.textContent = checkedOutToday ? 'ออกงานแล้ว' : 'เช็กเอาต์';
+        checkOutPrefixEl.textContent = checkedOutToday ? "ออกงานแล้ว" : "เช็กเอาต์";
       }
-      if (checkedInToday && checkedInTimeToday && checkInTimeEl) {
-        checkInTimeEl.textContent = checkedInTimeToday;
+      if (checkInTimeEl) {
+        checkInTimeEl.textContent = (checkedInToday && checkedInTimeToday) ? checkedInTimeToday : nowThaiTime;
       }
-      if (checkedOutToday && checkedOutTimeToday && checkOutTimeEl) {
-        checkOutTimeEl.textContent = checkedOutTimeToday;
+      if (checkOutTimeEl) {
+        checkOutTimeEl.textContent = (checkedOutToday && checkedOutTimeToday) ? checkedOutTimeToday : nowThaiTime;
       }
 
-      let chosen = preferredChoice || (selectEl ? selectEl.value : 'เข้างาน');
-      if (chosen === 'เข้างาน' && checkedInToday && !checkedOutToday) {
-        chosen = 'ออกงาน';
-      } else if (chosen === 'ออกงาน' && checkedOutToday && !checkedInToday) {
-        chosen = 'เข้างาน';
+      let chosen = preferredChoice || (selectEl ? selectEl.value : "เข้างาน");
+      if (chosen === "เข้างาน" && checkedInToday && !checkedOutToday) {
+        chosen = "ออกงาน";
+      } else if (chosen === "ออกงาน" && checkedOutToday && !checkedInToday) {
+        chosen = "เข้างาน";
       }
 
       if (selectEl) selectEl.value = chosen;
 
       if (checkedInToday && checkedOutToday) {
-        checkInBtn.className = 'att-choice-btn rounded-2xl border border-emerald-200 bg-emerald-50/60 text-emerald-800/80 p-3.5 text-left transition flex items-center gap-3 cursor-not-allowed';
-        checkInBtn.querySelector('span').className = 'w-9 h-9 rounded-xl bg-emerald-500/80 text-white flex items-center justify-center text-base shrink-0';
-        checkInBtn.querySelectorAll('p')[1].className = 'text-[11px] text-emerald-700 font-medium mt-0.5 tabular-clock';
+        checkInBtn.className = "att-choice-btn rounded-2xl border border-emerald-200 bg-emerald-50/60 text-emerald-800/80 p-3.5 text-left transition flex items-center gap-3 cursor-not-allowed";
+        checkInBtn.querySelector("span").className = "w-9 h-9 rounded-xl bg-emerald-500/80 text-white flex items-center justify-center text-base shrink-0";
+        checkInBtn.querySelectorAll("p")[1].className = "text-[11px] text-emerald-700 font-medium mt-0.5 tabular-clock";
 
-        checkOutBtn.className = 'att-choice-btn rounded-2xl border border-amber-200 bg-amber-50/60 text-amber-800/80 p-3.5 text-left transition flex items-center gap-3 cursor-not-allowed';
-        checkOutBtn.querySelector('span').className = 'w-9 h-9 rounded-xl bg-amber-500/80 text-white flex items-center justify-center text-base shrink-0';
-        checkOutBtn.querySelectorAll('p')[1].className = 'text-[11px] text-amber-700 font-medium mt-0.5 tabular-clock';
+        checkOutBtn.className = "att-choice-btn rounded-2xl border border-amber-200 bg-amber-50/60 text-amber-800/80 p-3.5 text-left transition flex items-center gap-3 cursor-not-allowed";
+        checkOutBtn.querySelector("span").className = "w-9 h-9 rounded-xl bg-amber-500/80 text-white flex items-center justify-center text-base shrink-0";
+        checkOutBtn.querySelectorAll("p")[1].className = "text-[11px] text-amber-700 font-medium mt-0.5 tabular-clock";
 
-        banner.className = 'bg-slate-100 border border-slate-200 rounded-xl px-3.5 py-2.5 flex items-center justify-between gap-2 text-xs';
-        modeText.className = 'font-semibold text-slate-600';
-        modeText.textContent = 'ลงเวลาเข้า-ออกครบวันนี้แล้ว';
-        bannerTime.className = 'font-semibold text-slate-500';
+        banner.className = "bg-slate-100 border border-slate-200 rounded-xl px-3.5 py-2.5 flex items-center justify-between gap-2 text-xs";
+        modeText.className = "font-semibold text-slate-600";
+        modeText.textContent = "ลงเวลาเข้า-ออกครบวันนี้แล้ว";
+        bannerTime.className = "font-semibold text-slate-500";
+        if (bannerTime) bannerTime.textContent = `${checkedOutTimeToday || nowThaiTime} น.`;
 
         submitBtn.disabled = true;
-        submitBtn.textContent = 'บันทึกเข้า-ออกงานครบวันนี้แล้ว';
+        submitBtn.textContent = "บันทึกเข้า-ออกงานครบวันนี้แล้ว";
         return;
       }
 
       submitBtn.disabled = false;
-      submitBtn.textContent = 'ยืนยันการลงเวลา';
+      submitBtn.textContent = "ยืนยันการลงเวลา";
 
       if (checkedInToday && !checkedOutToday) {
-        checkInBtn.className = 'att-choice-btn rounded-2xl border border-emerald-200 bg-emerald-50/70 text-emerald-800 p-3.5 text-left transition flex items-center gap-3 cursor-not-allowed';
-        checkInBtn.querySelector('span').className = 'w-9 h-9 rounded-xl bg-emerald-500 text-white flex items-center justify-center text-base shrink-0';
-        checkInBtn.querySelectorAll('p')[1].className = 'text-[11px] text-emerald-700 font-semibold mt-0.5 tabular-clock';
+        checkInBtn.className = "att-choice-btn rounded-2xl border border-emerald-200 bg-emerald-50/70 text-emerald-800 p-3.5 text-left transition flex items-center gap-3 cursor-not-allowed";
+        checkInBtn.querySelector("span").className = "w-9 h-9 rounded-xl bg-emerald-500 text-white flex items-center justify-center text-base shrink-0";
+        checkInBtn.querySelectorAll("p")[1].className = "text-[11px] text-emerald-700 font-semibold mt-0.5 tabular-clock";
 
-        checkOutBtn.className = 'att-choice-btn rounded-2xl border-2 border-amber-500 bg-amber-50 text-amber-900 p-3.5 text-left transition flex items-center gap-3 shadow-sm ring-2 ring-amber-200/80 cursor-pointer';
-        checkOutBtn.querySelector('span').className = 'w-9 h-9 rounded-xl bg-amber-500 text-white flex items-center justify-center text-base shrink-0';
-        checkOutBtn.querySelectorAll('p')[1].className = 'text-[11px] text-amber-700 font-medium mt-0.5 tabular-clock';
+        checkOutBtn.className = "att-choice-btn rounded-2xl border-2 border-amber-500 bg-amber-50 text-amber-900 p-3.5 text-left transition flex items-center gap-3 shadow-sm ring-2 ring-amber-200/80 cursor-pointer";
+        checkOutBtn.querySelector("span").className = "w-9 h-9 rounded-xl bg-amber-500 text-white flex items-center justify-center text-base shrink-0";
+        checkOutBtn.querySelectorAll("p")[1].className = "text-[11px] text-amber-700 font-medium mt-0.5 tabular-clock";
 
-        banner.className = 'bg-amber-50 border border-amber-200 rounded-xl px-3.5 py-2.5 flex items-center justify-between gap-2 text-xs';
-        modeText.className = 'font-semibold text-amber-800';
+        banner.className = "bg-amber-50 border border-amber-200 rounded-xl px-3.5 py-2.5 flex items-center justify-between gap-2 text-xs";
+        modeText.className = "font-semibold text-amber-800";
         modeText.textContent = checkedInTimeToday
           ? `ลงเวลาออกงาน (เข้างาน ${checkedInTimeToday} น.)`
-          : 'ลงเวลาออกงาน (เข้างานแล้ว)';
-        bannerTime.className = 'font-semibold text-amber-800';
+          : "ลงเวลาออกงาน (เข้างานแล้ว)";
+        bannerTime.className = "font-semibold text-amber-800";
         return;
       }
 
-      if (chosen === 'ออกงาน') {
-        checkOutBtn.className = 'att-choice-btn rounded-2xl border-2 border-amber-500 bg-amber-50/90 text-amber-800 p-3.5 text-left transition flex items-center gap-3 shadow-2xs cursor-pointer';
-        checkOutBtn.querySelector('span').className = 'w-9 h-9 rounded-xl bg-amber-500 text-white flex items-center justify-center text-base shrink-0';
-        checkOutBtn.querySelectorAll('p')[1].className = 'text-[11px] text-amber-700/80 mt-0.5 tabular-clock';
+      if (chosen === "ออกงาน") {
+        checkOutBtn.className = "att-choice-btn rounded-2xl border-2 border-amber-500 bg-amber-50/90 text-amber-800 p-3.5 text-left transition flex items-center gap-3 shadow-2xs cursor-pointer";
+        checkOutBtn.querySelector("span").className = "w-9 h-9 rounded-xl bg-amber-500 text-white flex items-center justify-center text-base shrink-0";
+        checkOutBtn.querySelectorAll("p")[1].className = "text-[11px] text-amber-700/80 mt-0.5 tabular-clock";
 
-        checkInBtn.className = 'att-choice-btn rounded-2xl border border-slate-200 bg-white hover:border-indigo-200 hover:bg-slate-50/80 text-slate-700 p-3.5 text-left transition flex items-center gap-3 cursor-pointer';
-        checkInBtn.querySelector('span').className = 'w-9 h-9 rounded-xl bg-slate-100 text-slate-600 flex items-center justify-center text-base shrink-0';
-        checkInBtn.querySelectorAll('p')[1].className = 'text-[11px] text-slate-400 mt-0.5 tabular-clock';
+        checkInBtn.className = "att-choice-btn rounded-2xl border border-slate-200 bg-white hover:border-indigo-200 hover:bg-slate-50/80 text-slate-700 p-3.5 text-left transition flex items-center gap-3 cursor-pointer";
+        checkInBtn.querySelector("span").className = "w-9 h-9 rounded-xl bg-slate-100 text-slate-600 flex items-center justify-center text-base shrink-0";
+        checkInBtn.querySelectorAll("p")[1].className = "text-[11px] text-slate-400 mt-0.5 tabular-clock";
 
-        banner.className = 'bg-amber-50/70 border border-amber-100 rounded-xl px-3.5 py-2.5 flex items-center justify-between gap-2 text-xs';
-        modeText.className = 'font-semibold text-amber-700';
-        modeText.textContent = 'ลงเวลาออกงาน';
-        bannerTime.className = 'font-semibold text-amber-700';
+        banner.className = "bg-amber-50/70 border border-amber-100 rounded-xl px-3.5 py-2.5 flex items-center justify-between gap-2 text-xs";
+        modeText.className = "font-semibold text-amber-700";
+        modeText.textContent = "ลงเวลาออกงาน";
+        bannerTime.className = "font-semibold text-amber-700";
       } else {
-        checkInBtn.className = 'att-choice-btn rounded-2xl border-2 border-emerald-500 bg-emerald-50/90 text-emerald-800 p-3.5 text-left transition flex items-center gap-3 shadow-2xs cursor-pointer';
-        checkInBtn.querySelector('span').className = 'w-9 h-9 rounded-xl bg-emerald-500 text-white flex items-center justify-center text-base shrink-0';
-        checkInBtn.querySelectorAll('p')[1].className = 'text-[11px] text-emerald-700/80 mt-0.5 tabular-clock';
+        checkInBtn.className = "att-choice-btn rounded-2xl border-2 border-emerald-500 bg-emerald-50/90 text-emerald-800 p-3.5 text-left transition flex items-center gap-3 shadow-2xs cursor-pointer";
+        checkInBtn.querySelector("span").className = "w-9 h-9 rounded-xl bg-emerald-500 text-white flex items-center justify-center text-base shrink-0";
+        checkInBtn.querySelectorAll("p")[1].className = "text-[11px] text-emerald-700/80 mt-0.5 tabular-clock";
 
-        checkOutBtn.className = 'att-choice-btn rounded-2xl border border-slate-200 bg-white hover:border-indigo-200 hover:bg-slate-50/80 text-slate-700 p-3.5 text-left transition flex items-center gap-3 cursor-pointer';
-        checkOutBtn.querySelector('span').className = 'w-9 h-9 rounded-xl bg-slate-100 text-slate-600 flex items-center justify-center text-base shrink-0';
-        checkOutBtn.querySelectorAll('p')[1].className = 'text-[11px] text-slate-400 mt-0.5 tabular-clock';
+        checkOutBtn.className = "att-choice-btn rounded-2xl border border-slate-200 bg-white hover:border-indigo-200 hover:bg-slate-50/80 text-slate-700 p-3.5 text-left transition flex items-center gap-3 cursor-pointer";
+        checkOutBtn.querySelector("span").className = "w-9 h-9 rounded-xl bg-slate-100 text-slate-600 flex items-center justify-center text-base shrink-0";
+        checkOutBtn.querySelectorAll("p")[1].className = "text-[11px] text-slate-400 mt-0.5 tabular-clock";
 
-        banner.className = 'bg-emerald-50/70 border border-emerald-100 rounded-xl px-3.5 py-2.5 flex items-center justify-between gap-2 text-xs';
-        modeText.className = 'font-semibold text-emerald-700';
-        modeText.textContent = 'ลงเวลาเข้างาน';
-        bannerTime.className = 'font-semibold text-emerald-700';
+        banner.className = "bg-emerald-50/70 border border-emerald-100 rounded-xl px-3.5 py-2.5 flex items-center justify-between gap-2 text-xs";
+        modeText.className = "font-semibold text-emerald-700";
+        modeText.textContent = "ลงเวลาเข้างาน";
+        bannerTime.className = "font-semibold text-emerald-700";
       }
     }
 
-    async function syncTodayAttendanceFromServer() {
+    function resetTodayLocalAttendanceState() {
       const sessionUser = getCurrentSessionUser();
-      const empCode = String(sessionUser.emp_code || '').trim().toLowerCase();
-      if (!empCode) return;
-
-      try {
-        const res = await fetch(`${SCRIPT_URL}?action=dashboard`);
-        const data = await res.json();
-        if (!data || !data.ok || !Array.isArray(data.attendance)) return;
-
-        const todayRecord = data.attendance.find(
-          (r) => String(r.emp_code || '').trim().toLowerCase() === empCode && isSameDayRecord(r.date)
-        );
-        if (!todayRecord) return;
-
-        const serverInTime = normalizeTimeDisplay(todayRecord.check_in);
-        const serverOutTime = normalizeTimeDisplay(todayRecord.check_out);
-
-        if (serverInTime) {
-          checkedInToday = true;
-          checkedInTimeToday = serverInTime;
-        }
-        if (serverOutTime) {
-          checkedOutToday = true;
-          checkedOutTimeToday = serverOutTime;
-        }
-
-        saveTodayAttendanceState();
-        applyAttendanceLockState(checkedInToday && !checkedOutToday ? 'ออกงาน' : 'เข้างาน');
-        updateClock();
-      } catch (err) {
-        console.warn('Sync attendance time skipped:', err);
-      }
-    }
-
-    function syncAttendanceChoiceUI(value) {
-      if (value === 'เข้างาน' && checkedInToday) return;
-      if (value === 'ออกงาน' && checkedOutToday) return;
-      applyAttendanceLockState(value);
-    }
-
-    function resetForNewDay() {
       checkedInToday = false;
       checkedOutToday = false;
       checkedInTimeToday = "";
       checkedOutTimeToday = "";
+      saveUserDailyStateToStorage(sessionUser.emp_code);
 
-      localStorage.setItem(STORAGE_DAY_KEY, getTodayKey());
-      localStorage.setItem(STORAGE_CHECKED_IN_KEY, '0');
-      localStorage.setItem(STORAGE_CHECKED_OUT_KEY, '0');
-      localStorage.removeItem(STORAGE_CHECKED_IN_TIME_KEY);
-      localStorage.removeItem(STORAGE_CHECKED_OUT_TIME_KEY);
-      clearFormInputsForNextEntry();
-
-      const resultBox = document.getElementById('attResult');
-      if (resultBox) {
-        resultBox.classList.add('hidden');
-        resultBox.textContent = '';
+      const box = document.getElementById("attResult");
+      if (box) {
+        box.classList.add("hidden");
+        box.textContent = "";
       }
 
-      applyAttendanceLockState('เข้างาน');
+      applyAttendanceLockState("เข้างาน");
+      updateClock();
     }
 
-    function checkAndSyncDailyState() {
-      const today = getTodayKey();
-      const savedDay = localStorage.getItem(STORAGE_DAY_KEY);
-
-      if (!savedDay) {
-        localStorage.setItem(STORAGE_DAY_KEY, today);
-        return;
-      }
-
-      if (savedDay !== today) {
-        resetForNewDay();
-      }
+    function syncAttendanceChoiceUI(value) {
+      if (value === "เข้างาน" && checkedInToday) return;
+      if (value === "ออกงาน" && checkedOutToday) return;
+      applyAttendanceLockState(value);
     }
 
-    let lastTrackedDay = getTodayKey();
+    let lastTrackedThaiDay = getTodayThaiKey();
 
     function updateClock() {
-      const now = new Date();
-      const currentDay = `${now.getFullYear()}-${pad2(now.getMonth() + 1)}-${pad2(now.getDate())}`;
-      if (currentDay !== lastTrackedDay) {
-        lastTrackedDay = currentDay;
-        resetForNewDay();
+      const currentThaiDay = getTodayThaiKey();
+      if (currentThaiDay !== lastTrackedThaiDay) {
+        lastTrackedThaiDay = currentThaiDay;
+        resetTodayLocalAttendanceState();
       }
 
-      const timeStr = `${pad2(now.getHours())}:${pad2(now.getMinutes())}:${pad2(now.getSeconds())}`;
+      const timeStr = formatNowThaiTime();
 
-      const clockEl = document.getElementById('clock');
+      const clockEl = document.getElementById("clock");
       if (clockEl) {
-        clockEl.textContent = now.toLocaleString('th-TH', {
-          dateStyle: 'full',
-          timeStyle: 'medium'
-        });
+        clockEl.textContent = formatFullThaiDateTime();
       }
 
-      const headerClockEl = document.getElementById('choiceHeaderClock');
+      const headerClockEl = document.getElementById("choiceHeaderClock");
       if (headerClockEl) headerClockEl.textContent = timeStr;
 
-      const bannerTimeEl = document.getElementById('attBannerTime');
-      if (bannerTimeEl) bannerTimeEl.textContent = `${timeStr} น.`;
+      const bannerTimeEl = document.getElementById("attBannerTime");
+      if (bannerTimeEl) {
+        const displayTime = (checkedInToday && checkedOutToday && checkedOutTimeToday)
+          ? checkedOutTimeToday
+          : timeStr;
+        bannerTimeEl.textContent = `${displayTime} น.`;
+      }
 
-      const checkInTimeEl = document.getElementById('checkInTimeSlot');
+      const checkInTimeEl = document.getElementById("checkInTimeSlot");
       if (checkInTimeEl) {
         checkInTimeEl.textContent = (checkedInToday && checkedInTimeToday) ? checkedInTimeToday : timeStr;
       }
 
-      const checkOutTimeEl = document.getElementById('checkOutTimeSlot');
+      const checkOutTimeEl = document.getElementById("checkOutTimeSlot");
       if (checkOutTimeEl) {
         checkOutTimeEl.textContent = (checkedOutToday && checkedOutTimeToday) ? checkedOutTimeToday : timeStr;
       }
     }
 
     function setAuthTab(mode) {
-      const loginPanel = document.getElementById('loginPanel');
-      const registerPanel = document.getElementById('registerPanel');
-      const tabLoginBtn = document.getElementById('tabLoginBtn');
-      const tabRegisterBtn = document.getElementById('tabRegisterBtn');
-      const authResult = document.getElementById('authResult');
+      const loginPanel = document.getElementById("loginPanel");
+      const registerPanel = document.getElementById("registerPanel");
+      const tabLoginBtn = document.getElementById("tabLoginBtn");
+      const tabRegisterBtn = document.getElementById("tabRegisterBtn");
+      const authResult = document.getElementById("authResult");
 
-      authResult.classList.add('hidden');
+      authResult.classList.add("hidden");
 
-      if (mode === 'login') {
-        registerPanel.classList.add('hidden');
-        loginPanel.classList.remove('hidden');
-        tabLoginBtn.className = 'py-2 rounded-xl text-sm font-medium bg-white text-indigo-700 shadow-2xs transition cursor-pointer';
-        tabRegisterBtn.className = 'py-2 rounded-xl text-sm font-medium text-slate-600 hover:text-slate-800 transition cursor-pointer';
+      if (mode === "login") {
+        registerPanel.classList.add("hidden");
+        loginPanel.classList.remove("hidden");
+        tabLoginBtn.className = "py-2 rounded-xl text-sm font-medium bg-white text-indigo-700 shadow-2xs transition cursor-pointer";
+        tabRegisterBtn.className = "py-2 rounded-xl text-sm font-medium text-slate-600 hover:text-slate-800 transition cursor-pointer";
       } else {
-        loginPanel.classList.add('hidden');
-        registerPanel.classList.remove('hidden');
-        tabRegisterBtn.className = 'py-2 rounded-xl text-sm font-medium bg-white text-indigo-700 shadow-2xs transition cursor-pointer';
-        tabLoginBtn.className = 'py-2 rounded-xl text-sm font-medium text-slate-600 hover:text-slate-800 transition cursor-pointer';
+        loginPanel.classList.add("hidden");
+        registerPanel.classList.remove("hidden");
+        tabRegisterBtn.className = "py-2 rounded-xl text-sm font-medium bg-white text-indigo-700 shadow-2xs transition cursor-pointer";
+        tabLoginBtn.className = "py-2 rounded-xl text-sm font-medium text-slate-600 hover:text-slate-800 transition cursor-pointer";
       }
     }
 
-    document.getElementById('tabLoginBtn').addEventListener('click', () => setAuthTab('login'));
-    document.getElementById('tabRegisterBtn').addEventListener('click', () => setAuthTab('register'));
-    document.getElementById('switchToRegLink').addEventListener('click', () => setAuthTab('register'));
-    document.getElementById('switchToLoginLink').addEventListener('click', () => setAuthTab('login'));
-    document.getElementById('goAuthBtn').addEventListener('click', () => switchView('auth'));
+    document.getElementById("tabLoginBtn").addEventListener("click", () => setAuthTab("login"));
+    document.getElementById("tabRegisterBtn").addEventListener("click", () => setAuthTab("register"));
+    document.getElementById("switchToRegLink").addEventListener("click", () => setAuthTab("register"));
+    document.getElementById("switchToLoginLink").addEventListener("click", () => setAuthTab("login"));
+    document.getElementById("goAuthBtn").addEventListener("click", () => switchView("auth"));
+    document.getElementById("resetTodayStatusBtn").addEventListener("click", () => {
+      resetTodayLocalAttendanceState();
+      const box = document.getElementById("attResult");
+      if (box) {
+        showMessage(box, true, "รีเซ็ตสถานะการลงเวลาของวันนี้เรียบร้อยแล้ว (เวลาประเทศไทย)");
+      }
+    });
 
     function completeLoginSession(user) {
       currentAuthUser = {
-        emp_code: String(user.emp_code || '').trim(),
-        emp_name: String(user.emp_name || '').trim(),
-        department: String(user.department || '').trim()
+        emp_code: String(user.emp_code || "").trim(),
+        emp_name: String(user.emp_name || "").trim(),
+        department: String(user.department || "").trim()
       };
       localStorage.setItem(STORAGE_AUTH_USER_KEY, JSON.stringify(currentAuthUser));
-      localStorage.setItem(STORAGE_DAY_KEY, getTodayKey());
       localStorage.setItem(STORAGE_CODE_KEY, currentAuthUser.emp_code);
       localStorage.setItem(STORAGE_NAME_KEY, currentAuthUser.emp_name);
       localStorage.setItem(STORAGE_DEPT_KEY, currentAuthUser.department);
 
+      loadUserDailyStateFromStorage(currentAuthUser.emp_code);
       fillUserFields(currentAuthUser.emp_code, currentAuthUser.emp_name, currentAuthUser.department);
       updateActiveUserUI();
-      syncTodayAttendanceFromServer();
+      applyAttendanceLockState(checkedInToday && !checkedOutToday ? "ออกงาน" : "เข้างาน");
+      updateClock();
     }
 
     function logoutSession() {
       currentAuthUser = null;
       localStorage.removeItem(STORAGE_AUTH_USER_KEY);
+      localStorage.removeItem(STORAGE_CODE_KEY);
+      localStorage.removeItem(STORAGE_NAME_KEY);
+      localStorage.removeItem(STORAGE_DEPT_KEY);
+      checkedInToday = false;
+      checkedOutToday = false;
+      checkedInTimeToday = "";
+      checkedOutTimeToday = "";
       clearFormInputsForNextEntry();
       updateActiveUserUI();
+      applyAttendanceLockState("เข้างาน");
+      updateClock();
       closeMenu();
-      setAuthTab('register');
-      switchView('auth');
+      setAuthTab("register");
+      switchView("auth");
     }
 
-    document.getElementById('logoutBtn').addEventListener('click', logoutSession);
-    document.getElementById('quickLogoutBtn').addEventListener('click', logoutSession);
+    document.getElementById("logoutBtn").addEventListener("click", logoutSession);
+    document.getElementById("quickLogoutBtn").addEventListener("click", logoutSession);
 
-    document.getElementById('loginSubmitBtn').addEventListener('click', async () => {
-      const emp_code = document.getElementById('loginEmpCode').value.trim();
-      const password = document.getElementById('loginPassword').value.trim();
-      const box = document.getElementById('authResult');
-      const btn = document.getElementById('loginSubmitBtn');
+    document.getElementById("loginSubmitBtn").addEventListener("click", async () => {
+      const emp_code = document.getElementById("loginEmpCode").value.trim();
+      const password = document.getElementById("loginPassword").value.trim();
+      const box = document.getElementById("authResult");
+      const btn = document.getElementById("loginSubmitBtn");
 
       if (!emp_code || !password) {
-        showMessage(box, false, 'กรุณากรอกรหัสพนักงานและรหัสผ่าน');
+        showMessage(box, false, "กรุณากรอกรหัสพนักงานและรหัสผ่าน");
         return;
       }
 
       btn.disabled = true;
-      btn.textContent = 'กำลังเข้าสู่ระบบ...';
-      box.classList.add('hidden');
+      btn.textContent = "กำลังเข้าสู่ระบบ...";
+      box.classList.add("hidden");
 
       try {
         const res = await fetch(SCRIPT_URL, {
-          method: 'POST',
-          body: JSON.stringify({ action: 'login', emp_code, password })
+          method: "POST",
+          body: JSON.stringify({ action: "login", emp_code, password })
         });
         const data = await res.json();
         if (data && data.ok && data.user) {
           completeLoginSession(data.user);
-          document.getElementById('loginPassword').value = '';
+          document.getElementById("loginPassword").value = "";
           btn.disabled = false;
-          btn.textContent = 'เข้าสู่ระบบเพื่อลงเวลา';
+          btn.textContent = "เข้าสู่ระบบเพื่อลงเวลา";
           showMessage(box, true, `เข้าสู่ระบบสำเร็จ ยินดีต้อนรับ ${data.user.emp_name || emp_code}`);
-          setTimeout(() => switchView('attendance'), 400);
+          setTimeout(() => switchView("attendance"), 400);
           return;
         }
       } catch (e) {}
 
       const users = getRegisteredUsers();
       const matched = users.find(
-        (u) => String(u.emp_code || '').toLowerCase() === emp_code.toLowerCase() && String(u.password || '') === password
+        (u) => String(u.emp_code || "").toLowerCase() === emp_code.toLowerCase() && String(u.password || "") === password
       );
 
       btn.disabled = false;
-      btn.textContent = 'เข้าสู่ระบบเพื่อลงเวลา';
+      btn.textContent = "เข้าสู่ระบบเพื่อลงเวลา";
 
       if (!matched) {
         showMessage(box, false, 'ไม่พบบัญชีหรือรหัสผ่านไม่ถูกต้อง (หากยังไม่มีบัญชี ให้กดแท็บ "สมัครสมาชิก")');
@@ -1061,66 +1065,66 @@
       }
 
       completeLoginSession(matched);
-      document.getElementById('loginPassword').value = '';
+      document.getElementById("loginPassword").value = "";
       showMessage(box, true, `เข้าสู่ระบบสำเร็จ ยินดีต้อนรับ ${matched.emp_name}`);
-      setTimeout(() => switchView('attendance'), 400);
+      setTimeout(() => switchView("attendance"), 400);
     });
 
-    document.getElementById('registerSubmitBtn').addEventListener('click', async () => {
-      const emp_code = document.getElementById('regEmpCode').value.trim();
-      const emp_name = document.getElementById('regEmpName').value.trim();
-      const department = document.getElementById('regDept').value.trim();
-      const password = document.getElementById('regPassword').value.trim();
-      const confirmPassword = document.getElementById('regConfirmPassword').value.trim();
-      const box = document.getElementById('authResult');
-      const btn = document.getElementById('registerSubmitBtn');
+    document.getElementById("registerSubmitBtn").addEventListener("click", async () => {
+      const emp_code = document.getElementById("regEmpCode").value.trim();
+      const emp_name = document.getElementById("regEmpName").value.trim();
+      const department = document.getElementById("regDept").value.trim();
+      const password = document.getElementById("regPassword").value.trim();
+      const confirmPassword = document.getElementById("regConfirmPassword").value.trim();
+      const box = document.getElementById("authResult");
+      const btn = document.getElementById("registerSubmitBtn");
 
       if (!emp_code || !emp_name || !department || !password) {
-        showMessage(box, false, 'กรุณากรอกข้อมูลสมัครสมาชิกให้ครบทุกช่อง');
+        showMessage(box, false, "กรุณากรอกข้อมูลสมัครสมาชิกให้ครบทุกช่อง");
         return;
       }
 
       if (password.length < 4) {
-        showMessage(box, false, 'รหัสผ่านต้องมีอย่างน้อย 4 ตัวอักษร');
+        showMessage(box, false, "รหัสผ่านต้องมีอย่างน้อย 4 ตัวอักษร");
         return;
       }
 
       if (password !== confirmPassword) {
-        showMessage(box, false, 'รหัสผ่านและยืนยันรหัสผ่านไม่ตรงกัน');
+        showMessage(box, false, "รหัสผ่านและยืนยันรหัสผ่านไม่ตรงกัน");
         return;
       }
 
       btn.disabled = true;
-      btn.textContent = 'กำลังสมัครสมาชิก...';
-      box.classList.add('hidden');
+      btn.textContent = "กำลังสมัครสมาชิก...";
+      box.classList.add("hidden");
 
       try {
         const res = await fetch(SCRIPT_URL, {
-          method: 'POST',
-          body: JSON.stringify({ action: 'register', emp_code, emp_name, department, password })
+          method: "POST",
+          body: JSON.stringify({ action: "register", emp_code, emp_name, department, password })
         });
         const data = await res.json();
         if (data && data.ok) {
-          const users = getRegisteredUsers().filter((u) => String(u.emp_code || '').toLowerCase() !== emp_code.toLowerCase());
+          const users = getRegisteredUsers().filter((u) => String(u.emp_code || "").toLowerCase() !== emp_code.toLowerCase());
           users.push({ emp_code, emp_name, department, password });
           saveRegisteredUsers(users);
 
           completeLoginSession({ emp_code, emp_name, department });
           btn.disabled = false;
-          btn.textContent = 'สมัครสมาชิกและเข้าสู่หน้าลงเวลา';
-          showMessage(box, true, data.message || 'สมัครสมาชิกสำเร็จแล้ว กำลังพาไปหน้าบันทึกเข้างาน...');
-          setTimeout(() => switchView('attendance'), 400);
+          btn.textContent = "สมัครสมาชิกและเข้าสู่หน้าลงเวลา";
+          showMessage(box, true, data.message || "สมัครสมาชิกสำเร็จแล้ว กำลังพาไปหน้าบันทึกเข้างาน...");
+          setTimeout(() => switchView("attendance"), 400);
           return;
         }
       } catch (e) {}
 
       const users = getRegisteredUsers();
-      const exists = users.some((u) => String(u.emp_code || '').toLowerCase() === emp_code.toLowerCase());
+      const exists = users.some((u) => String(u.emp_code || "").toLowerCase() === emp_code.toLowerCase());
       btn.disabled = false;
-      btn.textContent = 'สมัครสมาชิกและเข้าสู่หน้าลงเวลา';
+      btn.textContent = "สมัครสมาชิกและเข้าสู่หน้าลงเวลา";
 
       if (exists) {
-        showMessage(box, false, 'รหัสพนักงานนี้ถูกสมัครสมาชิกไว้แล้ว กรุณาสลับไปหน้าเข้าสู่ระบบ');
+        showMessage(box, false, "รหัสพนักงานนี้ถูกสมัครสมาชิกไว้แล้ว กรุณาสลับไปหน้าเข้าสู่ระบบ");
         return;
       }
 
@@ -1128,13 +1132,11 @@
       saveRegisteredUsers(users);
       completeLoginSession({ emp_code, emp_name, department });
 
-      document.getElementById('regPassword').value = '';
-      document.getElementById('regConfirmPassword').value = '';
-      showMessage(box, true, 'สมัครสมาชิกเรียบร้อยแล้ว กำลังพาไปหน้าบันทึกเข้างาน...');
-      setTimeout(() => switchView('attendance'), 400);
+      document.getElementById("regPassword").value = "";
+      document.getElementById("regConfirmPassword").value = "";
+      showMessage(box, true, "สมัครสมาชิกเรียบร้อยแล้ว กำลังพาไปหน้าบันทึกเข้างาน...");
+      setTimeout(() => switchView("attendance"), 400);
     });
-
-    checkAndSyncDailyState();
 
     try {
       const savedAuthRaw = localStorage.getItem(STORAGE_AUTH_USER_KEY);
@@ -1148,188 +1150,172 @@
       currentAuthUser = null;
     }
 
-    const savedCode = localStorage.getItem(STORAGE_CODE_KEY) || (currentAuthUser && currentAuthUser.emp_code) || '';
-    const savedName = localStorage.getItem(STORAGE_NAME_KEY) || (currentAuthUser && currentAuthUser.emp_name) || '';
-    const savedDept = localStorage.getItem(STORAGE_DEPT_KEY) || (currentAuthUser && currentAuthUser.department) || '';
-    checkedInToday = localStorage.getItem(STORAGE_CHECKED_IN_KEY) === '1';
-    checkedOutToday = localStorage.getItem(STORAGE_CHECKED_OUT_KEY) === '1';
-    checkedInTimeToday = normalizeTimeDisplay(localStorage.getItem(STORAGE_CHECKED_IN_TIME_KEY) || '');
-    checkedOutTimeToday = normalizeTimeDisplay(localStorage.getItem(STORAGE_CHECKED_OUT_TIME_KEY) || '');
+    const sessionInitUser = getCurrentSessionUser();
+    if (sessionInitUser.emp_code) {
+      loadUserDailyStateFromStorage(sessionInitUser.emp_code);
+      fillUserFields(sessionInitUser.emp_code, sessionInitUser.emp_name, sessionInitUser.department);
+    } else {
+      refreshDrawerUserSummary();
+      updateActiveUserUI();
+    }
 
-    if (savedCode) {
-      document.querySelectorAll('.emp-code-sync').forEach((el) => { el.value = savedCode; });
-    }
-    if (savedName) {
-      document.querySelectorAll('.emp-name-sync').forEach((el) => { el.value = savedName; });
-    }
-    if (savedDept) {
-      document.querySelectorAll('.dept-sync').forEach((el) => { el.value = savedDept; });
-    }
-    refreshDrawerUserSummary();
-    updateActiveUserUI();
-    applyAttendanceLockState(checkedInToday && !checkedOutToday ? 'ออกงาน' : 'เข้างาน');
-    syncTodayAttendanceFromServer();
+    applyAttendanceLockState(checkedInToday && !checkedOutToday ? "ออกงาน" : "เข้างาน");
 
     setInterval(updateClock, 1000);
     updateClock();
 
-    document.querySelectorAll('.att-choice-btn').forEach((btn) => {
-      btn.addEventListener('click', () => {
+    document.querySelectorAll(".att-choice-btn").forEach((btn) => {
+      btn.addEventListener("click", () => {
         syncAttendanceChoiceUI(btn.dataset.attChoice);
       });
     });
 
-    const drawer = document.getElementById('drawerMenu');
-    const backdrop = document.getElementById('menuBackdrop');
+    const drawer = document.getElementById("drawerMenu");
+    const backdrop = document.getElementById("menuBackdrop");
 
     function openMenu() {
-      drawer.classList.remove('translate-x-full');
-      backdrop.classList.remove('hidden');
+      drawer.classList.remove("translate-x-full");
+      backdrop.classList.remove("hidden");
     }
     function closeMenu() {
-      drawer.classList.add('translate-x-full');
-      backdrop.classList.add('hidden');
+      drawer.classList.add("translate-x-full");
+      backdrop.classList.add("hidden");
     }
 
-    document.getElementById('menuBtn').addEventListener('click', openMenu);
-    document.getElementById('closeMenuBtn').addEventListener('click', closeMenu);
-    backdrop.addEventListener('click', closeMenu);
-    document.addEventListener('keydown', (e) => {
-      if (e.key === 'Escape') closeMenu();
+    document.getElementById("menuBtn").addEventListener("click", openMenu);
+    document.getElementById("closeMenuBtn").addEventListener("click", closeMenu);
+    backdrop.addEventListener("click", closeMenu);
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "Escape") closeMenu();
     });
 
-    document.querySelectorAll('.emp-code-sync').forEach((input) => {
-      input.addEventListener('input', () => {
+    document.querySelectorAll(".emp-code-sync").forEach((input) => {
+      input.addEventListener("input", () => {
         const val = input.value;
-        document.querySelectorAll('.emp-code-sync').forEach((other) => {
+        document.querySelectorAll(".emp-code-sync").forEach((other) => {
           if (other !== input) other.value = val;
         });
-        localStorage.setItem(STORAGE_DAY_KEY, getTodayKey());
         localStorage.setItem(STORAGE_CODE_KEY, val.trim());
         refreshDrawerUserSummary();
       });
     });
 
-    document.querySelectorAll('.emp-name-sync').forEach((input) => {
-      input.addEventListener('input', () => {
+    document.querySelectorAll(".emp-name-sync").forEach((input) => {
+      input.addEventListener("input", () => {
         const val = input.value;
-        document.querySelectorAll('.emp-name-sync').forEach((other) => {
+        document.querySelectorAll(".emp-name-sync").forEach((other) => {
           if (other !== input) other.value = val;
         });
-        localStorage.setItem(STORAGE_DAY_KEY, getTodayKey());
         localStorage.setItem(STORAGE_NAME_KEY, val.trim());
         refreshDrawerUserSummary();
       });
     });
 
-    document.querySelectorAll('.dept-sync').forEach((select) => {
-      select.addEventListener('change', () => {
+    document.querySelectorAll(".dept-sync").forEach((select) => {
+      select.addEventListener("change", () => {
         const val = select.value;
-        document.querySelectorAll('.dept-sync').forEach((other) => {
+        document.querySelectorAll(".dept-sync").forEach((other) => {
           if (other !== select) other.value = val;
         });
-        localStorage.setItem(STORAGE_DAY_KEY, getTodayKey());
         localStorage.setItem(STORAGE_DEPT_KEY, val.trim());
         refreshDrawerUserSummary();
       });
     });
 
     const viewTitles = {
-      auth: 'สมัครสมาชิก / เข้าสู่ระบบ',
-      attendance: 'ลงเวลาเข้า-ออกงาน',
-      leave: 'แจ้งลางาน',
-      profile: 'ข้อมูลของฉัน (ขาด / ลา / มาสาย)'
+      auth: "สมัครสมาชิก / เข้าสู่ระบบ",
+      attendance: "ลงเวลาเข้า-ออกงาน",
+      leave: "แจ้งลางาน",
+      profile: "ข้อมูลของฉัน (ขาด / ลา / มาสาย)"
     };
 
     function switchView(viewName) {
-      if (viewName !== 'auth' && !isLoggedIn()) {
-        viewName = 'auth';
+      if (viewName !== "auth" && !isLoggedIn()) {
+        viewName = "auth";
       }
 
-      document.querySelectorAll('.page-view').forEach((sec) => sec.classList.add('hidden'));
-      const target = document.getElementById('view-' + viewName);
-      if (target) target.classList.remove('hidden');
+      document.querySelectorAll(".page-view").forEach((sec) => sec.classList.add("hidden"));
+      const target = document.getElementById("view-" + viewName);
+      if (target) target.classList.remove("hidden");
 
-      document.getElementById('pageTitle').textContent = viewTitles[viewName] || 'ระบบพนักงาน';
+      document.getElementById("pageTitle").textContent = viewTitles[viewName] || "ระบบพนักงาน";
 
-      document.querySelectorAll('.nav-item').forEach((btn) => {
+      document.querySelectorAll(".nav-item").forEach((btn) => {
         const active = btn.dataset.nav === viewName;
-        const hiddenClass = btn.classList.contains('hidden') ? ' hidden' : '';
+        const hiddenClass = btn.classList.contains("hidden") ? " hidden" : "";
         btn.className = active
-          ? `nav-item${btn.classList.contains('auth-only-nav') ? ' auth-only-nav' : ''}${hiddenClass} w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium text-left bg-indigo-600 text-white transition cursor-pointer`
-          : `nav-item${btn.classList.contains('auth-only-nav') ? ' auth-only-nav' : ''}${hiddenClass} w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium text-left text-slate-700 hover:bg-indigo-50 transition cursor-pointer`;
+          ? `nav-item${btn.classList.contains("auth-only-nav") ? " auth-only-nav" : ""}${hiddenClass} w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium text-left bg-indigo-600 text-white transition cursor-pointer`
+          : `nav-item${btn.classList.contains("auth-only-nav") ? " auth-only-nav" : ""}${hiddenClass} w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium text-left text-slate-700 hover:bg-indigo-50 transition cursor-pointer`;
       });
 
       closeMenu();
-      window.scrollTo({ top: 0, behavior: 'smooth' });
+      window.scrollTo({ top: 0, behavior: "smooth" });
 
-      if (viewName === 'attendance') {
-        syncTodayAttendanceFromServer();
-      } else if (viewName === 'profile') {
+      if (viewName === "profile") {
         loadMyProfile();
       }
     }
 
-    document.querySelectorAll('[data-nav]').forEach((el) => {
-      el.addEventListener('click', () => switchView(el.dataset.nav));
+    document.querySelectorAll("[data-nav]").forEach((el) => {
+      el.addEventListener("click", () => switchView(el.dataset.nav));
     });
 
     function clearLeaveEvidence() {
       leaveEvidenceData = { name: "", mime: "", base64: "", dataUrl: "" };
-      const input = document.getElementById('leaveEvidenceInput');
+      const input = document.getElementById("leaveEvidenceInput");
       if (input) input.value = "";
-      document.getElementById('leaveEvidencePreviewBox').classList.add('hidden');
-      document.getElementById('leaveEvidencePreviewImg').src = "";
-      document.getElementById('leaveEvidenceFileName').textContent = "";
+      document.getElementById("leaveEvidencePreviewBox").classList.add("hidden");
+      document.getElementById("leaveEvidencePreviewImg").src = "";
+      document.getElementById("leaveEvidenceFileName").textContent = "";
     }
 
-    document.getElementById('clearLeaveEvidenceBtn').addEventListener('click', clearLeaveEvidence);
+    document.getElementById("clearLeaveEvidenceBtn").addEventListener("click", clearLeaveEvidence);
 
-    document.getElementById('leaveEvidenceInput').addEventListener('change', (e) => {
+    document.getElementById("leaveEvidenceInput").addEventListener("change", (e) => {
       const file = e.target.files && e.target.files[0];
-      const box = document.getElementById('lvResult');
+      const box = document.getElementById("lvResult");
       if (!file) {
         clearLeaveEvidence();
         return;
       }
 
-      if (!file.type.startsWith('image/')) {
-        showMessage(box, false, 'กรุณาเลือกไฟล์รูปภาพเท่านั้น');
+      if (!file.type.startsWith("image/")) {
+        showMessage(box, false, "กรุณาเลือกไฟล์รูปภาพเท่านั้น");
         clearLeaveEvidence();
         return;
       }
 
       const maxBytes = 3 * 1024 * 1024;
       if (file.size > maxBytes) {
-        showMessage(box, false, 'ขนาดรูปภาพต้องไม่เกิน 3 MB');
+        showMessage(box, false, "ขนาดรูปภาพต้องไม่เกิน 3 MB");
         clearLeaveEvidence();
         return;
       }
 
       const reader = new FileReader();
       reader.onload = () => {
-        const dataUrl = String(reader.result || '');
-        const commaIdx = dataUrl.indexOf(',');
-        const base64 = commaIdx >= 0 ? dataUrl.slice(commaIdx + 1) : '';
+        const dataUrl = String(reader.result || "");
+        const commaIdx = dataUrl.indexOf(",");
+        const base64 = commaIdx >= 0 ? dataUrl.slice(commaIdx + 1) : "";
 
         leaveEvidenceData = {
           name: file.name,
-          mime: file.type || 'image/jpeg',
+          mime: file.type || "image/jpeg",
           base64,
           dataUrl
         };
 
-        document.getElementById('leaveEvidencePreviewImg').src = dataUrl;
-        document.getElementById('leaveEvidenceFileName').textContent = file.name;
-        document.getElementById('leaveEvidencePreviewBox').classList.remove('hidden');
+        document.getElementById("leaveEvidencePreviewImg").src = dataUrl;
+        document.getElementById("leaveEvidenceFileName").textContent = file.name;
+        document.getElementById("leaveEvidencePreviewBox").classList.remove("hidden");
       };
       reader.readAsDataURL(file);
     });
 
     function showMessage(el, ok, msg, showGoProfile = false) {
       el.className = ok
-        ? 'p-3 rounded-xl text-sm text-center font-medium bg-emerald-100 text-emerald-700 space-y-2'
-        : 'p-3 rounded-xl text-sm text-center font-medium bg-red-100 text-red-700 space-y-2';
+        ? "p-3 rounded-xl text-sm text-center font-medium bg-emerald-100 text-emerald-700 space-y-2"
+        : "p-3 rounded-xl text-sm text-center font-medium bg-red-100 text-red-700 space-y-2";
 
       if (showGoProfile && ok) {
         el.innerHTML = `
@@ -1341,124 +1327,123 @@
       } else {
         el.textContent = msg;
       }
-      el.classList.remove('hidden');
+      el.classList.remove("hidden");
     }
 
-    document.getElementById('attSubmitBtn').addEventListener('click', async () => {
-      checkAndSyncDailyState();
-
+    document.getElementById("attSubmitBtn").addEventListener("click", async () => {
       const sessionUser = getCurrentSessionUser();
       const emp_code = sessionUser.emp_code;
       const emp_name = sessionUser.emp_name;
       const department = sessionUser.department;
-      const record_type = document.getElementById('attType').value;
-      const box = document.getElementById('attResult');
-      const btn = document.getElementById('attSubmitBtn');
+      const record_type = document.getElementById("attType").value;
+      const box = document.getElementById("attResult");
+      const btn = document.getElementById("attSubmitBtn");
 
       if (!emp_code || !emp_name) {
-        showMessage(box, false, 'ไม่พบข้อมูลบัญชีที่เข้าสู่ระบบ กรุณาเข้าสู่ระบบใหม่อีกครั้ง');
-        switchView('auth');
+        showMessage(box, false, "ไม่พบข้อมูลบัญชีที่เข้าสู่ระบบ กรุณาเข้าสู่ระบบใหม่อีกครั้ง");
+        switchView("auth");
         return;
       }
 
-      if (record_type === 'เข้างาน' && checkedInToday) {
+      if (record_type === "เข้างาน" && checkedInToday) {
         showMessage(box, false, 'วันนี้ลงเวลาเข้างานไปแล้ว สามารถเลือก "ลงเวลาออกงาน" ได้');
-        applyAttendanceLockState('ออกงาน');
+        applyAttendanceLockState("ออกงาน");
         return;
       }
 
-      if (record_type === 'ออกงาน' && checkedOutToday) {
-        showMessage(box, false, 'วันนี้ลงเวลาออกงานไปแล้ว');
-        applyAttendanceLockState('ออกงาน');
+      if (record_type === "ออกงาน" && checkedOutToday) {
+        showMessage(box, false, "วันนี้ลงเวลาออกงานไปแล้ว");
+        applyAttendanceLockState("ออกงาน");
         return;
       }
 
-      localStorage.setItem(STORAGE_DAY_KEY, getTodayKey());
       refreshDrawerUserSummary();
 
       btn.disabled = true;
-      btn.textContent = 'กำลังบันทึก...';
-      box.classList.add('hidden');
+      btn.textContent = "กำลังบันทึก...";
+      box.classList.add("hidden");
 
-      const clickedTime = formatNowTime();
+      const clickedThaiTime = formatNowThaiTime();
 
       try {
         const res = await fetch(SCRIPT_URL, {
-          method: 'POST',
-          body: JSON.stringify({ action: 'attendance', emp_code, emp_name, department, record_type })
+          method: "POST",
+          body: JSON.stringify({
+            action: "attendance",
+            emp_code,
+            emp_name,
+            department,
+            record_type,
+            timezone: THAI_TIMEZONE,
+            thai_date: getTodayThaiKey(),
+            thai_time: clickedThaiTime
+          })
         });
         const data = await res.json();
         const isSuccess = Boolean(data && data.ok);
 
         if (isSuccess) {
-          const serverTime = normalizeTimeDisplay(data.check_in || data.check_out || data.time || '');
-          const finalTime = serverTime || clickedTime;
-
-          if (record_type === 'เข้างาน') {
+          if (record_type === "เข้างาน") {
             checkedInToday = true;
-            checkedInTimeToday = finalTime;
-            saveTodayAttendanceState();
-            clearFormInputsForNextEntry();
-            applyAttendanceLockState('ออกงาน');
-          } else if (record_type === 'ออกงาน') {
+            checkedInTimeToday = clickedThaiTime;
+            saveUserDailyStateToStorage(emp_code);
+            applyAttendanceLockState("ออกงาน");
+          } else if (record_type === "ออกงาน") {
             checkedOutToday = true;
-            checkedOutTimeToday = finalTime;
-            saveTodayAttendanceState();
-            clearFormInputsForNextEntry();
-            applyAttendanceLockState('ออกงาน');
+            checkedOutTimeToday = clickedThaiTime;
+            saveUserDailyStateToStorage(emp_code);
+            applyAttendanceLockState("ออกงาน");
           }
           updateClock();
-          syncTodayAttendanceFromServer();
         } else {
           applyAttendanceLockState(record_type);
         }
 
-        showMessage(box, isSuccess, data.message || 'บันทึกการลงเวลาเรียบร้อยแล้ว');
+        showMessage(box, isSuccess, data.message || `บันทึกการ${record_type}เวลา ${clickedThaiTime} น. เรียบร้อยแล้ว`);
       } catch (err) {
         applyAttendanceLockState(record_type);
-        showMessage(box, false, 'เชื่อมต่อไม่สำเร็จ: ' + err.message);
+        showMessage(box, false, "เชื่อมต่อไม่สำเร็จ: " + err.message);
       } finally {
         if (!(checkedInToday && checkedOutToday)) {
           btn.disabled = false;
-          btn.textContent = 'ยืนยันการลงเวลา';
+          btn.textContent = "ยืนยันการลงเวลา";
         }
       }
     });
 
-    document.getElementById('lvSubmitBtn').addEventListener('click', async () => {
-      const emp_code = document.getElementById('lvEmpCode').value.trim();
-      const emp_name = document.getElementById('lvEmpName').value.trim();
-      const department = document.getElementById('lvDept').value.trim();
-      const leave_type = document.getElementById('leaveType').value;
-      const start_date = document.getElementById('startDate').value;
-      const end_date = document.getElementById('endDate').value;
-      const reason = document.getElementById('leaveReason').value.trim();
-      const box = document.getElementById('lvResult');
-      const btn = document.getElementById('lvSubmitBtn');
+    document.getElementById("lvSubmitBtn").addEventListener("click", async () => {
+      const emp_code = document.getElementById("lvEmpCode").value.trim();
+      const emp_name = document.getElementById("lvEmpName").value.trim();
+      const department = document.getElementById("lvDept").value.trim();
+      const leave_type = document.getElementById("leaveType").value;
+      const start_date = document.getElementById("startDate").value;
+      const end_date = document.getElementById("endDate").value;
+      const reason = document.getElementById("leaveReason").value.trim();
+      const box = document.getElementById("lvResult");
+      const btn = document.getElementById("lvSubmitBtn");
 
       if (!emp_code || !emp_name || !start_date || !end_date || !reason) {
-        showMessage(box, false, 'กรุณากรอกข้อมูลการลาให้ครบทุกช่อง');
+        showMessage(box, false, "กรุณากรอกข้อมูลการลาให้ครบทุกช่อง");
         return;
       }
 
       if (end_date < start_date) {
-        showMessage(box, false, 'วันที่สิ้นสุดต้องไม่น้อยกว่าวันที่เริ่มต้น');
+        showMessage(box, false, "วันที่สิ้นสุดต้องไม่น้อยกว่าวันที่เริ่มต้น");
         return;
       }
 
-      localStorage.setItem(STORAGE_DAY_KEY, getTodayKey());
       localStorage.setItem(STORAGE_CODE_KEY, emp_code);
       localStorage.setItem(STORAGE_NAME_KEY, emp_name);
       localStorage.setItem(STORAGE_DEPT_KEY, department);
       refreshDrawerUserSummary();
 
       btn.disabled = true;
-      btn.textContent = 'กำลังส่งคำขอ...';
-      box.classList.add('hidden');
+      btn.textContent = "กำลังส่งคำขอ...";
+      box.classList.add("hidden");
 
       try {
         const payload = {
-          action: 'leave',
+          action: "leave",
           emp_code,
           emp_name,
           department,
@@ -1475,126 +1460,126 @@
         }
 
         const res = await fetch(SCRIPT_URL, {
-          method: 'POST',
+          method: "POST",
           body: JSON.stringify(payload)
         });
         const data = await res.json();
-        showMessage(box, Boolean(data.ok), data.message || 'ส่งคำขอลางานเรียบร้อยแล้ว', Boolean(data.ok));
+        showMessage(box, Boolean(data.ok), data.message || "ส่งคำขอลางานเรียบร้อยแล้ว", Boolean(data.ok));
         if (data.ok) {
-          document.getElementById('leaveReason').value = '';
+          document.getElementById("leaveReason").value = "";
           clearLeaveEvidence();
         }
       } catch (err) {
-        showMessage(box, false, 'เชื่อมต่อไม่สำเร็จ: ' + err.message);
+        showMessage(box, false, "เชื่อมต่อไม่สำเร็จ: " + err.message);
       } finally {
         btn.disabled = false;
-        btn.textContent = 'ส่งคำขอลางาน';
+        btn.textContent = "ส่งคำขอลางาน";
       }
     });
 
     async function loadMyProfile() {
       const sessionUser = getCurrentSessionUser();
-      const codeInput = (document.getElementById('profileEmpCode').value || sessionUser.emp_code || '').trim();
-      const nameInput = sessionUser.emp_name || '';
-      const deptInput = sessionUser.department || '';
-      const badgeEl = document.getElementById('profileStatusBadge');
+      const codeInput = (document.getElementById("profileEmpCode").value || sessionUser.emp_code || "").trim();
+      const nameInput = sessionUser.emp_name || "";
+      const deptInput = sessionUser.department || "";
+      const badgeEl = document.getElementById("profileStatusBadge");
 
       if (!codeInput) {
-        document.getElementById('cardEmpName').textContent = nameInput || 'กรุณาระบุรหัสพนักงาน';
-        document.getElementById('cardEmpCode').textContent = `รหัสพนักงาน: - • กลุ่มงาน: ${deptInput || '-'}`;
-        badgeEl.textContent = 'รอระบุรหัส';
+        document.getElementById("cardEmpName").textContent = nameInput || "กรุณาระบุรหัสพนักงาน";
+        document.getElementById("cardEmpCode").textContent = `รหัสพนักงาน: - • กลุ่มงาน: ${deptInput || "-"}`;
+        badgeEl.textContent = "รอระบุรหัส";
         return;
       }
 
-      badgeEl.textContent = 'กำลังโหลด...';
+      badgeEl.textContent = "กำลังโหลด...";
 
       try {
         const res = await fetch(`${SCRIPT_URL}?action=dashboard`);
         const data = await res.json();
         if (!data.ok) {
-          badgeEl.textContent = 'ดึงข้อมูลไม่สำเร็จ';
+          badgeEl.textContent = "ดึงข้อมูลไม่สำเร็จ";
           return;
         }
 
         const targetCode = codeInput.toLowerCase();
-        const myAtt = (data.attendance || []).filter((r) => String(r.emp_code || '').toLowerCase() === targetCode);
-        const myLeaves = (data.leaves || []).filter((l) => String(l.emp_code || '').toLowerCase() === targetCode);
+        const myAtt = (data.attendance || []).filter((r) => String(r.emp_code || "").toLowerCase() === targetCode);
+        const myLeaves = (data.leaves || []).filter((l) => String(l.emp_code || "").toLowerCase() === targetCode);
 
         const foundName =
           (myAtt[0] && myAtt[0].emp_name) ||
           (myLeaves[0] && myLeaves[0].emp_name) ||
           nameInput ||
-          'พนักงาน';
+          "พนักงาน";
 
         const foundDept =
           (myAtt[0] && myAtt[0].department) ||
           (myLeaves[0] && myLeaves[0].department) ||
           deptInput ||
-          'ไม่ระบุกลุ่มงาน';
+          "ไม่ระบุกลุ่มงาน";
 
-        document.getElementById('cardEmpName').textContent = foundName;
-        document.getElementById('cardEmpCode').textContent = `รหัสพนักงาน: ${codeInput.toUpperCase()} • กลุ่มงาน: ${foundDept}`;
-        badgeEl.textContent = 'อัปเดตแล้ว';
+        document.getElementById("cardEmpName").textContent = foundName;
+        document.getElementById("cardEmpCode").textContent = `รหัสพนักงาน: ${codeInput.toUpperCase()} • กลุ่มงาน: ${foundDept}`;
+        badgeEl.textContent = "อัปเดตแล้ว";
 
-        const onTimeCount = myAtt.filter((r) => r.status === 'ตรงเวลา').length;
-        const lateCount = myAtt.filter((r) => r.status === 'มาสาย').length;
-        const approvedLeaves = myLeaves.filter((l) => l.approval_status === 'อนุมัติ').length;
-        const pendingLeaves = myLeaves.filter((l) => l.approval_status === 'รออนุมัติ').length;
+        const onTimeCount = myAtt.filter((r) => r.status === "ตรงเวลา").length;
+        const lateCount = myAtt.filter((r) => r.status === "มาสาย").length;
+        const approvedLeaves = myLeaves.filter((l) => l.approval_status === "อนุมัติ").length;
+        const pendingLeaves = myLeaves.filter((l) => l.approval_status === "รออนุมัติ").length;
 
-        document.getElementById('myOnTime').textContent = onTimeCount;
-        document.getElementById('myLate').textContent = lateCount;
-        document.getElementById('myApprovedLeaves').textContent = approvedLeaves;
-        document.getElementById('myPendingLeaves').textContent = pendingLeaves;
+        document.getElementById("myOnTime").textContent = onTimeCount;
+        document.getElementById("myLate").textContent = lateCount;
+        document.getElementById("myApprovedLeaves").textContent = approvedLeaves;
+        document.getElementById("myPendingLeaves").textContent = pendingLeaves;
 
-        const leavesBody = document.getElementById('myLeavesBody');
+        const leavesBody = document.getElementById("myLeavesBody");
         if (!myLeaves.length) {
           leavesBody.innerHTML = '<tr><td colspan="4" class="py-5 text-center text-slate-400">ไม่พบประวัติการลาของรหัสนี้</td></tr>';
         } else {
           leavesBody.innerHTML = myLeaves.map((lv) => {
             const stBadge =
-              lv.approval_status === 'อนุมัติ' ? 'bg-emerald-100 text-emerald-700' :
-              lv.approval_status === 'ไม่อนุมัติ' ? 'bg-rose-100 text-rose-700' :
-              'bg-amber-100 text-amber-700';
+              lv.approval_status === "อนุมัติ" ? "bg-emerald-100 text-emerald-700" :
+              lv.approval_status === "ไม่อนุมัติ" ? "bg-rose-100 text-rose-700" :
+              "bg-amber-100 text-amber-700";
             return `
               <tr>
-                <td class="py-2.5 px-3 font-medium">${lv.leave_type || '-'}</td>
-                <td class="py-2.5 px-3 text-xs">${lv.start_date || '-'} ถึง ${lv.end_date || '-'}</td>
-                <td class="py-2.5 px-3">${lv.reason || '-'}</td>
-                <td class="py-2.5 px-3"><span class="px-2.5 py-0.5 rounded-full text-xs font-medium ${stBadge}">${lv.approval_status || 'รออนุมัติ'}</span></td>
+                <td class="py-2.5 px-3 font-medium">${lv.leave_type || "-"}</td>
+                <td class="py-2.5 px-3 text-xs">${lv.start_date || "-"} ถึง ${lv.end_date || "-"}</td>
+                <td class="py-2.5 px-3">${lv.reason || "-"}</td>
+                <td class="py-2.5 px-3"><span class="px-2.5 py-0.5 rounded-full text-xs font-medium ${stBadge}">${lv.approval_status || "รออนุมัติ"}</span></td>
               </tr>
             `;
-          }).join('');
+          }).join("");
         }
 
-        const attBody = document.getElementById('myAttBody');
+        const attBody = document.getElementById("myAttBody");
         if (!myAtt.length) {
           attBody.innerHTML = '<tr><td colspan="4" class="py-5 text-center text-slate-400">ไม่พบประวัติการลงเวลาของรหัสนี้</td></tr>';
         } else {
           attBody.innerHTML = myAtt.map((r) => {
             const stBadge =
-              r.status === 'ตรงเวลา' ? 'bg-emerald-100 text-emerald-700' :
-              r.status === 'มาสาย' ? 'bg-amber-100 text-amber-700' :
-              'bg-slate-100 text-slate-700';
+              r.status === "ตรงเวลา" ? "bg-emerald-100 text-emerald-700" :
+              r.status === "มาสาย" ? "bg-amber-100 text-amber-700" :
+              "bg-slate-100 text-slate-700";
             return `
               <tr>
-                <td class="py-2.5 px-3">${r.date || '-'}</td>
-                <td class="py-2.5 px-3">${r.check_in || '-'}</td>
-                <td class="py-2.5 px-3">${r.check_out || '-'}</td>
-                <td class="py-2.5 px-3"><span class="px-2.5 py-0.5 rounded-full text-xs font-medium ${stBadge}">${r.status || '-'}</span></td>
+                <td class="py-2.5 px-3">${r.date || "-"}</td>
+                <td class="py-2.5 px-3">${r.check_in || "-"}</td>
+                <td class="py-2.5 px-3">${r.check_out || "-"}</td>
+                <td class="py-2.5 px-3"><span class="px-2.5 py-0.5 rounded-full text-xs font-medium ${stBadge}">${r.status || "-"}</span></td>
               </tr>
             `;
-          }).join('');
+          }).join("");
         }
       } catch (err) {
-        badgeEl.textContent = 'เชื่อมต่อไม่ได้';
+        badgeEl.textContent = "เชื่อมต่อไม่ได้";
         console.error(err);
       }
     }
 
-    document.getElementById('loadProfileBtn').addEventListener('click', loadMyProfile);
+    document.getElementById("loadProfileBtn").addEventListener("click", loadMyProfile);
 
-    setAuthTab('register');
-    switchView(isLoggedIn() ? 'attendance' : 'auth');
+    setAuthTab("register");
+    switchView(isLoggedIn() ? "attendance" : "auth");
   </script>
 </body>
 </html>
